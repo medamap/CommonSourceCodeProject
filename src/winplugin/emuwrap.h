@@ -10,9 +10,15 @@
 
 #include "..\emu.h"
 
+#ifdef _UNITY_2020_3 // MedamaP
+#include "Unity2020_3/IUnityInterface.h"
+#include "Unity2020_3/IUnityGraphics.h"
+#include "Unity2020_3/IUnityGraphicsD3D11.h"
+#else
 #include "Unity/IUnityInterface.h"
 #include "Unity/IUnityGraphics.h"
 #include "Unity/IUnityGraphicsD3D11.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {

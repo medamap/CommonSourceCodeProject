@@ -407,11 +407,13 @@ extern "C"
 
 	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API EmulKeyUp(int keyCode)
 	{
+		emu->key_up(keyCode, false);
 		//		keyup(keyCode);
 	}
 
 	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API EmulKeyDown(int keyCode)
 	{
+		emu->key_down(keyCode, false, false);
 		//		keydown(keyCode);
 	}
 

@@ -987,7 +987,9 @@ int16_t DLL_PREFIX ExchangeEndianS16(uint16_t x);
 #ifdef _MSC_VER
 	#define __DECL_ALIGNED(foo) __declspec(align(foo))
 	#ifndef __builtin_assume_aligned
-		#define __builtin_assume_aligned(foo, a) foo
+		#ifndef _UNITY // MedamaP
+			#define __builtin_assume_aligned(foo, a) foo
+		#endif
 	#endif
 #elif defined(__GNUC__)
 	#define __DECL_ALIGNED(foo) __attribute__((aligned(foo)))

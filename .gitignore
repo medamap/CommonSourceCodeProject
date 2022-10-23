@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+*.vcxproj.user
+vc++2022/obj
+.idea
+.vs
+vc++2022/bin
+*.sln
