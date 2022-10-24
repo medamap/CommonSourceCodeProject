@@ -176,7 +176,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_X1TURBO;_UNITY;_UNITY_2020_3;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_X1TURBO;_UNITY;_UNITY_2020_3;_DEBUG_LOG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
@@ -382,6 +382,7 @@
     <ClCompile Include="..\src\win32\winmain.cpp" />
     <ClCompile Include="..\src\winplugin\dllmain.cpp" />
     <ClCompile Include="..\src\winplugin\emuwrap.cpp" />
+    <ClCompile Include="..\src\winplugin\unitylog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\common.h" />
@@ -442,6 +443,7 @@
     <ClInclude Include="..\src\vm\z80dma.h" />
     <ClInclude Include="..\src\vm\z80sio.h" />
     <ClInclude Include="..\src\win32\osd.h" />
+    <ClInclude Include="..\src\winplugin\unitylog.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\src\res\indicator\access_green.bmp" />

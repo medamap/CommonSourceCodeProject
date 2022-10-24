@@ -171,6 +171,12 @@
     <ClCompile Include="..\src\vm\pc8801\pc8801.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\winplugin\emuwrap.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\winplugin\dllmain.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\common.h">

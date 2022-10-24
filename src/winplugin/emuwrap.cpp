@@ -317,17 +317,16 @@ void emuwrap::TextureUpdate()
 
 void emuwrap::emuSendAudio(float data[], int sz, int ch)
 {
-/*
 	int16_t *buf = emu->get_osd()->get_sound_buffer();
-	if (buf == NULL) return;
+	int size = emu->get_osd()->get_sound_buffer_size();
+	if (buf == NULL || size == NULL) return;
 
 	std::lock_guard<std::mutex> lock(m_mutex);
 	for (int i = 0; i < sz; i++)
 	{
+		if (size < sz) break;
 		data[i] = m_wavtbl[buf[i]];
-
 	}
- */
 }
 
 extern "C"
@@ -431,6 +430,14 @@ extern "C"
 	{
 		if (!bInitialized) return;
 		g_emuwrap->emuSendAudio(data, sz, ch);
+	}
+
+	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API EmuOpenFloppyDisk(int drv, wchar_t* filePath, int bank)
+	{
+		const int bufferSize = 4096;
+		static char buffer[bufferSize];
+		wcstombs(buffer, filePath, sizeof(filePath));
+		emu->open_floppy_disk(0, buffer, 0);
 	}
 
 };

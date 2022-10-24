@@ -50,6 +50,7 @@ EMU::EMU()
 	message_count = 0;
 	
 #ifdef USE_FLOPPY_DISK
+	force_out_debug_log(_T("********** %d", 123));
 	// initialize d88 file info
 	memset(d88_file, 0, sizeof(d88_file));
 #endif
@@ -2308,6 +2309,7 @@ bool EMU::create_blank_floppy_disk(const _TCHAR* file_path, uint8_t type)
 void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < USE_FLOPPY_DISK) {
+
 		d88_file[drv].bank_num = 0;
 		d88_file[drv].cur_bank = -1;
 		
