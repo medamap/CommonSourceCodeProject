@@ -213,13 +213,13 @@
     <ClCompile Include="..\src\vm\x1\x1.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\winplugin\unitylog.cpp">
+      <Filter>Source Files\EMU Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\winplugin\dllmain.cpp">
-      <Filter>Source Files\OSD Source Files</Filter>
+      <Filter>Source Files\EMU Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\winplugin\emuwrap.cpp">
-      <Filter>Source Files\OSD Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\winplugin\unitylog.cpp">
       <Filter>Source Files\EMU Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -399,7 +399,7 @@
       <Filter>Resource Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\winplugin\unitylog.h">
-      <Filter>Source Files\EMU Source Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
