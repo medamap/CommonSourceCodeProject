@@ -121,6 +121,7 @@ extern "C"
 	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API EmulReset(void);
 
 	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API EmuSendAudio(float data[], int sz, int channels);
+	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API EmuOpenFloppyDisk(int drv, const _TCHAR* filePath, int bank);
 
 };
 

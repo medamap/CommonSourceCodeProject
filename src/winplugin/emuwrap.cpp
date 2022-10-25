@@ -432,12 +432,9 @@ extern "C"
 		g_emuwrap->emuSendAudio(data, sz, ch);
 	}
 
-	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API EmuOpenFloppyDisk(int drv, wchar_t* filePath, int bank)
+	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API EmuOpenFloppyDisk(int drv, const _TCHAR* filePath, int bank)
 	{
-		const int bufferSize = 4096;
-		static char buffer[bufferSize];
-		wcstombs(buffer, filePath, sizeof(filePath));
-		emu->open_floppy_disk(0, buffer, 0);
+		emu->open_floppy_disk(drv, filePath, 0);
 	}
 
 };
