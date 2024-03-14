@@ -445,7 +445,12 @@ private:
 	FILEIO* rec_sound_fio;
 	int rec_sound_bytes;
 	int rec_sound_buffer_ptr;
-	
+
+#ifdef _UNITY	// MedamaP
+	uint16_t* unity_sound_buffer;
+	int unity_sound_buffer_size;
+#endif
+
 	// video device
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	void initialize_video();
@@ -639,6 +644,7 @@ public:
 	bool now_record_sound;
 #ifdef _UNITY	// MARU
 	int16_t	* get_sound_buffer();
+	int get_sound_buffer_size(); // MedamaP
 #endif // !_UNITY
 	
 	// common video device
