@@ -4,6 +4,10 @@
 	Author : K.Ohta
 	Date   : 2015.01.01-
 
+ 	[for Android]
+	Modify : @shikarunochi
+	Date   : 2020.06.01-
+
 	[ virtual machine ]
 */
 
@@ -32,7 +36,9 @@
 #define USE_AUTO_KEY_NUMPAD
 #define USE_SCREEN_FILTER
 #define USE_STATE
+#if !defined(__ANDROID__)
 #define USE_DEBUGGER
+#endif
 #define DATAREC_SOUND
 #define USE_DIG_RESOLUTION
 
@@ -273,7 +279,12 @@
 #else /* Not have 400 line */
 
 #define SCREEN_WIDTH		640
+//adjust for Android
+#if defined(__ANDROID__)
+#define SCREEN_HEIGHT		400
+#else
 #define SCREEN_HEIGHT		200
+#endif
 # if defined(FIXED_FRAMEBUFFER_SIZE)
 #  define SCREEN_FAKE_WIDTH   640
 #  define SCREEN_FAKE_HEIGHT  400
