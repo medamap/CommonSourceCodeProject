@@ -413,9 +413,15 @@ int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TC
 void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 {
 	size_t len1;
-	register size_t len2;
+#if defined(__ANDROID__)
+	size_t len2;
+	uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
+	uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
+#else
+    register size_t len2;
 	register uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
 	register uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
+#endif
 	int i;
 	
 	if(len == 0) return dst;
@@ -746,8 +752,13 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 	}
 #else
 	// Using SIMD *with* un-aligned instructions.
-	register uint32_t *s32 = (uint32_t *)src;
+#if defined(__ANDROID__)
+    uint32_t *s32 = (uint32_t *)src;
+    uint32_t *d32 = (uint32_t *)dst;
+#else
+    register uint32_t *s32 = (uint32_t *)src;
 	register uint32_t *d32 = (uint32_t *)dst;
+#endif
 	if(((s_align & 0x07) != 0x0) && ((d_align & 0x07) != 0x0)) { // None align.
 		return memcpy(dst, src, len);
 	}
@@ -1055,8 +1066,8 @@ const _TCHAR *DLL_PREFIX get_application_path()
 			my_tcscpy_s(app_path, _MAX_PATH, _T(".\\"));
 		}
 #elif defined(__ANDROID__)
-		sprintf(app_path,"/sdcard/emulator/%sROM%s/",CONFIG_NAME, "");
-		//sprintf(app_path,"%s/emulator/%sROM%s/", documentDir, CONFIG_NAME, "");
+		//sprintf(app_path,"/sdcard/emulator/%sROM%s/",CONFIG_NAME, "");
+		sprintf(app_path,"%s/emulator/%sROM%s/", documentDir, CONFIG_NAME, "");
 	return (const _TCHAR *)app_path;
 #else
 #if defined(Q_OS_WIN)
@@ -1657,7 +1668,7 @@ const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCH
 }
 
 #if defined(__ANDROID__)
-//•ÏŠ·‘Î‰‚µ‚Ä‚é‚Ì‚Í”¼ŠpƒJƒi‚¾‚¯‚Å‚·B
+//ï¿½ÏŠï¿½ï¿½Î‰ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½Ì‚Í”ï¿½ï¿½pï¿½Jï¿½iï¿½ï¿½ï¿½ï¿½ï¿½Å‚ï¿½ï¿½B
 void convertUTF8fromSJIS(char *src,char *dest,int length){
     int srcIndex = 0;
     int destIndex = 0;
@@ -1674,7 +1685,7 @@ void convertUTF8fromSJIS(char *src,char *dest,int length){
             }
             int kanaIndex;
             uint16_t uft8StartIndex;
-            if(srcData <= 191){ //191¿
+            if(srcData <= 191){ //191ï¿½
                 kanaIndex = srcData -161;
                 uft8StartIndex = 0xBDA1;
             }else {

@@ -19,6 +19,8 @@
 // Medamap
 #if defined(__ANDROID__)
 #include <algorithm>
+typedef signed long __int64;
+typedef __int64 LONG_PTR;
 #endif
 
 // crc table
