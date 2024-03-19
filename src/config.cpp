@@ -115,15 +115,22 @@ void initialize_config()
 	config.sound_latency = 1;	// 100msec
 	config.sound_strict_rendering = true;
 	#ifdef USE_FLOPPY_DISK
+        #if !defined(__ANDROID__)
 		config.sound_noise_fdd = true;
+        #else
+            config.sound_noise_fdd = false;
 	#endif
 	#ifdef USE_QUICK_DISK
 		config.sound_noise_qd = true;
 	#endif
 	#ifdef USE_TAPE
+        #if !defined(__ANDROID__)
 		config.sound_noise_cmt = true;
-		config.sound_tape_signal = true;
-		config.sound_tape_voice = true;
+            config.sound_play_tape = true;
+        #else
+            config.sound_noise_cmt = false;
+            config.sound_play_tape = false;
+        #endif
 	#endif
 	
 	// input

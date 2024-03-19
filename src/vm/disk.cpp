@@ -16,6 +16,11 @@
 #define local_path(x) (x)
 #endif
 
+// Medamap
+#if defined(__ANDROID__)
+#include <algorithm>
+#endif
+
 // crc table
 static const uint16_t crc_table[256] = {
 	0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7, 0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
@@ -1561,7 +1566,12 @@ void DISK::trim_buffer()
 	file_size.write_4bytes_le_to(tmp_buffer + 0x1c);
 	
 	memset(buffer, 0, sizeof(buffer));
+// Medamap
+#if !defined(__ANDROID__)
 	memcpy(buffer, tmp_buffer, min(sizeof(buffer), file_size.d));
+#else
+	memcpy(buffer, tmp_buffer, std::min(sizeof(buffer), static_cast<size_t>(file_size.d)));
+#endif
 }
 
 int DISK::get_max_tracks()

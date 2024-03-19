@@ -4,6 +4,10 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.08.18 -
 
+ 	[for Android]
+	Modify : @shikarunochi
+	Date   : 2020.06.01-
+
 	[ win32 emulation i/f ]
 */
 
@@ -39,6 +43,8 @@ extern CSP_Logger *csp_logger;
 EMU::EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, USING_FLAGS *p)
 #elif defined(OSD_WIN32)
 EMU::EMU(HWND hwnd, HINSTANCE hinst)
+#elif defined(__ANDROID__)
+EMU::EMU(struct android_app* state)
 #else
 EMU::EMU()
 #endif
@@ -69,7 +75,9 @@ EMU::EMU()
 	sound_latency = config.sound_latency;
 	sound_rate = sound_frequency_table[config.sound_frequency];
 	sound_samples = (int)(sound_rate * sound_latency_table[config.sound_latency] + 0.5);
-	
+#if defined(__ANDROID__)
+	LOGI("sound Frequency %d: rate %d: samples %d ",config.sound_frequency,sound_rate,sound_samples);
+#endif
 #ifdef USE_CPU_TYPE
 	cpu_type = config.cpu_type;
 #endif
@@ -89,6 +97,8 @@ EMU::EMU()
 	// initialize osd
 #if defined(OSD_QT)
 	osd = new OSD(p, csp_logger);
+#elif defined(__ANDROID__)
+    osd = new OSD(state);
 #else
 	osd = new OSD();
 #endif
@@ -1586,22 +1596,32 @@ bool EMU::is_video_recording()
 
 void EMU::mute_sound()
 {
+#if !defined(__ANDROID__)
 	osd->mute_sound();
+#endif
 }
 
 void EMU::start_record_sound()
 {
+#if !defined(__ANDROID__)
 	osd->start_record_sound();
+#endif
 }
 
 void EMU::stop_record_sound()
 {
+#if !defined(__ANDROID__)
 	osd->stop_record_sound();
+#endif
 }
 
 bool EMU::is_sound_recording()
 {
+#if !defined(__ANDROID__)
 	return osd->now_record_sound;
+#else
+    return false;
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -1966,10 +1986,12 @@ void EMU::out_message(const _TCHAR* format, ...)
 // misc
 // ----------------------------------------------------------------------------
 
+#if !defined(__ANDROID__)
 void EMU::sleep(uint32_t ms)
 {
 	osd->sleep(ms);
 }
+#endif
 
 // ----------------------------------------------------------------------------
 // user interface
@@ -2242,8 +2264,10 @@ void EMU::open_cart(int drv, const _TCHAR* file_path)
 		bool v = osd->now_record_video;
 		stop_record_sound();
 		stop_record_video();
+#if !defined(___ANDROID__)
 		if(s) osd->start_record_sound();
 		if(v) osd->start_record_video(-1);
+#endif
 #endif
 	}
 }
@@ -2277,7 +2301,11 @@ bool EMU::is_cart_inserted(int drv)
 #endif
 
 #ifdef USE_FLOPPY_DISK
+#if !defined(__ANDROID__)
 bool EMU::create_blank_floppy_disk(const _TCHAR* file_path, uint8_t type)
+#else
+void EMU::create_bank_floppy_disk(const _TCHAR* file_path, uint8_t type)
+#endif
 {
 	/*
 		type: 0x00 = 2D, 0x10 = 2DD, 0x20 = 2HD
@@ -2302,7 +2330,9 @@ bool EMU::create_blank_floppy_disk(const _TCHAR* file_path, uint8_t type)
 		fio->Fclose();
 	}
 	delete fio;
+#if !defined(__ANDROID__)
 	return true;
+#endif
 }
 
 void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
@@ -2380,6 +2410,7 @@ void EMU::close_floppy_disk(int drv)
 	}
 }
 
+#if !defined(__ANDROID__)
 bool EMU::is_floppy_disk_connected(int drv)
 {
 	if(drv < USE_FLOPPY_DISK) {
@@ -2388,6 +2419,7 @@ bool EMU::is_floppy_disk_connected(int drv)
 		return false;
 	}
 }
+#endif
 
 bool EMU::is_floppy_disk_inserted(int drv)
 {
@@ -2472,6 +2504,7 @@ bool EMU::is_quick_disk_inserted(int drv)
 	}
 }
 
+#if !defined(___ANDROID__)
 bool EMU::is_quick_disk_connected(int drv)
 {
 	if(drv < USE_QUICK_DISK) {
@@ -2480,6 +2513,7 @@ bool EMU::is_quick_disk_connected(int drv)
 		return false;
 	}
 }
+#endif
 
 uint32_t EMU::is_quick_disk_accessed()
 {
@@ -2488,6 +2522,7 @@ uint32_t EMU::is_quick_disk_accessed()
 #endif
 
 #ifdef USE_HARD_DISK
+#if !defined(__ANDROID__)
 bool EMU::create_blank_hard_disk(const _TCHAR* file_path, int sector_size, int sectors, int surfaces, int cylinders)
 {
 	if(check_file_extension(file_path, _T(".nhd"))) {
@@ -2573,6 +2608,7 @@ bool EMU::create_blank_hard_disk(const _TCHAR* file_path, int sector_size, int s
 	// unknown extension
 	return false;
 }
+#endif
 
 void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 {
