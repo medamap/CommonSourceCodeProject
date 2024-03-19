@@ -18,11 +18,12 @@ cmake_minimum_required(VERSION 3.4.1)
 
 # Set the path to the Oboe library directory\
 set (OBOE_DIR ../../../../oboe)
+set (OBOE_BASE_DIR ../../../../../oboe)
 set (CSP_SRC_DIR ../../../../../src)
 set (CSP_VM_SRC_DIR ../../../../../src/vm)
 set (ANDROID_SRC_DIR ./Android)
 
-add_subdirectory(${OBOE_DIR} ./oboe-bin)
+add_subdirectory(${OBOE_BASE_DIR} ./oboe-bin)
 include_directories(${OBOE_DIR}/include)
 
 # build native_app_glue as a static lib

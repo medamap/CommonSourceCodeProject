@@ -54,6 +54,8 @@ set(HEADER
 	../../../../../src/vm/x1/sasi.h
 	../../../../../src/vm/x1/sub.h
 	../../../../../src/vm/x1/x1.h
+	../../../../../src/vm/x1/cz8rb.h
+	../../../../../src/vm/pcm8bit.h
 )
 
 add_library(native-activity SHARED
@@ -106,4 +108,6 @@ add_library(native-activity SHARED
 	../../../../../src/vm/x1/sasi.cpp
 	../../../../../src/vm/x1/sub.cpp
 	../../../../../src/vm/x1/x1.cpp
+	../../../../../src/vm/x1/cz8rb.cpp
+	../../../../../src/vm/pcm8bit.cpp
 )

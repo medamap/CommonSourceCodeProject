@@ -53,7 +53,9 @@ oboe::DataCallbackResult OBOESOUND::onAudioReady(oboe::AudioStream *oboeStream, 
     if(inputSoundBufferPos <= outputSoundBufferPos){
         return oboe::DataCallbackResult::Continue;
     }
+#if !defined(__ANDROID__)
     int32_t channelCount = oboeStream->getChannelCount();
+#endif
     int32_t bufferSize = oboeStream->getBufferSizeInFrames();
     int writeBufferSize = 0;
     writeBufferSize = inputSoundBufferPos - outputSoundBufferPos;
