@@ -18,6 +18,7 @@
 	#include <string>
 	#include <algorithm>
 	#include <cctype>
+    #include "Android/osd.h"
 #endif
 #if defined(_USE_QT)
 	#include <string.h>
@@ -47,6 +48,7 @@
 #include "fileio.h"
 #if defined(__ANDROID__)
 #include "config.h"
+
 #endif
 
 #if defined(__MINGW32__) || defined(__MINGW64__)
@@ -1068,7 +1070,9 @@ const _TCHAR *DLL_PREFIX get_application_path()
 #elif defined(__ANDROID__)
 		//sprintf(app_path,"/sdcard/emulator/%sROM%s/",CONFIG_NAME, "");
 		sprintf(app_path,"%s/emulator/%sROM%s/", documentDir, CONFIG_NAME, "");
-	return (const _TCHAR *)app_path;
+        LOGI("Path: %s", app_path);
+
+    	return (const _TCHAR *)app_path;
 #else
 #if defined(Q_OS_WIN)
 		std::string delim = "\\";
@@ -1668,7 +1672,7 @@ const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCH
 }
 
 #if defined(__ANDROID__)
-//�ϊ��Ή����Ă�͔̂��p�J�i�����ł��B
+//変換対応してるのは半角カナだけです。
 void convertUTF8fromSJIS(char *src,char *dest,int length){
     int srcIndex = 0;
     int destIndex = 0;

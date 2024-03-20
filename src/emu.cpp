@@ -2504,7 +2504,7 @@ bool EMU::is_quick_disk_inserted(int drv)
 	}
 }
 
-#if !defined(___ANDROID__)
+#if !defined(__ANDROID__)
 bool EMU::is_quick_disk_connected(int drv)
 {
 	if(drv < USE_QUICK_DISK) {

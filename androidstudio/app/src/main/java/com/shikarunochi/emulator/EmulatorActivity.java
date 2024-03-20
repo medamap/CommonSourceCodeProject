@@ -1,8 +1,10 @@
 package com.shikarunochi.emulator;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.NativeActivity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -13,9 +15,11 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.Window;
 import android.view.WindowManager;
 
+import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class EmulatorActivity extends NativeActivity {
