@@ -402,3 +402,4 @@ androidstudio/app/.cxx
 androidstudio/app/build
 *.bak
 androidstudio/oboe_old
+androidstudio/local.properties

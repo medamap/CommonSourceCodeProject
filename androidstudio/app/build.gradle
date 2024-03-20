@@ -3,12 +3,12 @@ apply plugin: 'com.android.application'
 android {
 
     compileSdkVersion 29
-    ndkVersion '21.2.6472646'
+    ndkVersion '26.2.11394342'
 
     defaultConfig {
         applicationId = 'com.shikarunochi.emulator.native_activity'
-        minSdkVersion 26
-        targetSdkVersion 26
+        minSdkVersion 29
+        targetSdkVersion 29
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_STL=c++_static'

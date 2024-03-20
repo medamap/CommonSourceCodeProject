@@ -7,6 +7,7 @@
 	[ android main ]
 */
 
+#include <android/native_activity.h>
 #include <android_native_app_glue.h>
 #include <android/window.h>
 
@@ -68,6 +69,7 @@ showAlert(struct android_app *state, const char *message, const char *filenames,
           int selectMode = 0, int selectIndex = 0);
 
 const char *jniGetDocumentPath(struct android_app *state);
+const char *jniGetExternalStoragePath(struct android_app *state);
 
 void jniReadIconData(struct android_app *state);
 
@@ -1262,28 +1264,50 @@ const char *jniGetDocumentPath(struct android_app *state) {
     state->activity->vm->AttachCurrentThread(&jni, NULL);
 
     jclass environmentClass = jni->FindClass("android/os/Environment");
-
-    jfieldID fieldID = jni->GetStaticFieldID(environmentClass, "DIRECTORY_DOCUMENTS",
-                                             "Ljava/lang/String;");
+    jfieldID fieldID = jni->GetStaticFieldID(environmentClass, "DIRECTORY_DOCUMENTS", "Ljava/lang/String;");
     jobject DIRECTORY_DOCUMENTS = jni->GetStaticObjectField(environmentClass, fieldID);
 
+    jmethodID getStoragePDirMethod = jni->GetStaticMethodID(environmentClass, "getExternalStoragePublicDirectory", "(Ljava/lang/String;)Ljava/io/File;");
+    jobject fileObject = jni->CallStaticObjectMethod(environmentClass, getStoragePDirMethod, DIRECTORY_DOCUMENTS);
 
-    jmethodID getStoragePDirMethod =
-            //       jni->GetStaticMethodID(environmentClass, "getExternalStorageDirectory", "()Ljava/io/File;");
-            jni->GetStaticMethodID(environmentClass, "getExternalStoragePublicDirectory",
-                                   "(Ljava/lang/String;)Ljava/io/File;");
-
-    //jobject fileObject = jni->CallStaticObjectMethod(environmentClass, getStoragePDirMethod);
-    jobject fileObject = jni->CallStaticObjectMethod(environmentClass, getStoragePDirMethod,
-                                                     DIRECTORY_DOCUMENTS);
     jclass fileClass = jni->FindClass("java/io/File");
     jmethodID getPathMethod = jni->GetMethodID(fileClass, "getPath", "()Ljava/lang/String;");
     jobject strPathObject = jni->CallObjectMethod(fileObject, getPathMethod);
+
     const char *documentDirPath = jni->GetStringUTFChars((jstring) strPathObject, 0);
-    char *dup = strdup(documentDirPath);
-    jni->ReleaseStringUTFChars((jstring) strPathObject, documentDirPath);
+    char *dup = strdup(documentDirPath);  // Duplicate the string to return
+
+    jni->ReleaseStringUTFChars((jstring) strPathObject, documentDirPath);  // Release temporary JNI string
+    jni->DeleteLocalRef(strPathObject);  // Clean up local references
+    jni->DeleteLocalRef(fileObject);
+    jni->DeleteLocalRef(DIRECTORY_DOCUMENTS);
+    jni->DeleteLocalRef(fileClass);
+    jni->DeleteLocalRef(environmentClass);
+
     state->activity->vm->DetachCurrentThread();
-    return documentDirPath;
+    return dup;  // Return the duplicated string
+}
+
+const char *jniGetExternalStoragePath(struct android_app *state) {
+    JNIEnv *jni = NULL;
+    state->activity->vm->AttachCurrentThread(&jni, NULL);
+
+    // アプリ固有の外部ストレージディレクトリを取得
+    jclass contextClass = jni->FindClass("android/content/Context");
+    jmethodID getExternalFilesDirMethod = jni->GetMethodID(contextClass, "getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;");
+    jobject fileObject = jni->CallObjectMethod(state->activity->clazz, getExternalFilesDirMethod, NULL);
+
+    jclass fileClass = jni->FindClass("java/io/File");
+    jmethodID getPathMethod = jni->GetMethodID(fileClass, "getPath", "()Ljava/lang/String;");
+    jobject pathObject = jni->CallObjectMethod(fileObject, getPathMethod);
+
+    const char *path = jni->GetStringUTFChars((jstring) pathObject, NULL);
+    char *dup = strdup(path);
+
+    jni->ReleaseStringUTFChars((jstring) pathObject, path);
+    state->activity->vm->DetachCurrentThread();
+
+    return dup;  // 呼び出し側で free() する必要がある
 }
 
 void jniReadIconData(struct android_app *state) {
@@ -1485,8 +1509,10 @@ void android_main(struct android_app *state) {
     state->onInputEvent = engine_handle_input;
     engine.app = state;
 
-    const char *documentDirTemp = jniGetDocumentPath(state);
+    //const char *documentDirTemp = jniGetDocumentPath(state);
+    const char *documentDirTemp = jniGetExternalStoragePath(state);
     sprintf(documentDir, "%s", documentDirTemp);
+    free((void*)documentDirTemp);
     LOGI("documentDir: %s", documentDir);
 
     //Read Icon Image

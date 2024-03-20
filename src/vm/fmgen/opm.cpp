@@ -16,11 +16,7 @@
 namespace FM
 {
 
-#if !defined(__ANDROID__)
 int OPM::amtable[4][OPM_LFOENTS] = { -1, };
-#else
-int OPM::amtable[4][OPM_LFOENTS] = { {-1}, };
-#endif
 int OPM::pmtable[4][OPM_LFOENTS];
 
 // ---------------------------------------------------------------------------

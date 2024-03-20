@@ -198,7 +198,6 @@ void OSD::add_extra_frames(int extra_frames)
 
 unsigned __stdcall rec_video_thread(void *lpx)
 {
-
 	return 0;
 }
 

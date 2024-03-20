@@ -1110,7 +1110,6 @@ const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCH
 
 #if defined(__ANDROID__)
 void convertUTF8fromSJIS(char *src,char *desc,int length);
-
 extern char documentDir[_MAX_PATH];
 #endif
 
