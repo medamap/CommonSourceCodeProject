@@ -126,7 +126,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 #else
 	voice = new UPD7752(this, emu);
 	event->set_context_sound(voice);
-	memory->set_context_timer(timer);
+	// memory->set_context_timer(timer);	// Medamap no member named set_context_timer
 #endif
 	memory->set_context_cpu(cpu);
 	joystick->set_context_psg(psg);
@@ -367,7 +367,7 @@ void VM::draw_screen()
 #ifdef _PC6001
 	display->draw_screen();
 #else
-	memory->draw_screen();
+	memory->draw_screen(); // Medamap No member named draw_screen
 #endif
 }
 // ----------------------------------------------------------------------------
@@ -628,9 +628,12 @@ bool VM::is_tape_inserted(int drv)
 {
 	if(support_sub_cpu) {
 		return drec->is_tape_inserted() || sub->is_tape_inserted();
+// why comment out?
 //	} else {
 //		return psub->is_tape_inserted();
 	}
+    // MedamaP
+    return false;
 }
 
 bool VM::is_tape_playing(int drv)

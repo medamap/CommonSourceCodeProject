@@ -1,6 +1,5 @@
 set(HEADER
         ../../../../../src/common.h
-        ../../../../../src/common.h
         ../../../../../src/config.h
         ../../../../../src/emu.h
         ../../../../../src/fifo.h
