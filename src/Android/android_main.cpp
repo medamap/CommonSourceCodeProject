@@ -44,8 +44,10 @@ bool softKeyCtrl = false;
 int softKeyCode = 0;
 bool softKeyDelayFlag = false;
 
-ScreenSize screenSize = SCREEN_SIZE_JUST;
-ScreenSize preScreenSize = SCREEN_SIZE_JUST;
+//ScreenSize screenSize = SCREEN_SIZE_JUST;
+//ScreenSize preScreenSize = SCREEN_SIZE_JUST;
+ScreenSize screenSize = SCREEN_SIZE_1;
+ScreenSize preScreenSize = SCREEN_SIZE_1;
 //#define  LOG_TAG    "libplasma"
 //#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGW(...)  __android_log_print(ANDROID_LOG_WARN,LOG_TAG,__VA_ARGS__)
@@ -70,6 +72,9 @@ showAlert(struct android_app *state, const char *message, const char *filenames,
 
 const char *jniGetDocumentPath(struct android_app *state);
 const char *jniGetExternalStoragePath(struct android_app *state);
+const char *jniGetDownloadPath(struct android_app *state);
+const char *jniGetSdcardDownloadPath(struct android_app *state);
+
 
 void jniReadIconData(struct android_app *state);
 
@@ -1310,6 +1315,54 @@ const char *jniGetExternalStoragePath(struct android_app *state) {
     return dup;  // 呼び出し側で free() する必要がある
 }
 
+const char *jniGetDownloadPath(struct android_app *state) {
+    JNIEnv *jni = NULL;
+    state->activity->vm->AttachCurrentThread(&jni, NULL);
+
+    jclass environmentClass = jni->FindClass("android/os/Environment");
+    jfieldID downloadDirField = jni->GetStaticFieldID(environmentClass, "DIRECTORY_DOWNLOADS", "Ljava/lang/String;");
+    jobject downloadDir = jni->GetStaticObjectField(environmentClass, downloadDirField);
+
+    jmethodID getExternalStoragePublicDirectoryMethod = jni->GetStaticMethodID(environmentClass, "getExternalStoragePublicDirectory", "(Ljava/lang/String;)Ljava/io/File;");
+    jobject fileObject = jni->CallStaticObjectMethod(environmentClass, getExternalStoragePublicDirectoryMethod, downloadDir);
+
+    jclass fileClass = jni->FindClass("java/io/File");
+    jmethodID getPathMethod = jni->GetMethodID(fileClass, "getPath", "()Ljava/lang/String;");
+    jobject pathObject = jni->CallObjectMethod(fileObject, getPathMethod);
+
+    const char *path = jni->GetStringUTFChars((jstring) pathObject, NULL);
+    char *dup = strdup(path);
+
+    jni->ReleaseStringUTFChars((jstring) pathObject, path);
+    state->activity->vm->DetachCurrentThread();
+
+    return dup; // 呼び出し側で free() する必要がある
+}
+
+const char *jniGetSdcardDownloadPath(struct android_app *state) {
+    JNIEnv *jni = NULL;
+    state->activity->vm->AttachCurrentThread(&jni, NULL);
+
+    jclass environmentClass = jni->FindClass("android/os/Environment");
+    jmethodID getExternalStorageDirectoryMethod = jni->GetStaticMethodID(environmentClass, "getExternalStorageDirectory", "()Ljava/io/File;");
+    jobject externalStorageFileObject = jni->CallStaticObjectMethod(environmentClass, getExternalStorageDirectoryMethod);
+
+    jclass fileClass = jni->FindClass("java/io/File");
+    jmethodID getPathMethod = jni->GetMethodID(fileClass, "getPath", "()Ljava/lang/String;");
+    jstring externalStoragePath = (jstring) jni->CallObjectMethod(externalStorageFileObject, getPathMethod);
+
+    const char *externalPath = jni->GetStringUTFChars(externalStoragePath, NULL);
+    const char *downloadPathSuffix = "/Download";
+    char *downloadPath = (char *)malloc(strlen(externalPath) + strlen(downloadPathSuffix) + 1); // +1 for the null terminator
+    strcpy(downloadPath, externalPath);
+    strcat(downloadPath, downloadPathSuffix);
+
+    jni->ReleaseStringUTFChars(externalStoragePath, externalPath);
+    state->activity->vm->DetachCurrentThread();
+
+    return downloadPath; // 呼び出し側で free() する必要がある
+}
+
 void jniReadIconData(struct android_app *state) {
     JNIEnv *jni = NULL;
     state->activity->vm->AttachCurrentThread(&jni, NULL);
@@ -1510,7 +1563,10 @@ void android_main(struct android_app *state) {
     engine.app = state;
 
     //const char *documentDirTemp = jniGetDocumentPath(state);
-    const char *documentDirTemp = jniGetExternalStoragePath(state);
+    //const char *documentDirTemp = jniGetExternalStoragePath(state);
+    //const char *documentDirTemp = jniGetDownloadPath(state);
+    const char *documentDirTemp = jniGetSdcardDownloadPath(state);
+
     sprintf(documentDir, "%s", documentDirTemp);
     free((void*)documentDirTemp);
     LOGI("documentDir: %s", documentDir);

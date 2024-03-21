@@ -1,5 +1,6 @@
 package com.shikarunochi.emulator;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -7,6 +8,7 @@ import android.app.NativeActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -14,6 +16,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.Window;
@@ -24,10 +27,38 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class EmulatorActivity extends NativeActivity {
 
+    private static final int PERMISSIONS_REQUEST_CODE = 1;
+    private static final int OPEN_DOCUMENT_REQUEST_CODE = 1;
+    private static final String[] PERMISSIONS_REQUIRED = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!hasPermissions()) {
+                requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
+            }
+        }
+        // ユーザーにファイルピッカーを表示し、SDカード上のファイルへのアクセスを許可してもらう
+        //Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        //intent.addCategory(Intent.CATEGORY_OPENABLE);
+        //intent.setType("*/*");  // 必要に応じてファイルタイプを指定
+        //startActivityForResult(intent, OPEN_DOCUMENT_REQUEST_CODE);
+
         System.loadLibrary("native-activity");
+    }
+
+    private boolean hasPermissions() {
+        for (String permission : PERMISSIONS_REQUIRED) {
+            if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
