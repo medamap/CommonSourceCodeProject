@@ -4,6 +4,10 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.08.18 -
 
+ 	[for Android]
+	Modify : @shikarunochi
+	Date   : 2020.06.01-
+
 	[ common header ]
 */
 
@@ -107,8 +111,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if !defined(__ANDROID__)
 #include <io.h>
-#include <math.h>
+#endif
 #ifdef _MSC_VER
 	#if _MSC_VER < 1920
 		#include <typeinfo.h>
@@ -889,6 +894,9 @@ int16_t DLL_PREFIX ExchangeEndianS16(uint16_t x);
 	errno_t DLL_PREFIX my_tcscat_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
 	errno_t DLL_PREFIX my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
 	errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
+#if defined(__ANDROID__)
+	errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination,  const _TCHAR *strSource);
+#endif
 	errno_t DLL_PREFIX my_strncpy_s(char *strDestination, size_t numberOfElements, const char *strSource, size_t count);
 	errno_t DLL_PREFIX my_tcsncpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource, size_t count);
 	char * DLL_PREFIX my_strtok_s(char *strToken, const char *strDelimit, char **context);
@@ -981,6 +989,7 @@ int16_t DLL_PREFIX ExchangeEndianS16(uint16_t x);
 	#define A_OF_COLOR(c)		(((c) >> 24) & 0xff)
 #endif
 
+#if !defined(__ANDROID__)
 // 20181104 K.O:
 // Below routines aim to render common routine.
 
@@ -997,6 +1006,7 @@ int16_t DLL_PREFIX ExchangeEndianS16(uint16_t x);
 	// ToDo
 	#define __builtin_assume_aligned(foo, a) foo
 	#define __DECL_ALIGNED(foo)
+#endif
 #endif
 
 // wav file header
@@ -1097,5 +1107,10 @@ typedef struct symbol_s {
 const _TCHAR *DLL_PREFIX get_symbol(symbol_t *first_symbol, uint32_t addr);
 const _TCHAR *DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr);
 const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr);
+
+#if defined(__ANDROID__)
+void convertUTF8fromSJIS(char *src,char *desc,int length);
+extern char documentDir[_MAX_PATH];
+#endif
 
 #endif

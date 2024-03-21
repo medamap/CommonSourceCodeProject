@@ -4,6 +4,10 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.08.18 -
 
+ 	[for Android]
+	Modify : @shikarunochi
+	Date   : 2020.06.01-
+
 	[ win32 emulation i/f ]
 */
 
@@ -37,14 +41,30 @@
 #define OSD_SDL
 #elif defined(_WIN32)
 #define OSD_WIN32
+#elif defined(__ANDROID__)
+#define OSD_ANDROID
 #else
 // oops!
+#endif
+
+#if defined(OSD_ANDROID)
+#undef USE_AUTO_KEY
+#undef USE_AUTO_KEY_RELEASE
+#undef USE_AUTO_KEY_CAPS
+//#undef USE_DEBUGGER
+#undef USE_STATE
+#undef USE_PRINTER
+#define PRINTER_TYPE_DEFAULT 999
+
+#define SOUND_RATE_DEFAULT	5
 #endif
 
 // OS dependent header files should be included in each osd.h
 // Please do not include them in emu.h
 
-#if defined(OSD_QT)
+#if defined(OSD_ANDROID)
+#include "Android/osd.h"
+#elif defined(OSD_QT)
 #include "qt/osd.h"
 #elif defined(OSD_SDL)
 #include "sdl/osd.h"
@@ -95,8 +115,13 @@ protected:
 private:
 	// debugger
 #ifdef USE_DEBUGGER
+#if defined(OSD_ANDROID)
+	void initialize_debugger(){};
+	void release_debugger(){};
+#else
 	void initialize_debugger();
 	void release_debugger();
+#endif
 #endif
 	
 	// debug log
@@ -195,6 +220,8 @@ public:
 	EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, USING_FLAGS *p);
 #elif defined(OSD_WIN32)
 	EMU(HWND hwnd, HINSTANCE hinst);
+#elif defined(OSD_ANDROID)
+    EMU(struct android_app* state);
 #else
 	EMU();
 #endif
@@ -404,9 +431,15 @@ public:
 #else
 	int debugger_thread_id;
 #endif
+#if defined(OSD_ANDROID)
+	void start_waiting_in_debugger(){};
+	void finish_waiting_in_debugger(){};
+	void process_waiting_in_debugger(){};
+#else
 	void start_waiting_in_debugger();
 	void finish_waiting_in_debugger();
 	void process_waiting_in_debugger();
+#endif
 #endif
 	bool now_waiting_in_debugger;
 	
@@ -419,7 +452,9 @@ public:
 	_TCHAR message[1024];
 	
 	// misc
+#if !defined(OSD_ANDROID)
 	void sleep(uint32_t ms);
+#endif
 	
 	// user interface
 #ifdef USE_CART
@@ -434,10 +469,16 @@ public:
 		int bank_num;
 		int cur_bank;
 	} d88_file[USE_FLOPPY_DISK];
+#if !defined(__ANDROID__)
 	bool create_blank_floppy_disk(const _TCHAR* file_path, uint8_t type);
+#else
+    void create_bank_floppy_disk(const _TCHAR* file_path, uint8_t type);
+#endif
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
+#if !defined(__ANDROID__)
 	bool is_floppy_disk_connected(int drv);
+#endif
 	bool is_floppy_disk_inserted(int drv);
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);
@@ -447,12 +488,16 @@ public:
 #ifdef USE_QUICK_DISK
 	void open_quick_disk(int drv, const _TCHAR* file_path);
 	void close_quick_disk(int drv);
+#if !defined(__ANDROID__)
 	bool is_quick_disk_connected(int drv);
+#endif
 	bool is_quick_disk_inserted(int drv);
 	uint32_t is_quick_disk_accessed();
 #endif
 #ifdef USE_HARD_DISK
+#if !defined(__ANDROID__)
 	bool create_blank_hard_disk(const _TCHAR* file_path, int sector_size, int sectors, int surfaces, int cylinders);
+#endif
 	void open_hard_disk(int drv, const _TCHAR* file_path);
 	void close_hard_disk(int drv);
 	bool is_hard_disk_inserted(int drv);
