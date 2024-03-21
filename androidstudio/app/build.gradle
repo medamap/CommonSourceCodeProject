@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId = 'com.shikarunochi.emulator.native_activity'
-        minSdkVersion 29
+        minSdkVersion 26
         targetSdkVersion 29
         externalNativeBuild {
             cmake {
@@ -190,14 +190,14 @@ android {
                 }
             }
         }
-        fm77l2 {
+        fm77l4 {
             dimension "machine"
-            applicationIdSuffix ".fm77l2"
-            versionNameSuffix "-fm77l2"
+            applicationIdSuffix ".fm77l4"
+            versionNameSuffix "-fm77l4"
             applicationId 'com.shikarunochi.emulator'
             externalNativeBuild {
                 cmake {
-                    arguments "-D_FM77L2=1"
+                    arguments "-D_FM77L4=1"
                 }
             }
         }
