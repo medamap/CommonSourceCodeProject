@@ -127,10 +127,10 @@ void initialize_config()
 	#ifdef USE_TAPE
         #if !defined(__ANDROID__)
 		    config.sound_noise_cmt = true;
-            config.sound_play_tape = true;
+            //config.sound_play_tape = true;   // Medamap No member sound_play_tape
         #else
             config.sound_noise_cmt = false;
-            //config.sound_play_tape = false;
+            //config.sound_play_tape = false;  // Medamap no member sound_play_tape
         #endif
 	#endif
 	

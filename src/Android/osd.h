@@ -49,6 +49,10 @@
 	#endif
 #endif
 
+#if defined(__ANDROID__)
+#undef USE_SOCKET
+#endif
+
 #ifdef USE_SOCKET
 #include <winsock.h>
 #pragma comment(lib, "wsock32.lib")

@@ -25,14 +25,135 @@ android {
     }
     flavorDimensions "machine"
     productFlavors {
-        sc3000 {
+        fm7 {
             dimension "machine"
-            applicationIdSuffix ".sc3000"
-            versionNameSuffix "-sc3000"
+            applicationIdSuffix ".fm7"
+            versionNameSuffix "-fm7"
             applicationId 'com.shikarunochi.emulator'
             externalNativeBuild {
                 cmake {
-                    arguments "-D_SC3000=1"
+                    arguments "-D_FM7=1"
+                }
+            }
+        }
+        fm8 {
+            dimension "machine"
+            applicationIdSuffix ".fm8"
+            versionNameSuffix "-fm8"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM8=1"
+                }
+            }
+        }
+        fm77av {
+            dimension "machine"
+            applicationIdSuffix ".fm77av"
+            versionNameSuffix "-fm77av"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM77AV=1"
+                }
+            }
+        }
+        fm77av40 {
+            dimension "machine"
+            applicationIdSuffix ".fm77av40"
+            versionNameSuffix "-fm77av40"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM77AV40=1"
+                }
+            }
+        }
+        fm77av40ex {
+            dimension "machine"
+            applicationIdSuffix ".fm77av40ex"
+            versionNameSuffix "-fm77av40ex"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM77AV40EX=1"
+                }
+            }
+        }
+        fm77l4 {
+            dimension "machine"
+            applicationIdSuffix ".fm77l4"
+            versionNameSuffix "-fm77l4"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM77L4=1"
+                }
+            }
+        }
+        m5 {
+            dimension "machine"
+            applicationIdSuffix ".m5"
+            versionNameSuffix "-m5"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_M5=1"
+                }
+            }
+        }
+        msx {
+            dimension "machine"
+            applicationIdSuffix ".msx"
+            versionNameSuffix "-msx"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MSX=1"
+                }
+            }
+        }
+        msx2 {
+            dimension "machine"
+            applicationIdSuffix ".msx2"
+            versionNameSuffix "-msx2"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MSX2=1"
+                }
+            }
+        }
+        msx2p {
+            dimension "machine"
+            applicationIdSuffix ".msx2p"
+            versionNameSuffix "-msx2p"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MSX2P=1"
+                }
+            }
+        }
+        mz80b {
+            dimension "machine"
+            applicationIdSuffix ".mz80b"
+            versionNameSuffix "-mz80b"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ80B=1"
+                }
+            }
+        }
+        mz80k {
+            dimension "machine"
+            applicationIdSuffix ".mz80k"
+            versionNameSuffix "-mz80k"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ80K=1"
                 }
             }
         }
@@ -58,72 +179,6 @@ android {
                 }
             }
         }
-        x1turboz {
-            dimension "machine"
-            applicationIdSuffix ".x1turboz"
-            versionNameSuffix "-x1turboz"
-            applicationId 'com.shikarunochi.emulator'
-            externalNativeBuild {
-                cmake {
-                    arguments "-D_X1TURBOZ=1"
-                }
-            }
-        }
-        x1turbo {
-            dimension "machine"
-            applicationIdSuffix ".x1turbo"
-            versionNameSuffix "-x1turbo"
-            applicationId 'com.shikarunochi.emulator'
-            externalNativeBuild {
-                cmake {
-                    arguments "-D_X1TURBO=1"
-                }
-            }
-        }
-        x1 {
-            dimension "machine"
-            applicationIdSuffix ".x1"
-            versionNameSuffix "-x1"
-            applicationId 'com.shikarunochi.emulator'
-            externalNativeBuild {
-                cmake {
-                    arguments "-D_X1=1"
-                }
-            }
-        }
-        x1twin {
-            dimension "machine"
-            applicationIdSuffix ".x1twin"
-            versionNameSuffix "-x1twin"
-            applicationId 'com.shikarunochi.emulator'
-            externalNativeBuild {
-                cmake {
-                    arguments "-D_X1TWIN=1"
-                }
-            }
-        }
-        mz80k {
-            dimension "machine"
-            applicationIdSuffix ".mz80k"
-            versionNameSuffix "-mz80k"
-            applicationId 'com.shikarunochi.emulator'
-            externalNativeBuild {
-                cmake {
-                    arguments "-D_MZ80K=1"
-                }
-            }
-        }
-        mz80b {
-            dimension "machine"
-            applicationIdSuffix ".mz80b"
-            versionNameSuffix "-mz80b"
-            applicationId 'com.shikarunochi.emulator'
-            externalNativeBuild {
-                cmake {
-                    arguments "-D_MZ80B=1"
-                }
-            }
-        }
         mz2200 {
             dimension "machine"
             applicationIdSuffix ".mz2200"
@@ -135,36 +190,102 @@ android {
                 }
             }
         }
-        msx2p {
+        mz2500 {
             dimension "machine"
-            applicationIdSuffix ".msx2p"
-            versionNameSuffix "-msx2p"
+            applicationIdSuffix ".mz2500"
+            versionNameSuffix "-mz2500"
             applicationId 'com.shikarunochi.emulator'
             externalNativeBuild {
                 cmake {
-                    arguments "-D_MSX2P=1"
+                    arguments "-D_MZ2500=1"
                 }
             }
         }
-        pc8001 {
+        pasopia {
             dimension "machine"
-            applicationIdSuffix ".pc8001"
-            versionNameSuffix "-pc8001"
+            applicationIdSuffix ".pasopia"
+            versionNameSuffix "-pasopia"
             applicationId 'com.shikarunochi.emulator'
             externalNativeBuild {
                 cmake {
-                    arguments "-D_PC8001=1"
+                    arguments "-D_PASOPIA=1"
                 }
             }
         }
-        pc6001mk2 {
+        pasopia7 {
             dimension "machine"
-            applicationIdSuffix ".pc6001mk2"
-            versionNameSuffix "-pc6001mk2"
+            applicationIdSuffix ".pasopia7"
+            versionNameSuffix "-pasopia7"
             applicationId 'com.shikarunochi.emulator'
             externalNativeBuild {
                 cmake {
-                    arguments "-D_PC6001MK2=1"
+                    arguments "-D_PASOPIA7=1"
+                }
+            }
+        }
+        pc98do {
+            dimension "machine"
+            applicationIdSuffix ".pc98do"
+            versionNameSuffix "-pc98do"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC98DO=1"
+                }
+            }
+        }
+        pc98ha {
+            dimension "machine"
+            applicationIdSuffix ".pc98ha"
+            versionNameSuffix "-pc98ha"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC98HA=1"
+                }
+            }
+        }
+        pc98lt {
+            dimension "machine"
+            applicationIdSuffix ".pc98lt"
+            versionNameSuffix "-pc98lt"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC98LT=1"
+                }
+            }
+        }
+        pc98rl {
+            dimension "machine"
+            applicationIdSuffix ".pc98rl"
+            versionNameSuffix "-pc98rl"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC98RL=1"
+                }
+            }
+        }
+        pc98xa {
+            dimension "machine"
+            applicationIdSuffix ".pc98xa"
+            versionNameSuffix "-pc98xa"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC98XA=1"
+                }
+            }
+        }
+        pc98xl {
+            dimension "machine"
+            applicationIdSuffix ".pc98xl"
+            versionNameSuffix "-pc98xl"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC98XL=1"
                 }
             }
         }
@@ -179,6 +300,39 @@ android {
                 }
             }
         }
+        pc6601 {
+            dimension "machine"
+            applicationIdSuffix ".pc6601"
+            versionNameSuffix "-pc6601"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC6601=1"
+                }
+            }
+        }
+        pc6601sr {
+            dimension "machine"
+            applicationIdSuffix ".pc6601sr"
+            versionNameSuffix "-pc6601sr"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC6601SR=1"
+                }
+            }
+        }
+        pc8001 {
+            dimension "machine"
+            applicationIdSuffix ".pc8001"
+            versionNameSuffix "-pc8001"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC8001=1"
+                }
+            }
+        }
         pc8801ma {
             dimension "machine"
             applicationIdSuffix ".pc8801ma"
@@ -190,25 +344,80 @@ android {
                 }
             }
         }
-        fm7 {
+        pc9801 {
             dimension "machine"
-            applicationIdSuffix ".fm7"
-            versionNameSuffix "-fm7"
+            applicationIdSuffix ".pc9801"
+            versionNameSuffix "-pc9801"
             applicationId 'com.shikarunochi.emulator'
             externalNativeBuild {
                 cmake {
-                    arguments "-D_FM7=1"
+                    arguments "-D_PC9801=1"
                 }
             }
         }
-        fm77l4 {
+        pc9801e {
             dimension "machine"
-            applicationIdSuffix ".fm77l4"
-            versionNameSuffix "-fm77l4"
+            applicationIdSuffix ".pc9801e"
+            versionNameSuffix "-pc9801e"
             applicationId 'com.shikarunochi.emulator'
             externalNativeBuild {
                 cmake {
-                    arguments "-D_FM77L4=1"
+                    arguments "-D_PC9801E=1"
+                }
+            }
+        }
+        pc9801ra {
+            dimension "machine"
+            applicationIdSuffix ".pc9801ra"
+            versionNameSuffix "-pc9801ra"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC9801RA=1"
+                }
+            }
+        }
+        pc9801u {
+            dimension "machine"
+            applicationIdSuffix ".pc9801u"
+            versionNameSuffix "-pc9801u"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC9801U=1"
+                }
+            }
+        }
+        pc9801vf {
+            dimension "machine"
+            applicationIdSuffix ".pc9801vf"
+            versionNameSuffix "-pc9801vf"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC9801VF=1"
+                }
+            }
+        }
+        pc9801vm {
+            dimension "machine"
+            applicationIdSuffix ".pc9801vm"
+            versionNameSuffix "-pc9801vm"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC9801VM=1"
+                }
+            }
+        }
+        pc9801vx {
+            dimension "machine"
+            applicationIdSuffix ".pc9801vx"
+            versionNameSuffix "-pc9801vx"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC9801VX=1"
                 }
             }
         }
@@ -223,7 +432,72 @@ android {
                 }
             }
         }
-
+        sc3000 {
+            dimension "machine"
+            applicationIdSuffix ".sc3000"
+            versionNameSuffix "-sc3000"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_SC3000=1"
+                }
+            }
+        }
+        smc777 {
+            dimension "machine"
+            applicationIdSuffix ".smc777"
+            versionNameSuffix "-smc777"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_SMC777=1"
+                }
+            }
+        }
+        x1 {
+            dimension "machine"
+            applicationIdSuffix ".x1"
+            versionNameSuffix "-x1"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_X1=1"
+                }
+            }
+        }
+        x1turbo {
+            dimension "machine"
+            applicationIdSuffix ".x1turbo"
+            versionNameSuffix "-x1turbo"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_X1TURBO=1"
+                }
+            }
+        }
+        x1turboz {
+            dimension "machine"
+            applicationIdSuffix ".x1turboz"
+            versionNameSuffix "-x1turboz"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_X1TURBOZ=1"
+                }
+            }
+        }
+        x1twin {
+            dimension "machine"
+            applicationIdSuffix ".x1twin"
+            versionNameSuffix "-x1twin"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_X1TWIN=1"
+                }
+            }
+        }
     }
     externalNativeBuild {
         cmake {
