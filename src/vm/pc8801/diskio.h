@@ -25,6 +25,10 @@
 #include "../../emu.h"
 #include "../device.h"
 
+#if defined(__ANDROID__)
+#define MAX_PATH    4096
+#endif
+
 class FILEIO;
 
 // ---------------------------------------------------------------------------

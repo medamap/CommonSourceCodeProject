@@ -60,7 +60,18 @@ void HD6844::initialize()
 		__FM77AV40EX = true;
 	#else
 		__FM77AV40EX = false;
-	#endif
+    #endif
+#elif defined(__ANDROID__)
+#if defined(_FM77AV40)
+    __FM77AV40 = true;
+#else
+    __FM77AV40 = false;
+#endif
+#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+    __FM77AV40EX = true;
+#else
+    __FM77AV40EX = false;
+#endif
 #else
 	__FM77AV40 = osd->check_feature(_T("_FM77AV40"));	
 	__FM77AV40EX = osd->check_feature(_T("_FM77AV40EX"));	

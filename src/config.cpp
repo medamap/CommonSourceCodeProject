@@ -115,15 +115,23 @@ void initialize_config()
 	config.sound_latency = 1;	// 100msec
 	config.sound_strict_rendering = true;
 	#ifdef USE_FLOPPY_DISK
-		config.sound_noise_fdd = true;
+        #if !defined(__ANDROID__)
+		    config.sound_noise_fdd = true;
+        #else
+            config.sound_noise_fdd = false;
+        #endif
 	#endif
 	#ifdef USE_QUICK_DISK
 		config.sound_noise_qd = true;
 	#endif
 	#ifdef USE_TAPE
-		config.sound_noise_cmt = true;
-		config.sound_tape_signal = true;
-		config.sound_tape_voice = true;
+        #if !defined(__ANDROID__)
+		    config.sound_noise_cmt = true;
+            //config.sound_play_tape = true;   // Medamap No member sound_play_tape
+        #else
+            config.sound_noise_cmt = false;
+            //config.sound_play_tape = false;  // Medamap no member sound_play_tape
+        #endif
 	#endif
 	
 	// input
@@ -331,7 +339,7 @@ void load_config(const _TCHAR* config_path)
 			int tmp_l = MyGetPrivateProfileInt(_T("Sound"), create_string(_T("VolumeLeft%d"), i + 1), config.sound_volume_l[i], config_path);
 			int tmp_r = MyGetPrivateProfileInt(_T("Sound"), create_string(_T("VolumeRight%d"), i + 1), config.sound_volume_r[i], config_path);
 			#ifdef _USE_QT
-				// Note: when using balance , levels are -40Å}20db to 0Å}20db.
+				// Note: when using balance , levels are -40ÔøΩ}20db to 0ÔøΩ}20db.
 				config.sound_volume_l[i] = max(-60, min(20, tmp_l));
 				config.sound_volume_r[i] = max(-60, min(20, tmp_r));
 			#else

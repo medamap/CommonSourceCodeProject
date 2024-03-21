@@ -33,7 +33,7 @@ void DiskIO::Reset(uint32_t a, uint32_t d)
 }
 
 // ---------------------------------------------------------------------------
-//	ƒRƒ}ƒ“ƒh
+//	ï¿½Rï¿½}ï¿½ï¿½ï¿½h
 //
 void DiskIO::SetCommand(uint32_t a, uint32_t d)
 {
@@ -47,7 +47,7 @@ void DiskIO::SetCommand(uint32_t a, uint32_t d)
 }
 
 // ---------------------------------------------------------------------------
-//	ƒXƒe[ƒ^ƒX
+//	ï¿½Xï¿½eï¿½[ï¿½^ï¿½X
 //
 uint32_t DiskIO::GetStatus(uint32_t a)
 {
@@ -55,7 +55,7 @@ uint32_t DiskIO::GetStatus(uint32_t a)
 }
 
 // ---------------------------------------------------------------------------
-//	ƒf[ƒ^ƒZƒbƒg
+//	ï¿½fï¿½[ï¿½^ï¿½Zï¿½bï¿½g
 //
 void DiskIO::SetData(uint32_t a, uint32_t d)
 {
@@ -71,7 +71,7 @@ void DiskIO::SetData(uint32_t a, uint32_t d)
 }
 
 // ---------------------------------------------------------------------------
-//	ƒf[ƒ^‚°‚Á‚Æ
+//	ï¿½fï¿½[ï¿½^ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //
 uint32_t DiskIO::GetData(uint32_t a)
 {
@@ -179,7 +179,12 @@ void DiskIO::CmdReadFile()
 		if (file->Fopen(create_absolute_path(char_to_tchar((char*) filename)), FILEIO_READ_BINARY))
 		{
 			file->Fseek(0, FILEIO_SEEK_END);
-			size = min(0xffff, file->Ftell());
+// Medamap
+#if defined(__ANDROID__)
+			size = std::min((long)0xffff, file->Ftell());
+#else
+            size = min(0xffff, file->Ftell());
+#endif
 			file->Fseek(0, FILEIO_SEEK_SET);
 			buf[0] = size & 0xff;
 			buf[1] = (size >> 8) & 0xff;

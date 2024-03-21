@@ -4,9 +4,22 @@
 	Author : Takeda.Toshiya
 	Date   : 2013.01.17-
 
+ 	[for Android]
+	Modify : @shikarunochi
+	Date   : 2020.06.01-
+
 	[ common ]
 */
-
+#if defined(__ANDROID__)
+	#include <string.h>
+	#include <fcntl.h>
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <string>
+	#include <algorithm>
+	#include <cctype>
+    #include "Android/osd.h"
+#endif
 #if defined(_USE_QT)
 	#include <string.h>
 	#include <fcntl.h>
@@ -33,6 +46,10 @@
 #include <math.h>
 #include "common.h"
 #include "fileio.h"
+#if defined(__ANDROID__)
+#include "config.h"
+
+#endif
 
 #if defined(__MINGW32__) || defined(__MINGW64__)
 	extern DWORD GetLongPathName(LPCTSTR lpszShortPath, LPTSTR lpszLongPath, DWORD cchBuffer);
@@ -321,6 +338,14 @@ errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, 
 	return 0;
 }
 
+#if defined(__ANDROID__)
+errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination, const _TCHAR *strSource)
+{
+	_tcscpy(strDestination, strSource);
+	return 0;
+}
+#endif
+
 errno_t DLL_PREFIX my_strncpy_s(char *strDestination, size_t numberOfElements, const char *strSource, size_t count)
 {
 	strncpy(strDestination, strSource, count);
@@ -354,11 +379,16 @@ int DLL_PREFIX my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *forma
 
 int DLL_PREFIX my_swprintf_s(wchar_t *buffer, size_t sizeOfBuffer, const wchar_t *format, ...)
 {
+#if defined(__ANDROID__)
+    //shikarunochi
+	return 0;
+#else
 	va_list ap;
 	va_start(ap, format);
 	int result = vswprintf(buffer, format, ap);
 	va_end(ap);
 	return result;
+#endif
 }
 
 int DLL_PREFIX my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
@@ -385,9 +415,15 @@ int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TC
 void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 {
 	size_t len1;
-	register size_t len2;
+#if defined(__ANDROID__)
+	size_t len2;
+	uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
+	uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
+#else
+    register size_t len2;
 	register uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
 	register uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
+#endif
 	int i;
 	
 	if(len == 0) return dst;
@@ -718,8 +754,13 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 	}
 #else
 	// Using SIMD *with* un-aligned instructions.
-	register uint32_t *s32 = (uint32_t *)src;
+#if defined(__ANDROID__)
+    uint32_t *s32 = (uint32_t *)src;
+    uint32_t *d32 = (uint32_t *)dst;
+#else
+    register uint32_t *s32 = (uint32_t *)src;
 	register uint32_t *d32 = (uint32_t *)dst;
+#endif
 	if(((s_align & 0x07) != 0x0) && ((d_align & 0x07) != 0x0)) { // None align.
 		return memcpy(dst, src, len);
 	}
@@ -772,7 +813,16 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 }
 #endif
 
-#ifndef _WIN32
+#if defined (_Android)
+BOOL DLL_PREFIX MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
+{return true;}
+
+DWORD DLL_PREFIX MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName)
+{return 0;}
+
+UINT DLL_PREFIX MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT nDefault, LPCTSTR lpFileName)
+{return 0;}
+#elif !defined(_WIN32)
 BOOL DLL_PREFIX MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
 {
 	BOOL result = FALSE;
@@ -1017,6 +1067,12 @@ const _TCHAR *DLL_PREFIX get_application_path()
 		} else {
 			my_tcscpy_s(app_path, _MAX_PATH, _T(".\\"));
 		}
+#elif defined(__ANDROID__)
+		//sprintf(app_path,"/sdcard/emulator/%sROM%s/",CONFIG_NAME, "");
+		sprintf(app_path,"%s/emulator/%sROM%s/", documentDir, CONFIG_NAME, "");
+        LOGI("Path: %s", app_path);
+
+    	return (const _TCHAR *)app_path;
 #else
 #if defined(Q_OS_WIN)
 		std::string delim = "\\";
@@ -1044,7 +1100,11 @@ const _TCHAR *DLL_PREFIX get_initial_current_path()
 #if defined(_WIN32) && !defined(_USE_QT)
 		GetCurrentDirectory(_MAX_PATH, current_path);
 #else
-		getcwd(current_path, _MAX_PATH);
+#if defined(__ANDROID__)
+        strncpy(current_path, "/", _MAX_PATH);
+#else
+		//getcwd(current_path, _MAX_PATH);
+#endif
 #endif
 		size_t len = _tcslen(current_path);
 		if(current_path[len - 1] != '\\' && current_path[len - 1] != '/') {
@@ -1610,3 +1670,62 @@ const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCH
 	}
 	return name[output_index];
 }
+
+#if defined(__ANDROID__)
+//変換対応してるのは半角カナだけです。
+void convertUTF8fromSJIS(char *src,char *dest,int length){
+    int srcIndex = 0;
+    int destIndex = 0;
+    while(src[srcIndex] != '\0'){
+        char srcData = src[srcIndex];
+        if(srcData < 127){
+            dest[destIndex++] = src[srcIndex++];
+        }else if(srcData >= 128 && srcData<= 160){
+            dest[destIndex++] = '*';
+            srcIndex++;
+        }else if(srcData >= 161 && srcData<= 223){
+            if(destIndex + 3 >= length){
+                break;
+            }
+            int kanaIndex;
+            uint16_t uft8StartIndex;
+            if(srcData <= 191){ //191�
+                kanaIndex = srcData -161;
+                uft8StartIndex = 0xBDA1;
+            }else {
+                kanaIndex = srcData - (161 + 15 + 16);
+                uft8StartIndex = 0xBE80;
+            }
+            dest[destIndex++] = 0xEF;
+            int16_t kanaData = uft8StartIndex + kanaIndex;
+            dest[destIndex++] = kanaData >> 8;
+            dest[destIndex++] = kanaData & 0x00FF;
+            srcIndex++;
+        }else{
+            dest[destIndex++] = '*';
+            srcIndex++;
+        }
+        if(destIndex >= length){
+            break;
+        }
+    }
+	dest[destIndex] = '\0';
+}
+
+
+/////// dummy
+//for PRINTER
+typedef struct font_s {
+	// common
+	inline bool initialized()
+	{
+		return false;//(hFont != NULL);
+	}
+	_TCHAR family[64];
+	int width, height, rotate;
+	bool bold, italic;
+	// win32 dependent
+	//HFONT hFont;
+} font_t;
+#endif
+

@@ -400,5 +400,6 @@ androidstudio/.gradle
 androidstudio/.idea
 androidstudio/app/.cxx
 androidstudio/app/build
-androidstudio/local.properties
 *.bak
+androidstudio/oboe_old
+androidstudio/local.properties
