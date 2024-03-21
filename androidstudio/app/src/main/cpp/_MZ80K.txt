@@ -1,10 +1,10 @@
 set(HEADER
         ../../../../../src/common.h
         ../../../../../src/config.h
+        ../../../../../src/emu.h
         ../../../../../src/fifo.h
         ../../../../../src/fileio.h
-        ../../../../../src/emu.h
-        ../../../../../src/Android/osd.h
+        ../../../../../src/res/resource.h
         ../../../../../src/vm/datarec.h
         ../../../../../src/vm/debugger.h
         ../../../../../src/vm/device.h
@@ -14,19 +14,19 @@ set(HEADER
         ../../../../../src/vm/i8255.h
         ../../../../../src/vm/io.h
         ../../../../../src/vm/ls393.h
-        ../../../../../src/vm/mz1p17.h
-        ../../../../../src/vm/pcm1bit.h
-        ../../../../../src/vm/noise.h
-        ../../../../../src/vm/prnfile.h
-        ../../../../../src/vm/t3444a.h
-        ../../../../../src/vm/vm.h
-        ../../../../../src/vm/vm_template.h
-        ../../../../../src/vm/z80.h
         ../../../../../src/vm/mz80k/keyboard.h
         ../../../../../src/vm/mz80k/memory.h
         ../../../../../src/vm/mz80k/mz80fio.h
         ../../../../../src/vm/mz80k/mz80k.h
         ../../../../../src/vm/mz80k/printer.h
+        ../../../../../src/vm/noise.h
+        ../../../../../src/vm/pcm1bit.h
+        ../../../../../src/vm/prnfile.h
+        ../../../../../src/vm/t3444a.h
+        ../../../../../src/vm/vm.h
+        ../../../../../src/vm/vm_template.h
+        ../../../../../src/vm/z80.h
+        ../../../../../src/Android/osd.h
 )
 
 add_library(native-activity SHARED
@@ -34,13 +34,9 @@ add_library(native-activity SHARED
         ${HEADER}
         ../../../../../src/common.cpp
         ../../../../../src/config.cpp
+        ../../../../../src/emu.cpp
         ../../../../../src/fifo.cpp
         ../../../../../src/fileio.cpp
-        ../../../../../src/emu.cpp
-        ../../../../../src/Android/osd.cpp
-        ../../../../../src/Android/osd_input.cpp
-        ../../../../../src/Android/osd_screen.cpp
-        ../../../../../src/Android/osd_sound.cpp
         ../../../../../src/vm/datarec.cpp
         ../../../../../src/vm/disk.cpp
         ../../../../../src/vm/event.cpp
@@ -48,14 +44,18 @@ add_library(native-activity SHARED
         ../../../../../src/vm/i8255.cpp
         ../../../../../src/vm/io.cpp
         ../../../../../src/vm/ls393.cpp
-        ../../../../../src/vm/noise.cpp
-        ../../../../../src/vm/pcm1bit.cpp
-        ../../../../../src/vm/prnfile.cpp
-        ../../../../../src/vm/t3444a.cpp
-        ../../../../../src/vm/z80.cpp
         ../../../../../src/vm/mz80k/keyboard.cpp
         ../../../../../src/vm/mz80k/memory.cpp
         ../../../../../src/vm/mz80k/mz80fio.cpp
         ../../../../../src/vm/mz80k/mz80k.cpp
         ../../../../../src/vm/mz80k/printer.cpp
+        ../../../../../src/vm/noise.cpp
+        ../../../../../src/vm/pcm1bit.cpp
+        ../../../../../src/vm/prnfile.cpp
+        ../../../../../src/vm/t3444a.cpp
+        ../../../../../src/vm/z80.cpp
+        ../../../../../src/Android/osd.cpp
+        ../../../../../src/Android/osd_input.cpp
+        ../../../../../src/Android/osd_screen.cpp
+        ../../../../../src/Android/osd_sound.cpp
 )

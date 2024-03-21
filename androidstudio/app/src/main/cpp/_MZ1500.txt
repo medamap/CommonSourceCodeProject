@@ -1,10 +1,10 @@
 set(HEADER
         ../../../../../src/common.h
         ../../../../../src/config.h
+        ../../../../../src/emu.h
         ../../../../../src/fifo.h
         ../../../../../src/fileio.h
-        ../../../../../src/emu.h
-        ../../../../../src/Android/osd.h
+        ../../../../../src/res/resource.h
         ../../../../../src/vm/and.h
         ../../../../../src/vm/datarec.h
         ../../../../../src/vm/debugger.h
@@ -15,7 +15,17 @@ set(HEADER
         ../../../../../src/vm/i8255.h
         ../../../../../src/vm/io.h
         ../../../../../src/vm/mb8877.h
-        ../../../../../src/vm/mz1p17.h
+        ../../../../../src/vm/mz700/cmos.h
+        ../../../../../src/vm/mz700/emm.h
+        ../../../../../src/vm/mz700/floppy.h
+        ../../../../../src/vm/mz700/joystick.h
+        ../../../../../src/vm/mz700/kanji.h
+        ../../../../../src/vm/mz700/keyboard.h
+        ../../../../../src/vm/mz700/memory.h
+        ../../../../../src/vm/mz700/mz700.h
+        ../../../../../src/vm/mz700/psg.h
+        ../../../../../src/vm/mz700/quickdisk.h
+        ../../../../../src/vm/mz700/ramfile.h
         ../../../../../src/vm/noise.h
         ../../../../../src/vm/not.h
         ../../../../../src/vm/pcm1bit.h
@@ -26,16 +36,7 @@ set(HEADER
         ../../../../../src/vm/z80.h
         ../../../../../src/vm/z80pio.h
         ../../../../../src/vm/z80sio.h
-        ../../../../../src/vm/mz700/cmos.h
-        ../../../../../src/vm/mz700/emm.h
-        ../../../../../src/vm/mz700/floppy.h
-        ../../../../../src/vm/mz700/kanji.h
-        ../../../../../src/vm/mz700/keyboard.h
-        ../../../../../src/vm/mz700/memory.h
-        ../../../../../src/vm/mz700/mz700.h
-        ../../../../../src/vm/mz700/psg.h
-        ../../../../../src/vm/mz700/quickdisk.h
-        ../../../../../src/vm/mz700/ramfile.h
+        ../../../../../src/Android/osd.h
 )
 
 add_library(native-activity SHARED
@@ -43,13 +44,9 @@ add_library(native-activity SHARED
         ${HEADER}
         ../../../../../src/common.cpp
         ../../../../../src/config.cpp
+        ../../../../../src/emu.cpp
         ../../../../../src/fifo.cpp
         ../../../../../src/fileio.cpp
-        ../../../../../src/emu.cpp
-        ../../../../../src/Android/osd.cpp
-        ../../../../../src/Android/osd_input.cpp
-        ../../../../../src/Android/osd_screen.cpp
-        ../../../../../src/Android/osd_sound.cpp
         ../../../../../src/vm/and.cpp
         ../../../../../src/vm/datarec.cpp
         ../../../../../src/vm/disk.cpp
@@ -58,7 +55,17 @@ add_library(native-activity SHARED
         ../../../../../src/vm/i8255.cpp
         ../../../../../src/vm/io.cpp
         ../../../../../src/vm/mb8877.cpp
-        ../../../../../src/#vm/mz1p17.cpp
+        ../../../../../src/vm/mz700/cmos.cpp
+        ../../../../../src/vm/mz700/emm.cpp
+        ../../../../../src/vm/mz700/floppy.cpp
+        ../../../../../src/vm/mz700/joystick.cpp
+        ../../../../../src/vm/mz700/kanji.cpp
+        ../../../../../src/vm/mz700/keyboard.cpp
+        ../../../../../src/vm/mz700/memory.cpp
+        ../../../../../src/vm/mz700/mz700.cpp
+        ../../../../../src/vm/mz700/psg.cpp
+        ../../../../../src/vm/mz700/quickdisk.cpp
+        ../../../../../src/vm/mz700/ramfile.cpp
         ../../../../../src/vm/noise.cpp
         ../../../../../src/vm/not.cpp
         ../../../../../src/vm/pcm1bit.cpp
@@ -67,14 +74,8 @@ add_library(native-activity SHARED
         ../../../../../src/vm/z80.cpp
         ../../../../../src/vm/z80pio.cpp
         ../../../../../src/vm/z80sio.cpp
-        ../../../../../src/vm/mz700/cmos.cpp
-        ../../../../../src/vm/mz700/emm.cpp
-        ../../../../../src/vm/mz700/floppy.cpp
-        ../../../../../src/vm/mz700/kanji.cpp
-        ../../../../../src/vm/mz700/keyboard.cpp
-        ../../../../../src/vm/mz700/memory.cpp
-        ../../../../../src/vm/mz700/mz700.cpp
-        ../../../../../src/vm/mz700/psg.cpp
-        ../../../../../src/vm/mz700/quickdisk.cpp
-        ../../../../../src/vm/mz700/ramfile.cpp
+        ../../../../../src/Android/osd.cpp
+        ../../../../../src/Android/osd_input.cpp
+        ../../../../../src/Android/osd_screen.cpp
+        ../../../../../src/Android/osd_sound.cpp
 )

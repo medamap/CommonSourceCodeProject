@@ -58,6 +58,17 @@ android {
                 }
             }
         }
+        x1turboz {
+            dimension "machine"
+            applicationIdSuffix ".x1turboz"
+            versionNameSuffix "-x1turboz"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_X1TURBOZ=1"
+                }
+            }
+        }
         x1turbo {
             dimension "machine"
             applicationIdSuffix ".x1turbo"
