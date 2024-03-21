@@ -396,3 +396,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+androidstudio/.gradle
+androidstudio/.idea
+androidstudio/app/.cxx
+androidstudio/app/build
+androidstudio/local.properties
+*.bak
