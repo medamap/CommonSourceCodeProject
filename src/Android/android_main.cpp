@@ -382,8 +382,7 @@ static void load_emulator_screen(ANativeWindow_Buffer *buffer) {
                 int emuX = x / screenRate;
                 int emuY = y / screenRate;
                 if (emuX < width && emuY < height) {
-                    line[x] =
-                            *(lpBmp + (height - emuY) * width + emuX);
+                    line[x] = *(lpBmp + (height - emuY - 1) * width + emuX);
                 } else {
                     line[x] = 0;
                 }
@@ -408,7 +407,7 @@ static void load_emulator_screen(ANativeWindow_Buffer *buffer) {
             uint16_t *line = (uint16_t *) pixels;
             for (int x = 0; x < realScreenWidth; x++) {
                 line[x] =
-                        *(lpBmp + (height - emuY) * width + emuX);
+                        *(lpBmp + (height - emuY - 1) * width + emuX);
                 emuX = emuX + 1;
                 if (emuX > width) {
                     emuX = 0;
