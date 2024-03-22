@@ -46,8 +46,8 @@ bool softKeyDelayFlag = false;
 
 //ScreenSize screenSize = SCREEN_SIZE_JUST;
 //ScreenSize preScreenSize = SCREEN_SIZE_JUST;
-ScreenSize screenSize = SCREEN_SIZE_1;
-ScreenSize preScreenSize = SCREEN_SIZE_1;
+ScreenSize screenSize = SCREEN_SIZE_MAX;
+ScreenSize preScreenSize = SCREEN_SIZE_MAX;
 //#define  LOG_TAG    "libplasma"
 //#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGW(...)  __android_log_print(ANDROID_LOG_WARN,LOG_TAG,__VA_ARGS__)
