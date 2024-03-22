@@ -109,28 +109,37 @@ void initialize_config()
 	// sound
 	#ifdef SOUND_RATE_DEFAULT
 		config.sound_frequency = SOUND_RATE_DEFAULT;
-	#else
-		config.sound_frequency = 6;	// 48KHz
-	#endif
-	config.sound_latency = 1;	// 100msec
-	config.sound_strict_rendering = true;
-	#ifdef USE_FLOPPY_DISK
-        #if !defined(__ANDROID__)
-		    config.sound_noise_fdd = true;
+    #else
+        #if defined(__ANDROID__)
+            config.sound_frequency = 5;	// 44KHz
         #else
+            config.sound_frequency = 6;	// 48KHz
+        #endif
+	#endif
+        #if defined(__ANDROID__)
+            config.sound_latency = 0;	// 50msec
+            config.sound_strict_rendering = false;
+        #else
+            config.sound_latency = 1;	// 100msec
+        	config.sound_strict_rendering = true;
+        #endif
+	#ifdef USE_FLOPPY_DISK
+        #if defined(__ANDROID__)
             config.sound_noise_fdd = false;
+        #else
+            config.sound_noise_fdd = true;
         #endif
 	#endif
 	#ifdef USE_QUICK_DISK
 		config.sound_noise_qd = true;
 	#endif
 	#ifdef USE_TAPE
-        #if !defined(__ANDROID__)
-		    config.sound_noise_cmt = true;
-            //config.sound_play_tape = true;   // Medamap No member sound_play_tape
-        #else
+        #if defined(__ANDROID__)
             config.sound_noise_cmt = false;
             //config.sound_play_tape = false;  // Medamap no member sound_play_tape
+        #else
+            config.sound_noise_cmt = true;
+            //config.sound_play_tape = true;   // Medamap No member sound_play_tape
         #endif
 	#endif
 	
