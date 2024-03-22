@@ -1258,12 +1258,14 @@ public:
 	~OBOESOUND() {
 	}
 
-	#define SOUND_BUFFER_LENGTH 4800*100*2
+	#define SOUND_BUFFER_LENGTH 2000*100*2
 
 	uint16_t soundBuffer[SOUND_BUFFER_LENGTH];
 
 	int inputSoundBufferPos = 0;
 	int outputSoundBufferPos = 0;
+    int inputLoopCount = 0; // 追加: 生成ポインタのループカウンタ
+    int outputLoopCount = 0; // 追加: 再生ポインタのループカウンタ
 
 	oboe::ManagedStream mStream;
 	oboe::Result createPlaybackStream(oboe::AudioStreamBuilder builder, int sampleRate);
