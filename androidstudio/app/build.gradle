@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 
 android {
 
-    compileSdkVersion 29
+    compileSdkVersion 28
     ndkVersion '26.2.11394342'
 
     defaultConfig {
         applicationId = 'com.shikarunochi.emulator.native_activity'
         minSdkVersion 26
-        targetSdkVersion 29
+        targetSdkVersion 26
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_STL=c++_static'
@@ -25,6 +25,17 @@ android {
     }
     flavorDimensions "machine"
     productFlavors {
+        familybasic {
+            dimension "machine"
+            applicationIdSuffix ".familybasic"
+            versionNameSuffix "-familybasic"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FAMILYBASIC=1"
+                }
+            }
+        }
         fm7 {
             dimension "machine"
             applicationIdSuffix ".fm7"
@@ -44,6 +55,17 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments "-D_FM8=1"
+                }
+            }
+        }
+        fm77 {
+            dimension "machine"
+            applicationIdSuffix ".fm77"
+            versionNameSuffix "-fm77"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM77=1"
                 }
             }
         }
@@ -91,6 +113,39 @@ android {
                 }
             }
         }
+        gamegear {
+            dimension "machine"
+            applicationIdSuffix ".gamegear"
+            versionNameSuffix "-gamegear"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_GAMEGEAR=1"
+                }
+            }
+        }
+        jr100 {
+            dimension "machine"
+            applicationIdSuffix ".jr100"
+            versionNameSuffix "-jr100"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_JR100=1"
+                }
+            }
+        }
+        jr800 {
+            dimension "machine"
+            applicationIdSuffix ".jr800"
+            versionNameSuffix "-jr800"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_JR800=1"
+                }
+            }
+        }
         m5 {
             dimension "machine"
             applicationIdSuffix ".m5"
@@ -99,6 +154,39 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments "-D_M5=1"
+                }
+            }
+        }
+        m23 {
+            dimension "machine"
+            applicationIdSuffix ".m23"
+            versionNameSuffix "-m23"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_M23=1"
+                }
+            }
+        }
+        m68 {
+            dimension "machine"
+            applicationIdSuffix ".m68"
+            versionNameSuffix "-m68"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_M68=1"
+                }
+            }
+        }
+        mastersystem {
+            dimension "machine"
+            applicationIdSuffix ".mastersystem"
+            versionNameSuffix "-mastersystem"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MASTERSYSTEM=1"
                 }
             }
         }
@@ -135,6 +223,28 @@ android {
                 }
             }
         }
+        multi8 {
+            dimension "machine"
+            applicationIdSuffix ".multi8"
+            versionNameSuffix "-multi8"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MULTI8=1"
+                }
+            }
+        }
+        mycomz80a {
+            dimension "machine"
+            applicationIdSuffix ".mycomz80a"
+            versionNameSuffix "-mycomz80a"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MYCOMZ80A=1"
+                }
+            }
+        }
         mz80b {
             dimension "machine"
             applicationIdSuffix ".mz80b"
@@ -168,6 +278,17 @@ android {
                 }
             }
         }
+        mz800 {
+            dimension "machine"
+            applicationIdSuffix ".mz800"
+            versionNameSuffix "-mz800"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ800=1"
+                }
+            }
+        }
         mz1500 {
             dimension "machine"
             applicationIdSuffix ".mz1500"
@@ -198,6 +319,17 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments "-D_MZ2500=1"
+                }
+            }
+        }
+        n5200 {
+            dimension "machine"
+            applicationIdSuffix ".n5200"
+            versionNameSuffix "-n5200"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_N5200=1"
                 }
             }
         }
@@ -421,6 +553,17 @@ android {
                 }
             }
         }
+        pcengine {
+            dimension "machine"
+            applicationIdSuffix ".pcengine"
+            versionNameSuffix "-pcengine"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PCENGINE=1"
+                }
+            }
+        }
         pyuta {
             dimension "machine"
             applicationIdSuffix ".pyuta"
@@ -429,6 +572,17 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments "-D_PYUTA=1"
+                }
+            }
+        }
+        rx78 {
+            dimension "machine"
+            applicationIdSuffix ".rx78"
+            versionNameSuffix "-rx78"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_RX78=1"
                 }
             }
         }
@@ -443,6 +597,17 @@ android {
                 }
             }
         }
+        smc70 {
+            dimension "machine"
+            applicationIdSuffix ".smc70"
+            versionNameSuffix "-smc70"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_SMC70=1"
+                }
+            }
+        }
         smc777 {
             dimension "machine"
             applicationIdSuffix ".smc777"
@@ -451,6 +616,17 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments "-D_SMC777=1"
+                }
+            }
+        }
+        tk85 {
+            dimension "machine"
+            applicationIdSuffix ".tk85"
+            versionNameSuffix "-tk85"
+            applicationId 'com.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_TK85=1"
                 }
             }
         }

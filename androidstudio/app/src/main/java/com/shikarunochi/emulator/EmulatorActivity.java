@@ -7,6 +7,7 @@ import android.app.Dialog;
 import android.app.NativeActivity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -37,6 +38,9 @@ public class EmulatorActivity extends NativeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // 画面を縦方向に固定
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!hasPermissions()) {

@@ -46,8 +46,8 @@ bool softKeyDelayFlag = false;
 
 //ScreenSize screenSize = SCREEN_SIZE_JUST;
 //ScreenSize preScreenSize = SCREEN_SIZE_JUST;
-ScreenSize screenSize = SCREEN_SIZE_1;
-ScreenSize preScreenSize = SCREEN_SIZE_1;
+ScreenSize screenSize = SCREEN_SIZE_MAX;
+ScreenSize preScreenSize = SCREEN_SIZE_MAX;
 //#define  LOG_TAG    "libplasma"
 //#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGW(...)  __android_log_print(ANDROID_LOG_WARN,LOG_TAG,__VA_ARGS__)
@@ -382,8 +382,7 @@ static void load_emulator_screen(ANativeWindow_Buffer *buffer) {
                 int emuX = x / screenRate;
                 int emuY = y / screenRate;
                 if (emuX < width && emuY < height) {
-                    line[x] =
-                            *(lpBmp + (height - emuY) * width + emuX);
+                    line[x] = *(lpBmp + (height - emuY - 1) * width + emuX - 1);
                 } else {
                     line[x] = 0;
                 }
@@ -408,7 +407,7 @@ static void load_emulator_screen(ANativeWindow_Buffer *buffer) {
             uint16_t *line = (uint16_t *) pixels;
             for (int x = 0; x < realScreenWidth; x++) {
                 line[x] =
-                        *(lpBmp + (height - emuY) * width + emuX);
+                        *(lpBmp + (height - emuY - 1) * width + emuX - 1);
                 emuX = emuX + 1;
                 if (emuX > width) {
                     emuX = 0;
@@ -465,7 +464,7 @@ static void load_emulator_screen(ANativeWindow_Buffer *buffer) {
                 int emuY = y / scale;
                 if (0 < emuX && emuX < width && 0 < emuY && emuY < height) {
                     line[x] =
-                            *(lpBmp + (height - emuY) * width + emuX);
+                            *(lpBmp + (height - emuY) * width + emuX - 1);
                 } else {
                     line[x] = 0;
                 }
