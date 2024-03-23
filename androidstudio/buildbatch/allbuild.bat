@@ -1,8 +1,6 @@
 @echo off
 setlocal
 
-:: build.bat を引数 x1 で呼び出し、エラーが発生しても続行
-
 echo ********** X1 **********
 call build.bat x1
 
