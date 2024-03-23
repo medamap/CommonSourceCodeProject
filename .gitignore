@@ -403,3 +403,4 @@ androidstudio/app/build
 *.bak
 androidstudio/oboe_old
 androidstudio/local.properties
+*.apk
