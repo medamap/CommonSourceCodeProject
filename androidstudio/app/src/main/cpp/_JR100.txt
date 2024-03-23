@@ -1,0 +1,45 @@
+set(HEADER
+        ../../../../../src/common.h
+        ../../../../../src/src/config.h
+        ../../../../../src/src/emu.h
+        ../../../../../src/src/fifo.h
+        ../../../../../src/src/fileio.h
+        ../../../../../src/src/res/resource.h
+        ../../../../../src/src/vm/datarec.h
+        ../../../../../src/src/vm/debugger.h
+        ../../../../../src/src/vm/device.h
+        ../../../../../src/src/vm/event.h
+        ../../../../../src/src/vm/jr100/jr100.h
+        ../../../../../src/src/vm/jr100/memory.h
+        ../../../../../src/src/vm/mc6800.h
+        ../../../../../src/src/vm/noise.h
+        ../../../../../src/src/vm/not.h
+        ../../../../../src/src/vm/pcm1bit.h
+        ../../../../../src/src/vm/sy6522.h
+        ../../../../../src/src/vm/vm.h
+        ../../../../../src/src/vm/vm_template.h
+        ../../../../../src/Android/osd.h
+)
+
+add_library(native-activity SHARED
+        ../../../../../src/Android/android_main.cpp
+        ${HEADER}
+        ../../../../../src/common.cpp
+        ../../../../../src/config.cpp
+        ../../../../../src/emu.cpp
+        ../../../../../src/fifo.cpp
+        ../../../../../src/fileio.cpp
+        ../../../../../src/vm/datarec.cpp
+        ../../../../../src/vm/event.cpp
+        ../../../../../src/vm/jr100/jr100.cpp
+        ../../../../../src/vm/jr100/memory.cpp
+        ../../../../../src/vm/mc6800.cpp
+        ../../../../../src/vm/noise.cpp
+        ../../../../../src/vm/not.cpp
+        ../../../../../src/vm/pcm1bit.cpp
+        ../../../../../src/vm/sy6522.cpp
+        ../../../../../src/Android/osd.cpp
+        ../../../../../src/Android/osd_input.cpp
+        ../../../../../src/Android/osd_screen.cpp
+        ../../../../../src/Android/osd_sound.cpp
+)
