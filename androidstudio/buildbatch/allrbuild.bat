@@ -2,181 +2,181 @@
 setlocal
 
 echo ********** X1 **********
-call build.bat x1
+call rbuild.bat x1
 
 echo ********** X1turbo **********
-call build.bat x1turbo
+call rbuild.bat x1turbo
 
 echo ********** X1turboZ **********
-call build.bat x1turboz
+call rbuild.bat x1turboz
 
 echo ********** X1Twin **********
-call build.bat x1twin
+call rbuild.bat x1twin
 
 echo ********** MZ80B **********
-call build.bat mz80b
+call rbuild.bat mz80b
 
 echo ********** MZ80K **********
-call build.bat mz80k
+call rbuild.bat mz80k
 
 echo ********** MZ700 **********
-call build.bat mz700
+call rbuild.bat mz700
 
 echo ********** MZ800 **********
-call build.bat mz800
+call rbuild.bat mz800
 
 echo ********** MZ1500 **********
-call build.bat mz1500
+call rbuild.bat mz1500
 
 echo ********** MZ2200 **********
-call build.bat mz2200
+call rbuild.bat mz2200
 
 echo ********** MZ2500 **********
-call build.bat mz2500
+call rbuild.bat mz2500
 
 echo ********** PC6001 **********
-call build.bat pc6001
+call rbuild.bat pc6001
 
 echo ********** PC6601 **********
-call build.bat pc6601
+call rbuild.bat pc6601
 
 echo ********** PC6601SR **********
-call build.bat pc6601sr
+call rbuild.bat pc6601sr
 
 echo ********** PC8001 **********
-call build.bat pc8001
+call rbuild.bat pc8001
 
 echo ********** PC8801MA **********
-call build.bat pc8801ma
+call rbuild.bat pc8801ma
 
 echo ********** MSX **********
-call build.bat msx
+call rbuild.bat msx
 
 echo ********** MSX2 **********
-call build.bat msx2
+call rbuild.bat msx2
 
 echo ********** MSX2+ **********
-call build.bat msx2p
+call rbuild.bat msx2p
 
 echo ********** FM7 **********
-call build.bat fm7
+call rbuild.bat fm7
 
 echo ********** FM8 **********
-call build.bat fm8
+call rbuild.bat fm8
 
 echo ********** FM77 **********
-call build.bat fm77
+call rbuild.bat fm77
 
 echo ********** FM77L4 **********
-call build.bat fm77l4
+call rbuild.bat fm77l4
 
 echo ********** FM77AV **********
-call build.bat fm77av
+call rbuild.bat fm77av
 
 echo ********** FM77AV40 **********
-call build.bat fm77av40
+call rbuild.bat fm77av40
 
 echo ********** FM77AV40EX **********
-call build.bat fm77av40ex
+call rbuild.bat fm77av40ex
 
 echo ********** PASOPIA **********
-call build.bat pasopia
+call rbuild.bat pasopia
 
 echo ********** PASOPIA7 **********
-call build.bat pasopia7
+call rbuild.bat pasopia7
 
 echo ********** PYUTA **********
-call build.bat pyuta
+call rbuild.bat pyuta
 
 echo ********** RX78 **********
-call build.bat rx78
+call rbuild.bat rx78
 
 echo ********** SMC70 **********
-call build.bat smc70
+call rbuild.bat smc70
 
 echo ********** SMC777 **********
-call build.bat smc777
+call rbuild.bat smc777
 
 echo ********** JR100 **********
-call build.bat jr100
+call rbuild.bat jr100
 
 echo ********** JR800 **********
-call build.bat jr800
+call rbuild.bat jr800
 
 echo ********** M5 **********
-call build.bat m5
+call rbuild.bat m5
 
 echo ********** M23 **********
-call build.bat m23
+call rbuild.bat m23
 
 echo ********** M68 **********
-call build.bat m68
+call rbuild.bat m68
 
 echo ********** SC3000 **********
-call build.bat sc3000
+call rbuild.bat sc3000
 
 echo ********** TK85 **********
-call build.bat tk85
+call rbuild.bat tk85
 
 echo ********** MULTUI8 **********
-call build.bat multi8
+call rbuild.bat multi8
 
 echo ********** MycomZ80A **********
-call build.bat mycomz80a
+call rbuild.bat mycomz80a
 
 echo ********** FamilyBasic **********
-call build.bat familybasic
+call rbuild.bat familybasic
 
 echo ********** GameGear **********
-call build.bat gamegear
+call rbuild.bat gamegear
 
 echo ********** MasterSystem **********
-call build.bat mastersystem
+call rbuild.bat mastersystem
 
 echo ********** PC-Engine **********
-call build.bat pcengine
+call rbuild.bat pcengine
 
 echo ********** PC-9801 **********
-call build.bat pc9801
+call rbuild.bat pc9801
 
 echo ********** PC-9801E **********
-call build.bat pc9801e
+call rbuild.bat pc9801e
 
 echo ********** PC-9801RA **********
-call build.bat pc9801ra
+call rbuild.bat pc9801ra
 
 echo ********** PC-9801U **********
-call build.bat pc9801u
+call rbuild.bat pc9801u
 
 echo ********** PC-9801VF **********
-call build.bat pc9801vf
+call rbuild.bat pc9801vf
 
 echo ********** PC-9801VM **********
-call build.bat pc9801vm
+call rbuild.bat pc9801vm
 
 echo ********** PC-9801VX **********
-call build.bat pc9801vx
+call rbuild.bat pc9801vx
 
 echo ********** PC-98 Do **********
-call build.bat pc98do
+call rbuild.bat pc98do
 
 echo ********** PC-98HA **********
-call build.bat pc98ha
+call rbuild.bat pc98ha
 
 echo ********** PC-98LT **********
-call build.bat pc98lt
+call rbuild.bat pc98lt
 
 echo ********** PC-98RL **********
-call build.bat pc98rl
+call rbuild.bat pc98rl
 
 echo ********** PC-98XA **********
-call build.bat pc98xa
+call rbuild.bat pc98xa
 
 echo ********** PC-98XL **********
-call build.bat pc98xl
+call rbuild.bat pc98xl
 
 echo ********** N5200 **********
-call build.bat n5200
+call rbuild.bat n5200
 
 :: 以降の処理をここに記述できます
 :: 例:
