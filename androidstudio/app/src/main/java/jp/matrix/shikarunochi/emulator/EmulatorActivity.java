@@ -1,4 +1,4 @@
-package com.shikarunochi.emulator;
+package jp.matrix.shikarunochi.emulator;
 
 import android.Manifest;
 import android.app.Activity;

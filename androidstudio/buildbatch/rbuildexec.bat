@@ -18,7 +18,7 @@ call .\gradlew assemble!buildType!
 call .\gradlew install!buildType!
 
 :: アプリケーションの起動
-adb shell am start -n com.shikarunochi.emulator.!variant!/com.shikarunochi.emulator.EmulatorActivity
+adb shell am start -n jp.matrix.shikarunochi.emulator.!variant!/jp.matrix.shikarunochi.emulator.EmulatorActivity
 
 cd buildbatch
 
