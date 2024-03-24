@@ -914,6 +914,7 @@ DWORD timeGetTime() {
 }
 
 void selectDialog(struct android_app *state, const char *message, const char *addPath) {
+    char long_message[_MAX_PATH+33];
 
     fileList.clear();
 
@@ -931,8 +932,10 @@ void selectDialog(struct android_app *state, const char *message, const char *ad
     if (dir == NULL) {
         char errorMessage[32];
         sprintf(errorMessage, "Directory does not exist: %s", addPath);
-        showAlert(state, errorMessage, filenameList.c_str(), true, MEDIA_SELECT);
+        sprintf(long_message, "%s\n%s", errorMessage, dirPath);
+        showAlert(state, long_message, filenameList.c_str(), true, MEDIA_SELECT);
     } else {
+        sprintf(long_message, "%s\n%s", message, dirPath);
         dp = readdir(dir);
 
         while (dp != NULL) {
@@ -947,7 +950,7 @@ void selectDialog(struct android_app *state, const char *message, const char *ad
             }
             dp = readdir(dir);
         }
-        showAlert(state, message, filenameList.c_str(), true, MEDIA_SELECT, 0);
+        showAlert(state, long_message, filenameList.c_str(), true, MEDIA_SELECT, 0);
     }
 
 }
