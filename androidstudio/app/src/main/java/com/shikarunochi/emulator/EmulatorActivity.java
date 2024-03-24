@@ -78,7 +78,15 @@ public class EmulatorActivity extends NativeActivity {
         this.runOnUiThread(new Runnable() {
             public void run() {
                 AlertDialog.Builder builder = new AlertDialog.Builder(EmulatorActivity.this);
-                builder.setTitle(message);
+                // メッセージをタイトルと詳細に分割
+                String[] parts = message.split("\n", 2); // 2つに分割
+                String title = parts[0];
+                String detail = parts.length > 1 ? parts[1] : "";
+                builder.setTitle(title);
+                // 詳細テキストをメッセージとして設定
+                if (!detail.isEmpty()) {
+                    builder.setMessage(detail);
+                }
                 if(itemList.length() > 0) {
                     String itemLabels[] = itemList.split(";");
                     builder.setSingleChoiceItems(itemLabels, -1, new DialogInterface.OnClickListener() {
