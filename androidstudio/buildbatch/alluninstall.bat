@@ -37,6 +37,12 @@ adb uninstall com.shikarunochi.emulator.mz2500
 echo ********** PC6001 **********
 adb uninstall com.shikarunochi.emulator.pc6001
 
+echo ********** PC100 **********
+adb uninstall com.shikarunochi.emulator.pc100
+
+echo ********** PC2001 **********
+adb uninstall com.shikarunochi.emulator.pc2001
+
 echo ********** PC6601 **********
 adb uninstall com.shikarunochi.emulator.pc6601
 
@@ -46,8 +52,20 @@ adb uninstall com.shikarunochi.emulator.pc6601sr
 echo ********** PC8001 **********
 adb uninstall com.shikarunochi.emulator.pc8001
 
+echo ********** PC8001mk2 **********
+adb uninstall com.shikarunochi.emulator.pc8001mk2
+
+echo ********** PC8201 **********
+adb uninstall com.shikarunochi.emulator.pc8201
+
+echo ********** PC8801 **********
+adb uninstall com.shikarunochi.emulator.pc8801
+
 echo ********** PC8801MA **********
 adb uninstall com.shikarunochi.emulator.pc8801ma
+
+echo ********** PC8801mk2 **********
+adb uninstall com.shikarunochi.emulator.pc8801mk2
 
 echo ********** MSX **********
 adb uninstall com.shikarunochi.emulator.msx
