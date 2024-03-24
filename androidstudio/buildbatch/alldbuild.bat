@@ -34,6 +34,12 @@ call dbuild.bat mz2200
 echo ********** MZ2500 **********
 call dbuild.bat mz2500
 
+echo ********** PC100 **********
+call dbuild.bat pc100
+
+echo ********** PC2001 **********
+call dbuild.bat pc2001
+
 echo ********** PC6001 **********
 call dbuild.bat pc6001
 
@@ -46,8 +52,20 @@ call dbuild.bat pc6601sr
 echo ********** PC8001 **********
 call dbuild.bat pc8001
 
+echo ********** PC8001mk2 **********
+call dbuild.bat pc8001mk2
+
+echo ********** PC8201 **********
+call dbuild.bat pc8201
+
+echo ********** PC8801 **********
+call dbuild.bat pc8801
+
 echo ********** PC8801MA **********
 call dbuild.bat pc8801ma
+
+echo ********** PC8801mk2 **********
+call dbuild.bat pc8801mk2
 
 echo ********** MSX **********
 call dbuild.bat msx
