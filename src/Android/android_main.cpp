@@ -341,7 +341,7 @@ static void load_emulator_screen(ANativeWindow_Buffer *buffer) {
     bitmap_t *screenBuffer = emu->get_osd()->getScreenBuffer();
     scrntype_t *lpBmp = screenBuffer->lpBmp;
     void *pixels = buffer->bits;
-    int topOffset = 180;
+    int topOffset = 178;
     pixels = (uint16_t *) pixels + buffer->stride * topOffset;
 
     //画面のサイズ
