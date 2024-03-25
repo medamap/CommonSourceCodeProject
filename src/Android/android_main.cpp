@@ -1647,10 +1647,6 @@ void android_main(struct android_app *state) {
                 source->process(state, source);
             }
         }
-        if (grantedStorage) {
-            // 権限が許可された後の処理
-            break;
-        }
         // 他のスレッドに処理を譲るために少し待機
         usleep(1000 * 1000);  // 1秒待機
         if (grantedStorage) {
