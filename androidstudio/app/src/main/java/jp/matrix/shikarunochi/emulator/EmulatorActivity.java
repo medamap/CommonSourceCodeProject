@@ -44,9 +44,8 @@ public class EmulatorActivity extends NativeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         // 画面を縦方向に固定
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!hasPermissions()) {
@@ -57,12 +56,6 @@ public class EmulatorActivity extends NativeActivity {
         } else {
             initializeApp();
         }
-        // ユーザーにファイルピッカーを表示し、SDカード上のファイルへのアクセスを許可してもらう
-        //Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        //intent.addCategory(Intent.CATEGORY_OPENABLE);
-        //intent.setType("*/*");  // 必要に応じてファイルタイプを指定
-        //startActivityForResult(intent, OPEN_DOCUMENT_REQUEST_CODE);
-
         System.loadLibrary("native-activity");
     }
 
