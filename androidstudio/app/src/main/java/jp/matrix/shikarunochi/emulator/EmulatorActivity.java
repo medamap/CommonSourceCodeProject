@@ -1,5 +1,7 @@
 package jp.matrix.shikarunochi.emulator;
 
+import static android.content.ContentValues.TAG;
+
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -20,8 +22,12 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -29,7 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class EmulatorActivity extends NativeActivity {
 
     private static final int PERMISSIONS_REQUEST_CODE = 1;
-    private static final int OPEN_DOCUMENT_REQUEST_CODE = 1;
+    private volatile boolean permissionsGranted = false;
     private static final String[] PERMISSIONS_REQUIRED = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -38,31 +44,83 @@ public class EmulatorActivity extends NativeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         // 画面を縦方向に固定
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!hasPermissions()) {
                 requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
+            } else {
+                initializeApp();
             }
+        } else {
+            initializeApp();
         }
-        // ユーザーにファイルピッカーを表示し、SDカード上のファイルへのアクセスを許可してもらう
-        //Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        //intent.addCategory(Intent.CATEGORY_OPENABLE);
-        //intent.setType("*/*");  // 必要に応じてファイルタイプを指定
-        //startActivityForResult(intent, OPEN_DOCUMENT_REQUEST_CODE);
-
         System.loadLibrary("native-activity");
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        Log.i(TAG, "onRequestPermissionsResult called");
+        if (requestCode == PERMISSIONS_REQUEST_CODE) {
+            if (hasPermissions()) {
+                Log.i(TAG, "All permissions granted");
+                onPermissionsGranted();
+            } else {
+                Log.i(TAG, "Some permissions denied");
+                onPermissionsDenied();
+            }
+        }
+    }
+
+    // ネイティブメソッドの宣言
+    private native void nativeOnPermissionsGranted();
+    private native void nativeOnPermissionsDenied();
+
     private boolean hasPermissions() {
+        // 権限チェックの実装
         for (String permission : PERMISSIONS_REQUIRED) {
             if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
                 return false;
             }
         }
         return true;
+    }
+
+    private void onPermissionsGranted() {
+        Log.i(TAG, "Permissions granted");
+        // JNIに権限付与成功を通知
+        nativeOnPermissionsGranted();
+    }
+
+    private void onPermissionsDenied() {
+        // JNIに権限拒否を通知
+        nativeOnPermissionsDenied();
+    }
+
+    // JNIから呼び出す非同期メソッド
+    public void checkPermissionsAsync() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (EmulatorActivity.this.hasPermissions()) {
+                    EmulatorActivity.this.onPermissionsGranted();
+                } else {
+                    EmulatorActivity.this.requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
+                }
+            }
+        });
+    }
+
+    // C++ 側からアクセス可能なメソッド
+    public boolean arePermissionsGranted() {
+        return permissionsGranted;
+    }
+
+    private void initializeApp() {
+        // 権限がある場合のアプリの初期化処理
+        System.loadLibrary("native-activity");
     }
 
     @Override

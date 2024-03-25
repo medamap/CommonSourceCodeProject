@@ -8,8 +8,8 @@ android {
 
     defaultConfig {
         applicationId = 'jp.matrix.shikarunochi.emulator.native_activity'
-        minSdkVersion 26
-        targetSdkVersion 26
+        minSdkVersion 24
+        targetSdkVersion 24
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_STL=c++_static'

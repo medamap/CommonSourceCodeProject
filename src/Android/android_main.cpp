@@ -9,7 +9,9 @@
 
 #include <android/native_activity.h>
 #include <android_native_app_glue.h>
+#include <android/configuration.h>
 #include <android/window.h>
+#include <android/looper.h>
 
 #include <errno.h>
 #include <jni.h>
@@ -33,6 +35,9 @@
 #include "fileio.h"
 
 #include <iconv.h>
+
+// ストレージ権限付与イベント
+#define PERMISSIONS_GRANTED_EVENT 1
 
 // emulation core
 EMU *emu;
@@ -150,8 +155,10 @@ static void init_tables(void) {
 static void draw_icon(ANativeWindow_Buffer *buffer) {
     int bufferWidth = buffer->width;
     int bufferHeight = buffer->height;
+    int sideOffset = (bufferWidth > bufferHeight) ? 300 : 100; // 横長画面の時は左右オフセットを設定する
+    bufferWidth -= sideOffset * 2; // 左右の余白を設定
 
-    uint16_t *pixels = (uint16_t *) (buffer->bits);
+    uint16_t *pixels = (uint16_t *) (buffer->bits) + sideOffset; // 左のオフセットを加算する
 
     int unitPixel = bufferWidth / 12;
 
@@ -209,6 +216,7 @@ static void draw_icon(ANativeWindow_Buffer *buffer) {
                 iconHeightMax = mediaIconData[fileSelectType].height;
             }
             uint16_t *iconPixels = pixels + buffer->stride * offsetY + (index) * unitPixel;
+
 
             for (int y = 0; y < mediaIconData[fileSelectType].height; y++) {
 
@@ -333,39 +341,48 @@ static void load_emulator_screen(ANativeWindow_Buffer *buffer) {
     bitmap_t *screenBuffer = emu->get_osd()->getScreenBuffer();
     scrntype_t *lpBmp = screenBuffer->lpBmp;
     void *pixels = buffer->bits;
-    pixels = (uint16_t *) pixels + buffer->stride * 150;
+    int topOffset = 180;
+    pixels = (uint16_t *) pixels + buffer->stride * topOffset;
 
     //画面のサイズ
     int bufferWidth = buffer->width;
-    int bufferHeight = buffer->height;
+    int bufferHeight = buffer->height - topOffset;
+    //LOGI("D4 bufferWidth (%d, %d)", buffer->width, buffer->height);
 
     //エミュレータ側の画面のサイズ
     int width = emu->get_osd()->get_vm_window_width();
     int height = emu->get_osd()->get_vm_window_height();
     float aspect = (float) width / height;
+    //LOGI("D5 width/height = aspect : (%d, %d) = (%f) ", width, height, aspect);
 
     float widthRate = (float) bufferWidth / width;
     float heightRate = (float) bufferHeight / height;
+    //LOGI("D6 widthRate/heightRate = (%f, %f)", widthRate, heightRate);
 
     //縦横小さい側の倍率で拡大
     float screenRate = 0;
     if (widthRate < heightRate) {
         screenRate = widthRate;
+        //LOGI("D7 screenRate = %f", screenRate);
     } else {
         screenRate = heightRate;
+        //LOGI("D8 screenRate = %f", screenRate);
     }
     int realScreenWidth = (float) width * screenRate;
     int realScreenHeight = (float) height * screenRate;
+    //LOGI("D9 realScreenWidth/Height (%d, %d)", realScreenWidth, realScreenHeight);
 
-    int widthOffset = (bufferWidth - realScreenWidth) / 2;
-    int heightOffset = 50 * screenRate;
+    int widthOffset = (bufferWidth - realScreenWidth) / 4;
+    //int heightOffset = 50 * screenRate; // 計算がめんどくさくなるので縦オフセットは0にする
+    int heightOffset = 0;
+    //LOGI("D10 width/heightOffset = (%d, %d)", widthOffset, heightOffset);
 
-    pixels = (uint16_t *) pixels + buffer->stride * heightOffset + widthOffset;
+    //pixels = (uint16_t *) pixels + buffer->stride * heightOffset + widthOffset;
 
     if (preScreenSize != screenSize) {
         void *tempPixels = pixels;
         for (int y = 0; y < realScreenHeight; y++) {
-            uint16_t *line = (uint16_t *) tempPixels;
+            uint16_t *line = (uint16_t *) tempPixels + widthOffset; // 横方向のオフセットを適用
             for (int x = 0; x < realScreenWidth; x++) {
                 line[x] = 0;
             }
@@ -374,20 +391,31 @@ static void load_emulator_screen(ANativeWindow_Buffer *buffer) {
         preScreenSize = screenSize;
     }
 
-
     if (screenSize == SCREEN_SIZE_MAX) {
         for (int y = 0; y < realScreenHeight; y++) {
-            uint16_t *line = (uint16_t *) pixels;
-            for (int x = 0; x < realScreenWidth; x++) {
-                int emuX = x / screenRate;
-                int emuY = y / screenRate;
-                if (emuX < width && emuY < height) {
-                    line[x] = *(lpBmp + (height - emuY - 1) * width + emuX - 1);
-                } else {
-                    line[x] = 0;
+            int realY = y + topOffset; // すでに pixels に topOffset を加えているため、ここでは追加しない
+            if (realY >= 0 && realY < buffer->height) {
+                uint16_t *line = (uint16_t *) pixels + buffer->stride * y + widthOffset;  // ここで widthOffset を適用
+                //LOGI("D11-2 y=%d / realY = %d", y, realY);
+                for (int x = 0; x < realScreenWidth; x++) {
+                    int realX = x + widthOffset;
+                    if (realX >= 0 && realX < buffer->width) {
+                        int emuX = x / screenRate;
+                        int emuY = y / screenRate;
+
+                        if (emuX >= 0 && emuX < width && emuY >= 0 && emuY < height) {
+                            int emuOffset = (height - emuY - 1) * width + emuX;
+                            if (emuOffset >= 0 && emuOffset < width * height) {
+                                line[realX] = *(lpBmp + emuOffset);
+                            } else {
+                                line[realX] = 0; // エミュレータのバッファ範囲外
+                            }
+                        } else {
+                            line[realX] = 0; // エミュレータのバッファ範囲外
+                        }
+                    }
                 }
             }
-            pixels = (uint16_t *) pixels + buffer->stride;
         }
     } else if (screenSize == SCREEN_SIZE_SPECIAL) {
         //真ん中の描画画面
@@ -488,7 +516,6 @@ static void load_emulator_screen(ANativeWindow_Buffer *buffer) {
     //        LOGI("%d: %s", y, test);
     //    }
     //}
-
 }
 
 void switchPCG() {
@@ -643,14 +670,17 @@ struct engine {
     struct android_app *app;
     Stats stats;
     int animating;
+    bool emu_initialized;
 };
-
 
 static int64_t start_ms;
 
 static void engine_draw_frame(struct engine *engine) {
     if (engine->app->window == NULL) {
         // No window.
+        return;
+    }
+    if (!engine->emu_initialized) {
         return;
     }
 
@@ -668,7 +698,9 @@ static void engine_draw_frame(struct engine *engine) {
     time_ms -= start_ms;
 
     /* Now fill the values with a nice little plasma */
-    load_emulator_screen(&buffer);
+    if (engine->emu_initialized) {
+        load_emulator_screen(&buffer);
+    }
     draw_icon(&buffer);
 
     ANativeWindow_unlockAndPost(engine->app->window);
@@ -733,15 +765,20 @@ static void clear_screen(struct engine *engine) {
 
 static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) {
     struct engine *engine = (struct engine *) app->userData;
+    if (!engine->emu_initialized) return 0;
     int action = AKeyEvent_getAction(event);
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
         if (AMotionEvent_getAction(event) == AMOTION_EVENT_ACTION_UP) {
             float x = AMotionEvent_getX(event, 0);
             float y = AMotionEvent_getY(event, 0);
+
+            int sideOffset = (deviceInfo.width > deviceInfo.height) ? 300 : 100;
+            x -= sideOffset; // 左側のオフセットを考慮したX座標の補正
+
             //アイコンチェック
             LOGI("X:%f, Y:%f, witdh:%d", x, y, deviceInfo.width);
             if (y > 100 && y < 300) {
-                int unitPixel = deviceInfo.width / 12;
+                int unitPixel = (deviceInfo.width - sideOffset * 2) / 12;
                 for (int index = 0; index < MAX_FILE_SELECT_ICON; index++) {
                     if (x > index * unitPixel && x < (index + 1) * unitPixel) {
                         if (fileSelectIconData[index].fileSelectType >= 0) {
@@ -752,11 +789,14 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                         break;
                     }
                 }
-                if (x > deviceInfo.width - unitPixel) {
+                // 右端のアイコンチェックについても、オフセットを考慮する
+                int adjustedWidth = deviceInfo.width - sideOffset * 2;
+                if (x > adjustedWidth - unitPixel) {
                     LOGI("Reset!");
                     selectBootMode(app);
                     return 0;
-                } else if (x > deviceInfo.width - unitPixel * 2) {
+                } else if (x > adjustedWidth - unitPixel * 2) {
+#if false
                     int newScreenSize = (int) screenSize + 1;
                     if (newScreenSize > SCREEN_SIZE_SPECIAL) {
                         screenSize = SCREEN_SIZE_JUST;
@@ -764,9 +804,10 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                         screenSize = (ScreenSize) newScreenSize;
                     }
                     clear_screen(engine);
-                } else if (x > deviceInfo.width - unitPixel * 3) {
+#endif
+                } else if (x > adjustedWidth - unitPixel * 3) {
                     switchSound();
-                } else if (x > deviceInfo.width - unitPixel * 4) {
+                } else if (x > adjustedWidth - unitPixel * 4) {
                     switchPCG();
                 }
             }
@@ -775,8 +816,14 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
         if (AMotionEvent_getAction(event) == AMOTION_EVENT_ACTION_DOWN) {
             float x = AMotionEvent_getX(event, 0);
             float y = AMotionEvent_getY(event, 0);
-            if (y > deviceInfo.height / 2) {
+            // 縦横の長さを比較し、大きい方の4分の1をキーボードの高さとして設定
+            int largerSize = (deviceInfo.width > deviceInfo.height) ? deviceInfo.width : deviceInfo.height;
+            int keyboardHeight = largerSize / 2;
+
+            // 実際の縦座標が、画面の下端からキーボードの高さを引いた位置よりも下ならば、タップ判定とする
+            if (y > deviceInfo.height - keyboardHeight) {
                 toggle_soft_keyboard(app);
+                return 1;
             }
         }
         return 1;
@@ -902,6 +949,26 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
         case APP_CMD_LOST_FOCUS:
             //engine->animating = 0;
             engine_draw_frame(engine);
+            break;
+        case APP_CMD_CONFIG_CHANGED:
+            {
+                // 設定変更時の処理
+                AConfiguration* aconfig = AConfiguration_new();
+                AConfiguration_fromAssetManager(aconfig, app->activity->assetManager);
+
+                // 画面の向きを取得し、必要に応じて処理を行う
+                int orientation = AConfiguration_getOrientation(aconfig);
+
+                // 新しい画面のサイズや向きに基づいてUIや描画を更新
+                // ここに画面サイズ変更に対する処理を追加
+                // 画面の向きが変わったら、バッファサイズを再設定
+                if (app->window != NULL) {
+                    ANativeWindow_setBuffersGeometry(app->window, 0, 0, WINDOW_FORMAT_RGB_565);
+                }
+                deviceInfo.width = ANativeWindow_getWidth(app->window);
+                deviceInfo.height = ANativeWindow_getHeight(app->window);
+                AConfiguration_delete(aconfig);
+            }
             break;
     }
 }
@@ -1146,7 +1213,40 @@ void close_floppy_disk(int drv) {
 
 #endif
 
+
 extern "C" {
+// グローバル参照を保持するための変数
+
+JavaVM* g_JavaVM = nullptr;
+jobject g_ActivityObject = nullptr;
+bool grantedStorage = false;
+static struct android_app* globalAppState = nullptr;
+
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    g_JavaVM = vm;
+    return JNI_VERSION_1_6;
+}
+
+JNIEXPORT void JNICALL Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_nativeOnPermissionsGranted(JNIEnv *env, jobject obj) {
+    // 権限が付与された後の処理をここに実装
+    grantedStorage = true;
+
+    // カスタムイベントを送信してメインスレッドに通知
+    if (globalAppState != nullptr) {
+        ALooper_wake(ALooper_forThread());
+    }
+}
+
+JNIEXPORT void JNICALL Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_nativeOnPermissionsDenied(JNIEnv *env, jobject obj) {
+    // 権限が拒否された場合の処理をここに実装
+}
+
+void checkPermissionsAndInitialize(JNIEnv *env, jobject activity) {
+    jclass clazz = env->GetObjectClass(activity);
+    jmethodID methodID = env->GetMethodID(clazz, "checkPermissionsAsync", "()V");
+    env->CallVoidMethod(activity, methodID);
+}
+
 JNIEXPORT void JNICALL
 Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_fileSelectCallback(JNIEnv *env, jobject thiz,
                                                                      jint id) {
@@ -1551,10 +1651,10 @@ bool get_status_bar_updated() {
 }
 
 void android_main(struct android_app *state) {
+
     ANativeActivity_setWindowFlags(state->activity,AWINDOW_FLAG_KEEP_SCREEN_ON , 0);    //Sleepさせない
 
     static int init;
-
     struct engine engine;
 
     memset(&engine, 0, sizeof(engine));
@@ -1562,6 +1662,20 @@ void android_main(struct android_app *state) {
     state->onAppCmd = engine_handle_cmd;
     state->onInputEvent = engine_handle_input;
     engine.app = state;
+    engine.emu_initialized = false;
+
+    // アプリケーションの状態をグローバル変数に保持
+    globalAppState = state;
+
+    {
+        JNIEnv* env = nullptr;
+        state->activity->vm->AttachCurrentThread(&env, nullptr);
+
+        // 権限チェックと初期化を非同期で行う
+        checkPermissionsAndInitialize(env, state->activity->clazz);
+
+        state->activity->vm->DetachCurrentThread();
+    }
 
     //const char *documentDirTemp = jniGetDocumentPath(state);
     //const char *documentDirTemp = jniGetExternalStoragePath(state);
@@ -1578,7 +1692,29 @@ void android_main(struct android_app *state) {
 
     initialize_config();
 
+    // 権限が付与されるまで先に進まないループ
+    while (1) {
+        int events;
+        struct android_poll_source* source;
+
+        int ident = ALooper_pollAll(-1, NULL, &events, (void **) &source);
+        if (source) {
+            // Process this event.
+            if (source != NULL) {
+                source->process(state, source);
+            }
+        }
+        if (grantedStorage) {
+            // 権限が許可された後の処理
+            break;
+        }
+    }
+
+    // 権限付与待機ループ処理後のクリーンアップ
+    globalAppState = nullptr;
+
     emu = new EMU(state);
+    engine.emu_initialized = true;
 
     if (!init) {
         init_tables();
