@@ -10,6 +10,7 @@
 #include <android/native_activity.h>
 #include <android_native_app_glue.h>
 #include <android/window.h>
+#include <android/looper.h>
 
 #include <errno.h>
 #include <jni.h>
@@ -33,6 +34,9 @@
 #include "fileio.h"
 
 #include <iconv.h>
+
+// ストレージ権限付与イベント
+#define PERMISSIONS_GRANTED_EVENT 1
 
 // emulation core
 EMU *emu;
@@ -643,14 +647,17 @@ struct engine {
     struct android_app *app;
     Stats stats;
     int animating;
+    bool emu_initialized;
 };
-
 
 static int64_t start_ms;
 
 static void engine_draw_frame(struct engine *engine) {
     if (engine->app->window == NULL) {
         // No window.
+        return;
+    }
+    if (!engine->emu_initialized) {
         return;
     }
 
@@ -668,7 +675,9 @@ static void engine_draw_frame(struct engine *engine) {
     time_ms -= start_ms;
 
     /* Now fill the values with a nice little plasma */
-    load_emulator_screen(&buffer);
+    if (engine->emu_initialized) {
+        load_emulator_screen(&buffer);
+    }
     draw_icon(&buffer);
 
     ANativeWindow_unlockAndPost(engine->app->window);
@@ -733,6 +742,7 @@ static void clear_screen(struct engine *engine) {
 
 static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) {
     struct engine *engine = (struct engine *) app->userData;
+    if (!engine->emu_initialized) return 0;
     int action = AKeyEvent_getAction(event);
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
         if (AMotionEvent_getAction(event) == AMOTION_EVENT_ACTION_UP) {
@@ -1146,7 +1156,40 @@ void close_floppy_disk(int drv) {
 
 #endif
 
+
 extern "C" {
+// グローバル参照を保持するための変数
+
+JavaVM* g_JavaVM = nullptr;
+jobject g_ActivityObject = nullptr;
+bool grantedStorage = false;
+static struct android_app* globalAppState = nullptr;
+
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    g_JavaVM = vm;
+    return JNI_VERSION_1_6;
+}
+
+JNIEXPORT void JNICALL Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_nativeOnPermissionsGranted(JNIEnv *env, jobject obj) {
+    // 権限が付与された後の処理をここに実装
+    grantedStorage = true;
+
+    // カスタムイベントを送信してメインスレッドに通知
+    if (globalAppState != nullptr) {
+        ALooper_wake(ALooper_forThread());
+    }
+}
+
+JNIEXPORT void JNICALL Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_nativeOnPermissionsDenied(JNIEnv *env, jobject obj) {
+    // 権限が拒否された場合の処理をここに実装
+}
+
+void checkPermissionsAndInitialize(JNIEnv *env, jobject activity) {
+    jclass clazz = env->GetObjectClass(activity);
+    jmethodID methodID = env->GetMethodID(clazz, "checkPermissionsAsync", "()V");
+    env->CallVoidMethod(activity, methodID);
+}
+
 JNIEXPORT void JNICALL
 Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_fileSelectCallback(JNIEnv *env, jobject thiz,
                                                                      jint id) {
@@ -1551,10 +1594,10 @@ bool get_status_bar_updated() {
 }
 
 void android_main(struct android_app *state) {
+
     ANativeActivity_setWindowFlags(state->activity,AWINDOW_FLAG_KEEP_SCREEN_ON , 0);    //Sleepさせない
 
     static int init;
-
     struct engine engine;
 
     memset(&engine, 0, sizeof(engine));
@@ -1562,6 +1605,20 @@ void android_main(struct android_app *state) {
     state->onAppCmd = engine_handle_cmd;
     state->onInputEvent = engine_handle_input;
     engine.app = state;
+    engine.emu_initialized = false;
+
+    // アプリケーションの状態をグローバル変数に保持
+    globalAppState = state;
+
+    {
+        JNIEnv* env = nullptr;
+        state->activity->vm->AttachCurrentThread(&env, nullptr);
+
+        // 権限チェックと初期化を非同期で行う
+        checkPermissionsAndInitialize(env, state->activity->clazz);
+
+        state->activity->vm->DetachCurrentThread();
+    }
 
     //const char *documentDirTemp = jniGetDocumentPath(state);
     //const char *documentDirTemp = jniGetExternalStoragePath(state);
@@ -1578,7 +1635,35 @@ void android_main(struct android_app *state) {
 
     initialize_config();
 
+    // 権限が付与されるまで先に進まないループ
+    while (1) {
+        int events;
+        struct android_poll_source* source;
+
+        int ident = ALooper_pollAll(-1, NULL, &events, (void **) &source);
+        if (source) {
+            // Process this event.
+            if (source != NULL) {
+                source->process(state, source);
+            }
+        }
+        if (grantedStorage) {
+            // 権限が許可された後の処理
+            break;
+        }
+        // 他のスレッドに処理を譲るために少し待機
+        usleep(1000 * 1000);  // 1秒待機
+        if (grantedStorage) {
+            // 権限が許可された後の処理
+            break;
+        }
+    }
+
+    // 権限付与待機ループ処理後のクリーンアップ
+    globalAppState = nullptr;
+
     emu = new EMU(state);
+    engine.emu_initialized = true;
 
     if (!init) {
         init_tables();
