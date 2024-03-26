@@ -776,15 +776,16 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
             x -= sideOffset; // 左側のオフセットを考慮したX座標の補正
 
             //アイコンチェック
-            LOGI("X:%f, Y:%f, witdh:%d", x, y, deviceInfo.width);
+            LOGI("X:%f, Y:%f, Witdh:%d, Height:%d", x, y, deviceInfo.width, deviceInfo.height);
             if (y > 100 && y < 300) {
                 int unitPixel = (deviceInfo.width - sideOffset * 2) / 12;
                 for (int index = 0; index < MAX_FILE_SELECT_ICON; index++) {
                     if (x > index * unitPixel && x < (index + 1) * unitPixel) {
                         if (fileSelectIconData[index].fileSelectType >= 0) {
+                            LOGI("Tap File %d", index);
                             selectingIconIndex = index;
                             selectMedia(app);
-                            return 0;
+                            return 1;
                         }
                         break;
                     }
@@ -792,9 +793,9 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                 // 右端のアイコンチェックについても、オフセットを考慮する
                 int adjustedWidth = deviceInfo.width - sideOffset * 2;
                 if (x > adjustedWidth - unitPixel) {
-                    LOGI("Reset!");
+                    LOGI("Tap Reset");
                     selectBootMode(app);
-                    return 0;
+                    return 1;
                 } else if (x > adjustedWidth - unitPixel * 2) {
 #if false
                     int newScreenSize = (int) screenSize + 1;
@@ -806,9 +807,13 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                     clear_screen(engine);
 #endif
                 } else if (x > adjustedWidth - unitPixel * 3) {
+                    LOGI("Tap switch Sound");
                     switchSound();
+                    return 1;
                 } else if (x > adjustedWidth - unitPixel * 4) {
+                    LOGI("Tap switch PCG");
                     switchPCG();
+                    return 1;
                 }
             }
         }
@@ -816,17 +821,20 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
         if (AMotionEvent_getAction(event) == AMOTION_EVENT_ACTION_DOWN) {
             float x = AMotionEvent_getX(event, 0);
             float y = AMotionEvent_getY(event, 0);
-            // 縦横の長さを比較し、大きい方の4分の1をキーボードの高さとして設定
-            int largerSize = (deviceInfo.width > deviceInfo.height) ? deviceInfo.width : deviceInfo.height;
-            int keyboardHeight = largerSize / 2;
+            // 縦横の長さの関係からキーボード判定境界を決定する
+            int keyboardHeight = (deviceInfo.width > deviceInfo.height)
+                    ? deviceInfo.height * 3 / 4 // 横長
+                    : deviceInfo.height / 2;    // 縦長
+            int tapBorder = deviceInfo.height - keyboardHeight;
 
             // 実際の縦座標が、画面の下端からキーボードの高さを引いた位置よりも下ならば、タップ判定とする
-            if (y > deviceInfo.height - keyboardHeight) {
+            if (y > tapBorder) {
+                LOGI("Tap toggle Keyboard (border = %d)", tapBorder);
                 toggle_soft_keyboard(app);
                 return 1;
             }
         }
-        return 1;
+        return 0;
     } else if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_KEY) {
         LOGI("Key event: action=%d keyCode=%d metaState=0x%x flags=%d source=%d",
              AKeyEvent_getAction(event),
@@ -955,18 +963,12 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
                 // 設定変更時の処理
                 AConfiguration* aconfig = AConfiguration_new();
                 AConfiguration_fromAssetManager(aconfig, app->activity->assetManager);
-
-                // 画面の向きを取得し、必要に応じて処理を行う
-                int orientation = AConfiguration_getOrientation(aconfig);
-
                 // 新しい画面のサイズや向きに基づいてUIや描画を更新
                 // ここに画面サイズ変更に対する処理を追加
                 // 画面の向きが変わったら、バッファサイズを再設定
                 if (app->window != NULL) {
                     ANativeWindow_setBuffersGeometry(app->window, 0, 0, WINDOW_FORMAT_RGB_565);
                 }
-                deviceInfo.width = ANativeWindow_getWidth(app->window);
-                deviceInfo.height = ANativeWindow_getHeight(app->window);
                 AConfiguration_delete(aconfig);
             }
             break;
@@ -1650,6 +1652,16 @@ bool get_status_bar_updated() {
     return updated;
 }
 
+void check_update_screen(engine* engine) {
+    int newWidth = ANativeWindow_getWidth(engine->app->window);
+    int newHeight = ANativeWindow_getHeight(engine->app->window);
+    if (newWidth != deviceInfo.width || newHeight != deviceInfo.height) {
+        LOGI("Changed: Screen(%d, %d) -> (%d, %d)", deviceInfo.width, deviceInfo.height, newWidth, newHeight);
+        deviceInfo.width = newWidth;
+        deviceInfo.height = newHeight;
+    }
+}
+
 void android_main(struct android_app *state) {
 
     ANativeActivity_setWindowFlags(state->activity,AWINDOW_FLAG_KEEP_SCREEN_ON , 0);    //Sleepさせない
@@ -1697,6 +1709,7 @@ void android_main(struct android_app *state) {
         int events;
         struct android_poll_source* source;
 
+        // プロセスイベント取得
         int ident = ALooper_pollAll(-1, NULL, &events, (void **) &source);
         if (source) {
             // Process this event.
@@ -1743,6 +1756,9 @@ void android_main(struct android_app *state) {
         int ident;
         int events;
         struct android_poll_source *source;
+
+        // 画面サイズ変更チェック
+        check_update_screen(&engine);
 
         // If not animating, we will block forever waiting for events.
         // If animating, we loop until all events are read, then continue
