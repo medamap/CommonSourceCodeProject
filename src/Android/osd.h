@@ -1258,7 +1258,7 @@ public:
 	~OBOESOUND() {
 	}
 
-	#define SOUND_BUFFER_LENGTH 2000*100*2
+	#define SOUND_BUFFER_LENGTH 4800 * 100*2
 
 	uint16_t soundBuffer[SOUND_BUFFER_LENGTH];
 

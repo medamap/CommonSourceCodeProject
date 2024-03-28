@@ -111,14 +111,14 @@ void initialize_config()
 		config.sound_frequency = SOUND_RATE_DEFAULT;
     #else
         #if defined(__ANDROID__)
-            config.sound_frequency = 5;	// 44KHz
+            config.sound_frequency = 4;	// 22KHz
         #else
             config.sound_frequency = 6;	// 48KHz
         #endif
 	#endif
         #if defined(__ANDROID__)
-            config.sound_latency = 0;	// 50msec
-            config.sound_strict_rendering = false;
+            config.sound_latency = 1;	// 100msec
+            config.sound_strict_rendering = true;
         #else
             config.sound_latency = 1;	// 100msec
         	config.sound_strict_rendering = true;
