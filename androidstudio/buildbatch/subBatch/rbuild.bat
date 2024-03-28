@@ -1,25 +1,24 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: 引数を取得し、大文字に変換
+:: �������擾���A�啶���ɕϊ�
 set variant=%1
 set variant_uppercase=%variant%
 for %%i in (a b c d e f g h i j k l m n o p q r s t u v w x y z) do (
     call set variant_uppercase=%%variant_uppercase:%%i=%%i%%
 )
 
-:: Releaseを付けて完全なビルドタイプを作成
+:: Release��t���Ċ��S�ȃr���h�^�C�v���쐬
 set buildType=!variant_uppercase!Release
 
 cd ..
 
-:: アセンブルとインストール
+:: �A�Z���u���ƃC���X�g�[��
 call .\gradlew assemble!buildType!
 if %ERRORLEVEL% neq 0 goto end
 call .\gradlew install!buildType!
-if %ERRORLEVEL% neq 0 goto end
 
-:: buildbatchに移動して日付フォルダを作成
+:: buildbatch�Ɉړ����ē��t�t�H���_���쐬
 cd buildbatch
 set DATESTR=%date:~-10,4%%date:~-5,2%%date:~-2,2%
 set FOLDERNAME=v%DATESTR%_release_apk
@@ -28,8 +27,8 @@ if not exist "%FOLDERNAME%" (
     mkdir "%FOLDERNAME%"
 )
 
-:: APKファイルを新しいフォルダにコピー
-:: 以下のパスはプロジェクトの構成により適宜調整
+:: APK�t�@�C����V�����t�H���_�ɃR�s�[
+:: �ȉ��̃p�X�̓v���W�F�N�g�̍\���ɂ��K�X����
 copy "..\app\build\outputs\apk\%VARIANT%\release\*.apk" "%FOLDERNAME%"
 if %ERRORLEVEL% neq 0 goto end
 

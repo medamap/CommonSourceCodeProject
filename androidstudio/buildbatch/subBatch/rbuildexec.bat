@@ -1,38 +1,38 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: å¼•æ•°ã‚’å–å¾—ã—ã€å¤§æ–‡å­—ã«å¤‰æ›
+:: ˆø”‚ğæ“¾‚µA‘å•¶š‚É•ÏŠ·
 set variant=%1
 set variant_uppercase=%variant%
 for %%i in (a b c d e f g h i j k l m n o p q r s t u v w x y z) do (
     call set variant_uppercase=%%variant_uppercase:%%i=%%i%%
 )
 
-:: Debugã‚’ä»˜ã‘ã¦å®Œå…¨ãªãƒ“ãƒ«ãƒ‰ã‚¿ã‚¤ãƒ—ã‚’ä½œæˆ
-set buildType=!variant_uppercase!Debug
+:: Release‚ğ•t‚¯‚ÄŠ®‘S‚Èƒrƒ‹ƒhƒ^ƒCƒv‚ğì¬
+set buildType=!variant_uppercase!Release
 
 cd ..
 
-:: ã‚¢ã‚»ãƒ³ãƒ–ãƒ«ã¨ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
+:: ƒAƒZƒ“ƒuƒ‹‚ÆƒCƒ“ƒXƒg[ƒ‹
 call .\gradlew assemble!buildType!
 call .\gradlew install!buildType!
 
-:: ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®èµ·å‹•
+:: ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Ì‹N“®
 adb shell am start -n jp.matrix.shikarunochi.emulator.!variant!/jp.matrix.shikarunochi.emulator.EmulatorActivity
 
 cd buildbatch
 
-:: buildbatchã«ç§»å‹•ã—ã¦æ—¥ä»˜ãƒ•ã‚©ãƒ«ãƒ€ã‚’ä½œæˆ
+:: buildbatch‚ÉˆÚ“®‚µ‚Ä“ú•tƒtƒHƒ‹ƒ_‚ğì¬
 cd buildbatch
 set DATESTR=%date:~-10,4%%date:~-5,2%%date:~-2,2%
-set FOLDERNAME=v%DATESTR%_debug_apk
+set FOLDERNAME=v%DATESTR%_release_apk
 
 if not exist "%FOLDERNAME%" (
     mkdir "%FOLDERNAME%"
 )
 
-:: APKãƒ•ã‚¡ã‚¤ãƒ«ã‚’æ–°ã—ã„ãƒ•ã‚©ãƒ«ãƒ€ã«ã‚³ãƒ”ãƒ¼
-:: ä»¥ä¸‹ã®ãƒ‘ã‚¹ã¯ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆã®æ§‹æˆã«ã‚ˆã‚Šé©å®œèª¿æ•´
-copy "..\app\build\outputs\apk\%VARIANT%\debug\*.apk" "%FOLDERNAME%"
+:: APKƒtƒ@ƒCƒ‹‚ğV‚µ‚¢ƒtƒHƒ‹ƒ_‚ÉƒRƒs[
+:: ˆÈ‰º‚ÌƒpƒX‚ÍƒvƒƒWƒFƒNƒg‚Ì\¬‚É‚æ‚è“K‹X’²®
+copy "..\app\build\outputs\apk\%VARIANT%\release\*.apk" "%FOLDERNAME%"
 
 endlocal
