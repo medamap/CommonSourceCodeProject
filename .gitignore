@@ -404,3 +404,6 @@ androidstudio/app/build
 androidstudio/oboe_old
 androidstudio/local.properties
 *.apk
+
+!/tool/**/*
+!/tool/**/*/
