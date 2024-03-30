@@ -1,5 +1,7 @@
 X1,x1
-X1turbo,x1turbo
+X1Turbo,x1turbo
+X1TurboZ,x1turboz
+X1Twin,x1twin
 MZ80B,mz80b
 MZ80K,mz80k
 MZ700,mz700
@@ -8,6 +10,7 @@ MZ1500,mz1500
 MZ2200,mz2200
 MZ2500,mz2500
 PC6001,pc6001
+PC6001mk2,pc6001mk2
 PC6601,pc6601
 PC6601SR,pc6601sr
 PC8001,pc8001
