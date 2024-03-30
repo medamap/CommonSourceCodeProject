@@ -814,14 +814,127 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 #endif
 
 #if defined (_Android)
-BOOL DLL_PREFIX MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
-{return true;}
+BOOL DLL_PREFIX MyWritePrivateProfileString(const char* lpAppName, const char* lpKeyName, const char* lpString, const char* lpFileName) {
+    bool result = false;
+    FILE* fio_i = fopen(lpFileName, "r");
+    if (fio_i) {
+        char tmp_path[1024];
+        snprintf(tmp_path, sizeof(tmp_path), "%s.$$$", lpFileName);
+        FILE* fio_o = fopen(tmp_path, "w");
+        if (fio_o) {
+            bool in_section = false;
+            char section[1024], line[1024];
+            snprintf(section, sizeof(section), "[%s]", lpAppName);
+            while (fgets(line, sizeof(line), fio_i) != NULL && strlen(line) > 0) {
+                if (line[strlen(line) - 1] == '\n') {
+                    line[strlen(line) - 1] = '\0';
+                }
+                if (!result) {
+                    if (line[0] == '[') {
+                        if (in_section) {
+                            fprintf(fio_o, "%s=%s\n", lpKeyName, lpString);
+                            result = true;
+                        } else if (strcmp(line, section) == 0) {
+                            in_section = true;
+                        }
+                    } else if (in_section && strstr(line, "=")) {
+                        char* equal = strstr(line, "=");
+                        *equal = '\0';
+                        if (strcmp(line, lpKeyName) == 0) {
+                            fprintf(fio_o, "%s=%s\n", lpKeyName, lpString);
+                            result = true;
+                            continue;
+                        }
+                        *equal = '=';
+                    }
+                }
+                fprintf(fio_o, "%s\n", line);
+            }
+            if (!result) {
+                if (!in_section) {
+                    fprintf(fio_o, "[%s]\n", lpAppName);
+                }
+                fprintf(fio_o, "%s=%s\n", lpKeyName, lpString);
+                result = true;
+            }
+            fclose(fio_o);
+        }
+        fclose(fio_i);
+        if (result) {
+            if (!(remove(lpFileName) == 0 && rename(tmp_path, lpFileName) == 0)) {
+                result = false;
+            }
+        }
+    } else {
+        FILE* fio_o = fopen(lpFileName, "w");
+        if (fio_o) {
+            fprintf(fio_o, "[%s]\n", lpAppName);
+            fprintf(fio_o, "%s=%s\n", lpKeyName, lpString);
+            fclose(fio_o);
+        }
+    }
+    return result;
+}
 
-DWORD DLL_PREFIX MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName)
-{return 0;}
+size_t DLL_PREFIX MyGetPrivateProfileString(const char* lpAppName, const char* lpKeyName, const char* lpDefault, char* lpReturnedString, size_t nSize, const char* lpFileName) {
+    if (lpDefault != NULL) {
+        strncpy(lpReturnedString, lpDefault, nSize);
+        lpReturnedString[nSize - 1] = '\0';
+    } else {
+        lpReturnedString[0] = '\0';
+    }
 
-UINT DLL_PREFIX MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT nDefault, LPCTSTR lpFileName)
-{return 0;}
+    FILE* fio = fopen(lpFileName, "r");
+    if (fio) {
+        bool in_section = false;
+        char section[1024], line[1024];
+        snprintf(section, sizeof(section), "[%s]", lpAppName);
+        while (fgets(line, sizeof(line), fio) != NULL && strlen(line) > 0) {
+            if (line[strlen(line) - 1] == '\n') {
+                line[strlen(line) - 1] = '\0';
+            }
+            if (line[0] == '[') {
+                if (in_section) {
+                    break;
+                } else if (strcmp(line, section) == 0) {
+                    in_section = true;
+                }
+            } else if (in_section) {
+                char* equal = strstr(line, "=");
+                if (equal) {
+                    *equal = '\0';
+                    if (strcmp(line, lpKeyName) == 0) {
+                        strncpy(lpReturnedString, equal + 1, nSize);
+                        lpReturnedString[nSize - 1] = '\0';
+                        break;
+                    }
+                }
+            }
+        }
+        fclose(fio);
+    }
+    return strlen(lpReturnedString);
+}
+
+unsigned int DLL_PREFIX MyGetPrivateProfileInt(const char* lpAppName, const char* lpKeyName, int nDefault, const char* lpFileName) {
+    char sstr[128];
+    char sval[128];
+    std::string s;
+    memset(sstr, 0, sizeof(sstr));
+    memset(sval, 0, sizeof(sval));
+    snprintf(sval, sizeof(sval), "%d", nDefault);
+    MyGetPrivateProfileString(lpAppName, lpKeyName, sval, sstr, sizeof(sstr), lpFileName);
+    s = sstr;
+
+    int i;
+    if (s.empty()) {
+        i = nDefault;
+    } else {
+        i = static_cast<int>(strtol(s.c_str(), nullptr, 10));
+    }
+    return static_cast<unsigned int>(i);
+}
+
 #elif !defined(_WIN32)
 BOOL DLL_PREFIX MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
 {
