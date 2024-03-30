@@ -152,6 +152,11 @@
 	#endif
 	#include <sys/param.h>
 #endif
+#ifdef __ANDROID__
+#include <cstdio>
+#include <cstring>
+#include <string>
+#endif
 #ifndef _MAX_PATH
 	#define _MAX_PATH 2048
 #endif
@@ -953,6 +958,11 @@ int16_t DLL_PREFIX ExchangeEndianS16(uint16_t x);
 #endif
 
 // win32 api
+#if defined(__ANDROID__)
+BOOL DLL_PREFIX MyWritePrivateProfileString(const char* lpAppName, const char* lpKeyName, const char* lpString, const char* lpFileName);
+size_t DLL_PREFIX MyGetPrivateProfileString(const char* lpAppName, const char* lpKeyName, const char* lpDefault, char* lpReturnedString, size_t nSize, const char* lpFileName);
+unsigned int DLL_PREFIX MyGetPrivateProfileInt(const char* lpAppName, const char* lpKeyName, int nDefault, const char* lpFileName);
+#else
 #ifndef _WIN32
 	BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName);
 	DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName);
@@ -964,6 +974,7 @@ int16_t DLL_PREFIX ExchangeEndianS16(uint16_t x);
 	#define MyWritePrivateProfileString WritePrivateProfileString
 	#define MyGetPrivateProfileString GetPrivateProfileString
 	#define MyGetPrivateProfileInt GetPrivateProfileInt
+#endif
 #endif
 
 // rgb color

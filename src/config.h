@@ -172,7 +172,11 @@ typedef struct {
 	// filter
 	#if defined(USE_SHARED_DLL) || defined(USE_SCREEN_FILTER)
 		int filter_type;
-	#endif
+    #endif
+
+    #if defined(__ANDROID__)
+        int screen_bottom_margin;
+    #endif
 	
 	// sound
 	int sound_frequency;
