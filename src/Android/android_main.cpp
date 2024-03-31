@@ -282,7 +282,7 @@ static void draw_icon(ANativeWindow_Buffer *buffer) {
         }
     }
     //テープ読み込み中の場合、パーセントに応じた表示する。
-#if defined(USE_TAPE) // && !defined(TAPE_BINARY_ONLY)
+#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
     int tapeY = iconHeightMax + offsetY + 10;
     uint16_t *line = pixels + buffer->stride * tapeY;
     int tapePercentPixel = bufferWidth * tape_position / 100;
