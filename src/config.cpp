@@ -327,7 +327,11 @@ void load_config(const _TCHAR* config_path)
 	#ifdef USE_SCREEN_FILTER
 		config.filter_type = MyGetPrivateProfileInt(_T("Screen"), _T("FilterType"), config.filter_type, config_path);
 	#endif
-	
+
+    #if defined(__ANDROID__)
+        config.screen_bottom_margin = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenBottomMargin"), config.screen_bottom_margin, config_path);
+    #endif
+
 	// sound
 	config.sound_frequency = MyGetPrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
 	config.sound_latency = MyGetPrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
@@ -570,8 +574,12 @@ void save_config(const _TCHAR* config_path)
 	// filter
 	#ifdef USE_SCREEN_FILTER
 		MyWritePrivateProfileInt(_T("Screen"), _T("FilterType"), config.filter_type, config_path);
-	#endif
-	
+    #endif
+
+    #if defined(__ANDROID__)
+        MyWritePrivateProfileInt(_T("Screen"), _T("ScreenBottomMargin"), config.screen_bottom_margin, config_path);
+    #endif
+
 	// sound
 	MyWritePrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
 	MyWritePrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);

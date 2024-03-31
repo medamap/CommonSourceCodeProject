@@ -35,6 +35,7 @@
 #include "fileio.h"
 
 #include <iconv.h>
+#include <sys/stat.h>
 
 // ストレージ権限付与イベント
 #define PERMISSIONS_GRANTED_EVENT 1
@@ -87,6 +88,8 @@ BitmapData jniCreateBitmapFromString(struct android_app *state, const char *text
 
 //const char* getSDCARDPath(struct android_app *state);
 char documentDir[_MAX_PATH];
+char emulatorDir[_MAX_PATH];
+char configPath[_MAX_PATH];
 
 std::vector<std::string> fileList;
 
@@ -264,6 +267,9 @@ static void draw_icon(ANativeWindow_Buffer *buffer) {
                 dotMask = 0x8410;
             }
         }
+        if (index == 1) {
+            continue;
+        }
 
         uint16_t *iconPixels = pixels + buffer->stride * offsetY + (11 - index) * unitPixel;
         for (int y = 0; y < systemIconData[index].height; y++) {
@@ -346,7 +352,7 @@ static void load_emulator_screen(ANativeWindow_Buffer *buffer) {
 
     //画面のサイズ
     int bufferWidth = buffer->width;
-    int bufferHeight = buffer->height - topOffset;
+    int bufferHeight = buffer->height - topOffset - config.screen_bottom_margin;
     //LOGI("D4 bufferWidth (%d, %d)", buffer->width, buffer->height);
 
     //エミュレータ側の画面のサイズ
@@ -927,6 +933,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
     struct engine *engine = (struct engine *) app->userData;
     switch (cmd) {
         case APP_CMD_INIT_WINDOW:
+        {
             if (engine->app->window != NULL) {
                 // fill_plasma() assumes 565 format, get it here
                 format = ANativeWindow_getFormat(app->window);
@@ -939,9 +946,12 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
                 deviceInfo.height = ANativeWindow_getHeight(app->window);
                 clear_screen(engine);
                 engine->animating = 1;
+                LOGI("Screen size (%d, %d)", deviceInfo.width, deviceInfo.height);
             }
             break;
+        }
         case APP_CMD_TERM_WINDOW:
+        {
             engine_term_display(engine);
             format = ANativeWindow_getFormat(app->window);
             ANativeWindow_setBuffersGeometry(app->window,
@@ -953,25 +963,29 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
             deviceInfo.height = ANativeWindow_getHeight(app->window);
             clear_screen(engine);
             engine->animating = 1;
+            LOGI("Screen size (%d, %d)", deviceInfo.width, deviceInfo.height);
             break;
+        }
         case APP_CMD_LOST_FOCUS:
+        {
             //engine->animating = 0;
             engine_draw_frame(engine);
             break;
+        }
         case APP_CMD_CONFIG_CHANGED:
-            {
-                // 設定変更時の処理
-                AConfiguration* aconfig = AConfiguration_new();
-                AConfiguration_fromAssetManager(aconfig, app->activity->assetManager);
-                // 新しい画面のサイズや向きに基づいてUIや描画を更新
-                // ここに画面サイズ変更に対する処理を追加
-                // 画面の向きが変わったら、バッファサイズを再設定
-                if (app->window != NULL) {
-                    ANativeWindow_setBuffersGeometry(app->window, 0, 0, WINDOW_FORMAT_RGB_565);
-                }
-                AConfiguration_delete(aconfig);
+        {
+            // 設定変更時の処理
+            AConfiguration* aconfig = AConfiguration_new();
+            AConfiguration_fromAssetManager(aconfig, app->activity->assetManager);
+            // 新しい画面のサイズや向きに基づいてUIや描画を更新
+            // ここに画面サイズ変更に対する処理を追加
+            // 画面の向きが変わったら、バッファサイズを再設定
+            if (app->window != NULL) {
+                ANativeWindow_setBuffersGeometry(app->window, 0, 0, WINDOW_FORMAT_RGB_565);
             }
+            AConfiguration_delete(aconfig);
             break;
+        }
     }
 }
 
@@ -1052,6 +1066,9 @@ void selectBootMode(struct android_app *state) {
     std::string itemList;
 #ifdef _PC8801MA
     itemList="N88-V1(S) mode;N88-V1(H) mode;N88-V2 mode;N mode;N88-V2(CD) mode";
+#endif
+#ifdef _X1TURBO_FEATURE
+    itemList="High mode;Standard mode";
 #endif
 
     showAlert(state, message, itemList.c_str(), true, BOOT_MODE_SELECT, 0);
@@ -1351,6 +1368,13 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_bootSelectCallback(JNIEnv 
         emu->update_config();
     }
 #endif
+#ifdef _X1TURBO_FEATURE
+    config.monitor_type = id;
+    if(emu) {
+        emu->update_config();
+    }
+#endif
+
     resetFlag = true;
 }
 } //extern"C"
@@ -1653,6 +1677,10 @@ bool get_status_bar_updated() {
 }
 
 void check_update_screen(engine* engine) {
+    if (engine == NULL || engine->app == NULL || engine->app->window == NULL) {
+        LOGI("Invalid window state, skipping update check.");
+        return;
+    }
     int newWidth = ANativeWindow_getWidth(engine->app->window);
     int newHeight = ANativeWindow_getHeight(engine->app->window);
     if (newWidth != deviceInfo.width || newHeight != deviceInfo.height) {
@@ -1695,14 +1723,39 @@ void android_main(struct android_app *state) {
     const char *documentDirTemp = jniGetSdcardDownloadPath(state);
 
     sprintf(documentDir, "%s", documentDirTemp);
+    sprintf(emulatorDir, "%s/emulator", documentDir);
+    sprintf(configPath, "%s/emulator/config.ini", documentDir);
     free((void*)documentDirTemp);
     LOGI("documentDir: %s", documentDir);
+    LOGI("emulatorDir: %s", emulatorDir);
 
     //Read Icon Image
     jniReadIconData(state);
     setFileSelectIcon();
 
-    initialize_config();
+    // エミュレータフォルダの存在チェック、存在しなければフォルダを作製する
+    if (access(emulatorDir, F_OK) == -1) {
+        // フォルダ作成に失敗した場合はエラーログを出力
+        if (mkdir(emulatorDir, 0777) != 0) {
+            LOGI("Failed to create emulator directory");
+        }
+    }
+    // コンフィグファイルの存在チェック
+    if (access(configPath, F_OK) == -1) {
+        // コンフィグファイルが存在しない場合は初期化
+        initialize_config();
+        // コンフィグファイルを保存
+        save_config(configPath);
+        // ファイル名付きでコンフィグ新規作成ログ出力
+        LOGI("Created new config file: %s", configPath);
+    } else {
+        // コンフィグファイルを読み込み
+        load_config(configPath);
+        // コンフィグファイルを保存
+        save_config(configPath);
+        // コンフィグ読み込みログ出力
+        LOGI("Loaded config file: %s", configPath);
+    }
 
     // 権限が付与されるまで先に進まないループ
     while (1) {
