@@ -1677,6 +1677,10 @@ bool get_status_bar_updated() {
 }
 
 void check_update_screen(engine* engine) {
+    if (engine == NULL || engine->app == NULL || engine->app->window == NULL) {
+        LOGI("Invalid window state, skipping update check.");
+        return;
+    }
     int newWidth = ANativeWindow_getWidth(engine->app->window);
     int newHeight = ANativeWindow_getHeight(engine->app->window);
     if (newWidth != deviceInfo.width || newHeight != deviceInfo.height) {
