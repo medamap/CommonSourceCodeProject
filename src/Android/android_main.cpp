@@ -1064,6 +1064,9 @@ void selectBootMode(struct android_app *state) {
 #ifdef _PC8801MA
     itemList="N88-V1(S) mode;N88-V1(H) mode;N88-V2 mode;N mode;N88-V2(CD) mode";
 #endif
+#ifdef _X1TURBO_FEATURE
+    itemList="High mode;Standard mode";
+#endif
 
     showAlert(state, message, itemList.c_str(), true, BOOT_MODE_SELECT, 0);
 }
@@ -1362,6 +1365,13 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_bootSelectCallback(JNIEnv 
         emu->update_config();
     }
 #endif
+#ifdef _X1TURBO_FEATURE
+    config.monitor_type = id;
+    if(emu) {
+        emu->update_config();
+    }
+#endif
+
     resetFlag = true;
 }
 } //extern"C"
