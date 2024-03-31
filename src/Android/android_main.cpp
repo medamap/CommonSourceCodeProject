@@ -267,6 +267,9 @@ static void draw_icon(ANativeWindow_Buffer *buffer) {
                 dotMask = 0x8410;
             }
         }
+        if (index == 1) {
+            continue;
+        }
 
         uint16_t *iconPixels = pixels + buffer->stride * offsetY + (11 - index) * unitPixel;
         for (int y = 0; y < systemIconData[index].height; y++) {
@@ -279,7 +282,7 @@ static void draw_icon(ANativeWindow_Buffer *buffer) {
         }
     }
     //テープ読み込み中の場合、パーセントに応じた表示する。
-#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
+#if defined(USE_TAPE) // && !defined(TAPE_BINARY_ONLY)
     int tapeY = iconHeightMax + offsetY + 10;
     uint16_t *line = pixels + buffer->stride * tapeY;
     int tapePercentPixel = bufferWidth * tape_position / 100;
