@@ -996,6 +996,17 @@ DWORD timeGetTime() {
     return ts.tv_sec * 1000L + ts.tv_nsec / 1000000;
 }
 
+// 大文字小文字を区別しない比較関数
+bool caseInsensitiveCompare(const std::string &a, const std::string &b) {
+    std::string lowerA = a;
+    std::string lowerB = b;
+    std::transform(lowerA.begin(), lowerA.end(), lowerA.begin(),
+                   [](unsigned char c){ return std::tolower(c); });
+    std::transform(lowerB.begin(), lowerB.end(), lowerB.begin(),
+                   [](unsigned char c){ return std::tolower(c); });
+    return lowerA < lowerB;
+}
+
 void selectDialog(struct android_app *state, const char *message, const char *addPath) {
     char long_message[_MAX_PATH+33];
 
@@ -1008,8 +1019,8 @@ void selectDialog(struct android_app *state, const char *message, const char *ad
     struct dirent *dp;
     dir = opendir(dirPath);
 
-    std::string filenameList;
-    filenameList = "[EJECT]";
+    std::vector<std::string> tempFileList;
+    std::string filenameList = "[EJECT]";
     fileList.push_back("");
 
     if (dir == NULL) {
@@ -1018,23 +1029,27 @@ void selectDialog(struct android_app *state, const char *message, const char *ad
         sprintf(long_message, "%s\n%s", errorMessage, dirPath);
         showAlert(state, long_message, filenameList.c_str(), true, MEDIA_SELECT);
     } else {
-        dp = readdir(dir);
-
-        while (dp != NULL) {
+        while ((dp = readdir(dir)) != NULL) {
             std::string filename = dp->d_name;
-            if (filename.find_first_of(".") != 0) {
-                if (filenameList.length() > 0) {
-                    filenameList = filenameList + ";" + filename;
-                }
-                std::string filePath = dirPath;
-                filePath = filePath + "/" + filename;
-                fileList.push_back(filePath);
+            if (filename.find_first_of(".") != 0) { // Skip hidden files and directories
+                tempFileList.push_back(filename);
             }
-            dp = readdir(dir);
+        }
+        closedir(dir);
+
+        // Sort the file list in ascending order
+        std::sort(tempFileList.begin(), tempFileList.end(), caseInsensitiveCompare);
+
+        for (const auto& filename : tempFileList) {
+            if (!filenameList.empty()) {
+                filenameList += ";";
+            }
+            filenameList += filename;
+            std::string filePath = std::string(dirPath) + "/" + filename;
+            fileList.push_back(filePath);
         }
         showAlert(state, message, filenameList.c_str(), true, MEDIA_SELECT, 0);
     }
-
 }
 
 #ifdef USE_FLOPPY_DISK
