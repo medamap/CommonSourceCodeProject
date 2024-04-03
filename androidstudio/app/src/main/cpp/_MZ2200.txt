@@ -38,6 +38,8 @@ set(HEADER
         ../../../../../src/vm/z80pio.h
         ../../../../../src/vm/z80sio.h
         ../../../../../src/Android/osd.h
+        ../../../../../src/Android/menu/BaseMenu.h
+        ../../../../../src/Android/menu/menu.h
 )
 
 add_library(native-activity SHARED
@@ -80,4 +82,6 @@ add_library(native-activity SHARED
         ../../../../../src/Android/osd_input.cpp
         ../../../../../src/Android/osd_screen.cpp
         ../../../../../src/Android/osd_sound.cpp
+        ../../../../../src/Android/menu/BaseMenu.cpp
+        ../../../../../src/Android/menu/mz2200.cpp
 )

@@ -117,6 +117,7 @@ void initialize_config()
         #endif
 	#endif
         #if defined(__ANDROID__)
+            config.sound_on = true;
             config.sound_latency = 1;	// 100msec
             config.sound_strict_rendering = true;
         #else
@@ -333,6 +334,9 @@ void load_config(const _TCHAR* config_path)
     #endif
 
 	// sound
+#if defined(__ANDROID__) // Medamap
+    config.sound_on = MyGetPrivateProfileInt(_T("Sound"), _T("SoundOn"), config.sound_on, config_path);
+#endif
 	config.sound_frequency = MyGetPrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
 	config.sound_latency = MyGetPrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
 	config.sound_strict_rendering = MyGetPrivateProfileBool(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);
@@ -581,6 +585,9 @@ void save_config(const _TCHAR* config_path)
     #endif
 
 	// sound
+#if defined(__ANDROID__) // Medamap
+    MyWritePrivateProfileInt(_T("Sound"), _T("SoundOn"), config.sound_on, config_path);
+#endif
 	MyWritePrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
 	MyWritePrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
 	MyWritePrivateProfileBool(_T("Sound"), _T("StrictRendering"), config.sound_strict_rendering, config_path);

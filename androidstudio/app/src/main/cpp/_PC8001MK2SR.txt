@@ -35,6 +35,8 @@ set(HEADER
         ../../../../../src/vm/ym2203.h
         ../../../../../src/vm/z80.h
         ../../../../../src/Android/osd.h
+        ../../../../../src/Android/menu/BaseMenu.h
+        ../../../../../src/Android/menu/menu.h
 )
 
 add_library(native-activity SHARED
@@ -70,4 +72,6 @@ add_library(native-activity SHARED
         ../../../../../src/Android/osd_input.cpp
         ../../../../../src/Android/osd_screen.cpp
         ../../../../../src/Android/osd_sound.cpp
+        ../../../../../src/Android/menu/BaseMenu.cpp
+        ../../../../../src/Android/menu/pc8001mk2sr.cpp
 )
