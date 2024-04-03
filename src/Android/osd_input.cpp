@@ -36,10 +36,17 @@ static uint8_t AndroidKeyCode[] = {
 				57, //  AKEYCODE_9 	16
 				0, //  AKEYCODE_STAR 	17
 				0, //  AKEYCODE_POUND 	18
+#if 1
 				38, //  AKEYCODE_DPAD_UP 	19
 				40, //  AKEYCODE_DPAD_DOWN 	20
 				37, //  AKEYCODE_DPAD_LEFT 	21
 				39, //  AKEYCODE_DPAD_RIGHT 	22
+#else
+                104, //  AKEYCODE_NUMPAD_8 	152
+                98, //  AKEYCODE_NUMPAD_2 	146
+                100, //  AKEYCODE_NUMPAD_4 	148
+                102, //  AKEYCODE_NUMPAD_6 	150
+#endif
 				0, //  AKEYCODE_DPAD_CENTER 	23
 				0, //  AKEYCODE_VOLUME_UP 	24
 				0, //  AKEYCODE_VOLUME_DOWN 	25

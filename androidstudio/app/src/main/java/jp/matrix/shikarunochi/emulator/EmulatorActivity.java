@@ -23,8 +23,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -193,6 +196,85 @@ public class EmulatorActivity extends NativeActivity {
         return buttonId.get();
     }
 
+    public int showExtendMenu(final String title, final String extendMenu) {
+        final AtomicInteger buttonId = new AtomicInteger();
+        final String[] nodes;
+        buttonId.set(-1);
+        if (!extendMenu.isEmpty()) {
+            nodes = extendMenu.split(",");
+        } else {
+            return buttonId.get();
+        }
+
+        this.runOnUiThread(new Runnable() {
+            public void run() {
+                final Dialog dialog = new Dialog(EmulatorActivity.this);
+                dialog.setTitle(title);
+                dialog.setContentView(R.layout.custom_dialog_layout); // 事前に定義したカスタムレイアウトを使用
+
+                LinearLayout layout = dialog.findViewById(R.id.custom_dialog_layout);
+                for (int i = 0; i < nodes.length; i++) {
+                    String[] node = nodes[i].split(";");
+                    Button button = new Button(EmulatorActivity.this);
+                    button.setText(node[1]);
+                    // nodes[2] が "0" の時はフォルダ、"1" の時はファイル
+                    //  フォルダの時はボタンの色を薄い黄色、ファイルの時は薄い青色にする
+                    // 白に近い黄色の背景色を設定
+                    if (node[2].equals("0")) {
+                        button.setBackgroundColor(Color.argb(255, 255, 255, 200)); // ARGBで白に近い黄色
+                    } else {
+                        button.setBackgroundColor(Color.argb(255, 200, 255, 255)); // ARGBで白に近い青
+                    }
+                    // テキスト色を設定（ここでは黒を例としています）
+                    button.setTextColor(Color.BLACK);
+                    final int index = i;
+                    button.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            buttonId.set(index);
+                            extendMenuCallback(nodes[buttonId.get()]);
+                            dialog.dismiss();
+                        }
+                    });
+                    layout.addView(button);
+                    // ボタンの下に少しマージンを空ける
+                    View margin = new View(EmulatorActivity.this);
+                    margin.setMinimumHeight(10);
+                    layout.addView(margin);
+                }
+
+                Button cancelButton = dialog.findViewById(R.id.cancelButton);
+                cancelButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        extendMenuCallback("");
+                        dialog.dismiss();
+                    }
+                });
+
+                Button backButton = dialog.findViewById(R.id.backButton);
+                backButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (nodes.length > 0) {
+                            String[] node = nodes[0].split(";");
+                            extendMenuCallback(node[4]); // 親IDを渡す
+                        } else {
+                            extendMenuCallback("");
+                        }
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog.setCancelable(false);
+                dialog.show();
+            }
+        });
+
+        return buttonId.get();
+    }
+
+    public native void extendMenuCallback(String extendMenu);
     public native void fileSelectCallback(int id);
     public native void bankSelectCallback(int id);
     public native void bootSelectCallback(int id);
@@ -210,6 +292,8 @@ public class EmulatorActivity extends NativeActivity {
                         return R.drawable.sound;
                     case 3:
                         return R.drawable.pcg;
+                    case 4:
+                        return R.drawable.config;
 
              }
             case 1://mediaIcon

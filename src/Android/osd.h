@@ -1232,7 +1232,16 @@ struct BitmapData{
 	uint16_t *bmpImage;
 };
 
-enum systemIconType { SYSTEM_RESET = 0 , SYSTEM_SCREEN , SYSTEM_SOUND, SYSTEM_PCG , SYSTEM_ICON_MAX};
+enum systemIconType {
+    SYSTEM_RESET = 0 ,
+    SYSTEM_SCREEN ,
+    SYSTEM_SOUND,
+    SYSTEM_PCG ,
+#if defined(_EXTEND_MENU)
+    SYSTEM_CONFIG ,
+#endif
+    SYSTEM_ICON_MAX
+};
 enum FileSelectType { FILE_SELECT_NONE = -1, FLOPPY_DISK = 0 , CASETTE_TAPE , CARTRIDGE, QUICK_DISK, FILE_SELECT_TYPE_MAX};
 enum SelectDialogMode {MEDIA_SELECT = 0, DISK_BANK_SELECT = 1, BOOT_MODE_SELECT = 2, EXIT_EMULATOR = 3};
 
