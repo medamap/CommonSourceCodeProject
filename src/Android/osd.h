@@ -187,8 +187,21 @@ class OSD
 {
 private:
 	int lock_count;
+    // console
+    void initialize_console();
+    void release_console();
 
-	// input
+    //HANDLE hStdIn, hStdOut;
+    int console_count;
+
+    void open_telnet(const _TCHAR* title);
+    void close_telnet();
+    void send_telnet(const char* buffer);
+
+    bool use_telnet, telnet_closed;
+    int svr_socket, cli_socket;
+
+    // input
 	void initialize_input();
 	void release_input();
 
@@ -372,7 +385,10 @@ public:
 		return (lock_count != 0);
 	}
 	void force_unlock_vm();
-	void sleep(uint32_t ms);
+	void sleep(uint32_t ms) {
+        //Sleep(ms);
+        usleep(ms * 1000);
+    }
 	
 	// common debugger
 #ifdef USE_DEBUGGER
@@ -382,7 +398,8 @@ public:
 #endif
 	
 	// common console
-	void open_console(const _TCHAR* title);
+	//void open_console(const _TCHAR* title);
+    void open_console(int width, int height, const _TCHAR* title);
 	void close_console();
 	unsigned int get_console_code_page();
 	bool is_console_active();
@@ -390,6 +407,7 @@ public:
 	void write_console(const _TCHAR* buffer, unsigned int length);
 	int read_console_input(_TCHAR* buffer, unsigned int length);
 	bool is_console_key_pressed(int vk);
+    bool is_console_closed();
 	void close_debugger_console();
 	
 	// common input

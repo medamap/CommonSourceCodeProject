@@ -7,6 +7,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.NativeActivity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
@@ -384,4 +386,14 @@ public class EmulatorActivity extends NativeActivity {
 
         return returnData;
     }
+
+    public String getClipboardText() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard.hasPrimaryClip()) {
+            ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+            return item.getText().toString();
+        }
+        return "";
+    }
+
 }

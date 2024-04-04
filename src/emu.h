@@ -48,11 +48,11 @@
 #endif
 
 #if defined(OSD_ANDROID)
-#undef USE_AUTO_KEY
-#undef USE_AUTO_KEY_RELEASE
-#undef USE_AUTO_KEY_CAPS
+//#undef USE_AUTO_KEY
+//#undef USE_AUTO_KEY_RELEASE
+//#undef USE_AUTO_KEY_CAPS
 //#undef USE_DEBUGGER
-#undef USE_STATE
+//#undef USE_STATE
 #undef USE_PRINTER
 #define PRINTER_TYPE_DEFAULT 999
 
@@ -115,13 +115,8 @@ protected:
 private:
 	// debugger
 #ifdef USE_DEBUGGER
-#if defined(OSD_ANDROID)
-	void initialize_debugger(){};
-	void release_debugger(){};
-#else
 	void initialize_debugger();
 	void release_debugger();
-#endif
 #endif
 	
 	// debug log
@@ -431,15 +426,9 @@ public:
 #else
 	int debugger_thread_id;
 #endif
-#if defined(OSD_ANDROID)
-	void start_waiting_in_debugger(){};
-	void finish_waiting_in_debugger(){};
-	void process_waiting_in_debugger(){};
-#else
 	void start_waiting_in_debugger();
 	void finish_waiting_in_debugger();
 	void process_waiting_in_debugger();
-#endif
 #endif
 	bool now_waiting_in_debugger;
 	

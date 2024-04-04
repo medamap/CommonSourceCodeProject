@@ -2270,6 +2270,64 @@ void open_recent_quick_disk(int drv, int recent) {}
 void open_bubble_casette_dialog(struct android_app *appp, int drv) {}
 void open_recent_bubble_casette(int drv, int recent) {}
 
+std::string getClipboardText(struct android_app *app) {
+    JNIEnv *jni;
+    app->activity->vm->AttachCurrentThread(&jni, NULL);
+
+    // クリップボードサービスを取得するための Java コードを呼び出す
+    jclass activityClass = jni->GetObjectClass(app->activity->clazz);
+    jmethodID getSystemServiceMethodId = jni->GetMethodID(activityClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;");
+    jstring clipboardServiceString = jni->NewStringUTF("clipboard");
+    jobject clipboardManager = jni->CallObjectMethod(app->activity->clazz, getSystemServiceMethodId, clipboardServiceString);
+
+    // クリップボードからテキストを取得する Java コードを呼び出す
+    jclass clipboardManagerClass = jni->GetObjectClass(clipboardManager);
+    jmethodID getTextMethodId = jni->GetMethodID(clipboardManagerClass, "getText", "()Ljava/lang/CharSequence;");
+    jstring text = (jstring)jni->CallObjectMethod(clipboardManager, getTextMethodId);
+
+    // ここで null チェックを行う
+    std::string clipboardText;
+    if (text != NULL) {
+        const char *textStr = jni->GetStringUTFChars(text, NULL);
+        clipboardText = textStr;
+        jni->ReleaseStringUTFChars(text, textStr);
+    }
+
+    // ローカルリファレンスを削除
+    jni->DeleteLocalRef(clipboardServiceString);
+    jni->DeleteLocalRef(clipboardManager);
+    jni->DeleteLocalRef(activityClass);
+    jni->DeleteLocalRef(clipboardManagerClass);
+
+    app->activity->vm->DetachCurrentThread();
+
+    return clipboardText;
+}
+
+#ifdef USE_AUTO_KEY
+void start_auto_key(struct android_app *app)
+{
+    std::string clipboardText = getClipboardText(app);
+
+    if (!clipboardText.empty()) {
+        // clipboardText.c_str() から char* へのキャストは一般的には推奨されない
+        // バッファを変更する場合は、変更可能なコピーが必要
+        char* buf = new char[clipboardText.length() + 1];  // +1 for null terminator
+        strcpy(buf, clipboardText.c_str());
+
+        int size = static_cast<int>(clipboardText.size());
+
+        if(size > 0) {
+            emu->stop_auto_key();
+            emu->set_auto_key_list(buf, size);
+            emu->start_auto_key();
+        }
+
+        delete[] buf;
+    }
+}
+#endif
+
 // 拡張メニュー処理
 void extendMenuProc(engine* engine, MenuNode menuNode)
 {
@@ -2304,7 +2362,7 @@ void extendMenuProc(engine* engine, MenuNode menuNode)
 #ifdef USE_AUTO_KEY
         case ID_AUTOKEY_START:
             if(emu) {
-                start_auto_key();
+                start_auto_key(app);
             }
             break;
         case ID_AUTOKEY_STOP:
@@ -2355,6 +2413,7 @@ void extendMenuProc(engine* engine, MenuNode menuNode)
 #endif
         case ID_EXIT:
             //SendMessage(hWnd, WM_CLOSE, 0, 0L);
+            exit(0);
             break;
 #ifdef USE_BOOT_MODE
         case ID_VM_BOOT_MODE0: case ID_VM_BOOT_MODE1: case ID_VM_BOOT_MODE2: case ID_VM_BOOT_MODE3:
@@ -3161,3 +3220,7 @@ void extendMenuProc(engine* engine, MenuNode menuNode)
 }
 
 #endif
+
+// ----------------------------------------------------------------------------
+// input
+// ----------------------------------------------------------------------------
