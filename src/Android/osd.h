@@ -20,9 +20,6 @@
 #define ENABLE_SOUND 1
 
 #include <android/log.h>
-#if !defined(__ANDROID__)
-#include "../windows.h"
-#endif
 #include "../vm/vm.h"
 //#include "../emu.h"
 #include "../common.h"
@@ -49,13 +46,18 @@
 	#endif
 #endif
 
-#if defined(__ANDROID__)
-#undef USE_SOCKET
-#endif
-
 #ifdef USE_SOCKET
+#if defined(__ANDROID__)
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#else
 #include <winsock.h>
 #pragma comment(lib, "wsock32.lib")
+#endif
 #endif
 
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
@@ -129,8 +131,14 @@ public:
 #define WM_SOCKET3 (WM_USER + 5)
 
 #ifdef USE_SOCKET
+
 #define SOCKET_MAX 4
 #define SOCKET_BUFFER_MAX 0x100000
+
+// POSIX 標準では無効なソケットとエラーは -1 で表される
+#define INVALID_SOCKET (-1)
+#define SOCKET_ERROR (-1)
+
 #endif
 
 #ifdef USE_VIDEO_CAPTURE
@@ -187,8 +195,21 @@ class OSD
 {
 private:
 	int lock_count;
+    // console
+    void initialize_console();
+    void release_console();
 
-	// input
+    //HANDLE hStdIn, hStdOut;
+    int console_count;
+
+    void open_telnet(const _TCHAR* title);
+    void close_telnet();
+    void send_telnet(const char* buffer);
+
+    bool use_telnet, telnet_closed;
+    int svr_socket, cli_socket;
+
+    // input
 	void initialize_input();
 	void release_input();
 
@@ -372,7 +393,10 @@ public:
 		return (lock_count != 0);
 	}
 	void force_unlock_vm();
-	void sleep(uint32_t ms);
+	void sleep(uint32_t ms) {
+        //Sleep(ms);
+        usleep(ms * 1000);
+    }
 	
 	// common debugger
 #ifdef USE_DEBUGGER
@@ -382,7 +406,8 @@ public:
 #endif
 	
 	// common console
-	void open_console(const _TCHAR* title);
+	//void open_console(const _TCHAR* title);
+    void open_console(int width, int height, const _TCHAR* title);
 	void close_console();
 	unsigned int get_console_code_page();
 	bool is_console_active();
@@ -390,6 +415,7 @@ public:
 	void write_console(const _TCHAR* buffer, unsigned int length);
 	int read_console_input(_TCHAR* buffer, unsigned int length);
 	bool is_console_key_pressed(int vk);
+    bool is_console_closed();
 	void close_debugger_console();
 	
 	// common input
@@ -1232,7 +1258,16 @@ struct BitmapData{
 	uint16_t *bmpImage;
 };
 
-enum systemIconType { SYSTEM_RESET = 0 , SYSTEM_SCREEN , SYSTEM_SOUND, SYSTEM_PCG , SYSTEM_ICON_MAX};
+enum systemIconType {
+    SYSTEM_RESET = 0 ,
+    SYSTEM_SCREEN ,
+    SYSTEM_SOUND,
+    SYSTEM_PCG ,
+#if defined(_EXTEND_MENU)
+    SYSTEM_CONFIG ,
+#endif
+    SYSTEM_ICON_MAX
+};
 enum FileSelectType { FILE_SELECT_NONE = -1, FLOPPY_DISK = 0 , CASETTE_TAPE , CARTRIDGE, QUICK_DISK, FILE_SELECT_TYPE_MAX};
 enum SelectDialogMode {MEDIA_SELECT = 0, DISK_BANK_SELECT = 1, BOOT_MODE_SELECT = 2, EXIT_EMULATOR = 3};
 

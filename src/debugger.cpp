@@ -8,7 +8,12 @@
 */
 
 #include <stdlib.h>
+#if defined(__ANDROID__)
+#include <unistd.h>
+#include <fcntl.h>
+#else
 #include <io.h>
+#endif
 #include <fcntl.h>
 #include "vm/device.h"
 #include "vm/debugger.h"
@@ -1608,6 +1613,9 @@ void EMU::open_debugger(int cpu_index)
 			debugger_thread_param.request_terminate = false;
 #ifdef _MSC_VER
 			if((hDebuggerThread = (HANDLE)_beginthreadex(NULL, 0, debugger_thread, &debugger_thread_param, 0, NULL)) != (HANDLE)0) {
+#elif __ANDROID__ // Medamap
+            pthread_t debugger_thread_id;
+            if (pthread_create(&debugger_thread_id, NULL, debugger_thread, &debugger_thread_param) == 0) {
 #else
 			if(pthread_create(&debugger_thread_id, NULL, debugger_thread, &debugger_thread_param) == 0) {
 #endif

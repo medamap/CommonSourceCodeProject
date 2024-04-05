@@ -692,14 +692,32 @@
 #define ID_RECENT_HD8                   45146 // 45146-45153
 #define ID_HD8_MENU_END                 45153
 
+#if defined(__ANDROID__) // Medamap
+#define ID_SCREEN_BOTTOM_MARGIN_0       45154
+#define ID_SCREEN_BOTTOM_MARGIN_30      45155
+#define ID_SCREEN_BOTTOM_MARGIN_60      45156
+#define ID_SCREEN_BOTTOM_MARGIN_90      45157
+#define ID_SCREEN_BOTTOM_MARGIN_120     45158
+#define ID_SCREEN_BOTTOM_MARGIN_150     45159
+#define ID_SCREEN_BOTTOM_MARGIN_180     45160
+#define ID_SCREEN_BOTTOM_MARGIN_210     45161
+#define ID_SCREEN_BOTTOM_MARGIN_240     45162
+#define ID_SCREEN_BOTTOM_MARGIN_270     45163
+
+#define ID_SOUND_ON                     45164
+#endif
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        215
-#define _APS_NEXT_COMMAND_VALUE         45154
+#if defined(__ANDROID__) // Medamap
+#define _APS_NEXT_COMMAND_VALUE         45155
+#else
+#define _APS_NEXT_COMMAND_VALUE         45164
+#endif
 #define _APS_NEXT_CONTROL_VALUE         1003
 #define _APS_NEXT_SYMED_VALUE           108
 #endif
 #endif
-
