@@ -137,6 +137,7 @@ Menu::Menu() {
     int filterId = addNode(hostId, "Filter", Category, -1);
     addNode(filterId, "RGB Filter", Property, ID_FILTER_RGB);
     addNode(filterId, "None", Property, ID_FILTER_NONE);
+
     int soundId2 = addNode(hostId, "Sound", Category, -1);
     addNode(soundId2, "Switch On / Off", Property, ID_SOUND_ON);
     addNode(soundId2, "2000Hz", Property, ID_SOUND_FREQ0);
@@ -155,6 +156,7 @@ Menu::Menu() {
     addNode(soundId2, "Realtime Mix", Property, ID_SOUND_STRICT_RENDER);
     addNode(soundId2, "Light Weight Mix", Property, ID_SOUND_LIGHT_RENDER);
     addNode(soundId2, "Volume", Property, ID_SOUND_VOLUME);
+
     addNode(hostId, "Use Direct2D1", Property, ID_HOST_USE_D2D1);
     addNode(hostId, "Use Direct3D9", Property, ID_HOST_USE_D3D9);
     addNode(hostId, "Wait Vsync", Property, ID_HOST_WAIT_VSYNC);

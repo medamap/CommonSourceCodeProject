@@ -25,10 +25,16 @@
 
 //#include "compiler.h"
 
+#if defined(__ANDROID__) // Medamap
+#include <cmath>
+#endif
+
 #include <math.h>
 #include <float.h>
 
+#if !defined(__ANDROID__) // Medamap
 #define isnan(x) (_isnan(x))
+#endif
 
 #include "../../cpu.h"
 #include "../../ia32.mcr"
@@ -433,7 +439,11 @@ void SSE_CMPPS(void)
 			break;
 		case 3: // CMPUNORDPS
 			for(i=0;i<4;i++){
-				data1ui32[i] = (isnan(data1[i]) || isnan(data2[i]) ? 0xffffffff : 0x00000000);
+#if defined(__ANDROID__) // Medamap
+                data1ui32[i] = (std::isnan(data1[i]) || std::isnan(data2[i]) ? 0xffffffff : 0x00000000);
+#else
+                data1ui32[i] = (isnan(data1[i]) || isnan(data2[i]) ? 0xffffffff : 0x00000000);
+#endif
 			}
 			break;
 		case 4: // CMPNEQPS
@@ -453,7 +463,11 @@ void SSE_CMPPS(void)
 			break;
 		case 7: // CMPORDPS
 			for(i=0;i<4;i++){
+#if defined(__ANDROID__) // Medamap
+                data1ui32[i] = (!std::isnan(data1[i]) && !std::isnan(data2[i]) ? 0xffffffff : 0x00000000);
+#else
 				data1ui32[i] = (!isnan(data1[i]) && !isnan(data2[i]) ? 0xffffffff : 0x00000000);
+#endif
 			}
 			break;
 	}
@@ -481,7 +495,11 @@ void SSE_CMPSS(void)
 			data1ui32[0] = (data1[0] <= data2[0] ? 0xffffffff : 0x00000000);
 			break;
 		case 3: // CMPUNORDSS
+#if defined(__ANDROID__) // Medamap
+            data1ui32[0] = (std::isnan(data1[0]) || std::isnan(data2[0]) ? 0xffffffff : 0x00000000);
+#else
 			data1ui32[0] = (isnan(data1[0]) || isnan(data2[0]) ? 0xffffffff : 0x00000000);
+#endif
 			break;
 		case 4: // CMPNEQSS
 			data1ui32[0] = (data1[0] != data2[0] ? 0xffffffff : 0x00000000);
@@ -493,7 +511,11 @@ void SSE_CMPSS(void)
 			data1ui32[0] = (data1[0] > data2[0] ? 0xffffffff : 0x00000000);
 			break;
 		case 7: // CMPORDSS
+#if defined(__ANDROID__) // Medamap
+            data1ui32[0] = (!std::isnan(data1[0]) && !std::isnan(data2[0]) ? 0xffffffff : 0x00000000);
+#else
 			data1ui32[0] = (!isnan(data1[0]) && !isnan(data2[0]) ? 0xffffffff : 0x00000000);
+#endif
 			break;
 	}
 }
@@ -504,7 +526,11 @@ void SSE_COMISS(void)
 	
 	SSE_PART_GETDATA1DATA2_S(&data1, &data2, data2buf);
 
+#if defined(__ANDROID__) // Medamap
+    if(std::isnan(data1[0]) || std::isnan(data2[0])){
+#else
 	if(isnan(data1[0]) || isnan(data2[0])){
+#endif
 		CPU_FLAGL = (CPU_FLAGL & ~Z_FLAG) | Z_FLAG;
 		CPU_FLAGL = (CPU_FLAGL & ~P_FLAG) | P_FLAG;
 		CPU_FLAGL = (CPU_FLAGL & ~C_FLAG) | C_FLAG;
@@ -616,7 +642,11 @@ void SSE_MAXPS(void)
 	
 	SSE_PART_GETDATA1DATA2_P(&data1, &data2, data2buf);
 	for(i=0;i<4;i++){
+#if defined(__ANDROID__) // Medamap
+        if(std::isnan(data1[i]) || std::isnan(data2[i])){
+#else
 		if(isnan(data1[i]) || isnan(data2[i])){
+#endif
 			data1[i] = data2[i];
 		}else{
 			data1[i] = (data1[i] > data2[i] ? data1[i] : data2[i]);
@@ -629,7 +659,11 @@ void SSE_MAXSS(void)
 	float *data1, *data2;
 	
 	SSE_PART_GETDATA1DATA2_S(&data1, &data2, data2buf);
+#if defined(__ANDROID__) // Medamap
+    if(std::isnan(data1[0]) || std::isnan(data2[0])){
+#else
 	if(isnan(data1[0]) || isnan(data2[0])){
+#endif
 		data1[0] = data2[0];
 	}else{
 		data1[0] = (data1[0] > data2[0] ? data1[0] : data2[0]);
@@ -643,7 +677,11 @@ void SSE_MINPS(void)
 	
 	SSE_PART_GETDATA1DATA2_P(&data1, &data2, data2buf);
 	for(i=0;i<4;i++){
+#if defined(__ANDROID__) // Medamap
+        if(std::isnan(data1[i]) || std::isnan(data2[i])){
+#else
 		if(isnan(data1[i]) || isnan(data2[i])){
+#endif
 			data1[i] = data2[i];
 		}else{
 			data1[i] = (data1[i] < data2[i] ? data1[i] : data2[i]);
@@ -656,7 +694,11 @@ void SSE_MINSS(void)
 	float *data1, *data2;
 	
 	SSE_PART_GETDATA1DATA2_S(&data1, &data2, data2buf);
+#if defined(__ANDROID__) // Medamap
+    if(std::isnan(data1[0]) || std::isnan(data2[0])){
+#else
 	if(isnan(data1[0]) || isnan(data2[0])){
+#endif
 		data1[0] = data2[0];
 	}else{
 		data1[0] = (data1[0] < data2[0] ? data1[0] : data2[0]);

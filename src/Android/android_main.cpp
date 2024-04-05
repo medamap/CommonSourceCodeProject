@@ -88,6 +88,8 @@ jint
 showAlert(struct android_app *state, const char *message, const char *filenames, bool model = false,
           int selectMode = 0, int selectIndex = 0);
 
+void showNewFileDialog(struct android_app *state, const char *message, const char *itemNames, const char *fileExtension, jint driveNo, jint type, const char *addPath);
+
 const char *jniGetDocumentPath(struct android_app *state);
 const char *jniGetExternalStoragePath(struct android_app *state);
 const char *jniGetDownloadPath(struct android_app *state);
@@ -1144,6 +1146,41 @@ void selectBootMode(struct android_app *state) {
 
 #ifdef USE_FLOPPY_DISK
 
+void createBlankDisk(struct android_app *state, int driveNo, uint8_t type, const char *addPath) {
+
+    fileList.clear();
+    const char *aplicationPath = get_application_path();
+    char dirPath[_MAX_PATH];
+    sprintf(dirPath, "%s%s", aplicationPath, addPath);
+    DIR *dir;
+    struct dirent *dp;
+    dir = opendir(dirPath);
+
+    std::vector<std::string> tempFileList;
+    std::string filenameList = "";
+
+    if (dir != NULL) {
+        while ((dp = readdir(dir)) != NULL) {
+            std::string filename = dp->d_name;
+            if (filename.find_first_of(".") != 0) { // Skip hidden files and directories
+                tempFileList.push_back(filename);
+            }
+        }
+        closedir(dir);
+        // Sort the file list in ascending order
+        std::sort(tempFileList.begin(), tempFileList.end(), caseInsensitiveCompare);
+        for (const auto& filename : tempFileList) {
+            if (!filenameList.empty()) {
+                filenameList += ";";
+            }
+            filenameList += filename;
+            std::string filePath = std::string(dirPath) + "/" + filename;
+            fileList.push_back(filePath);
+        }
+    }
+    showNewFileDialog(state, "Input new file.", filenameList.c_str(), ".d88", driveNo, type, addPath);
+}
+
 void selectDisk(struct android_app *state, int driveNo) {
     char message[32];
     if (emu->d88_file[driveNo].bank_num > 0 && emu->d88_file[driveNo].cur_bank != -1) {
@@ -1173,6 +1210,25 @@ void selectQuickDisk(struct android_app *state, int driveNo) {
     char message[32];
     sprintf(message, "Select QD[%d]", driveNo);
     selectDialog(state, message, "QD");
+}
+
+void selectBlankMedia(struct android_app *state) {
+    if (fileSelectIconData[selectingIconIndex].fileSelectType < 0) {
+        return;
+    }
+    switch (fileSelectIconData[selectingIconIndex].fileSelectType) {
+#ifdef USE_FLOPPY_DISK
+        case FLOPPY_DISK:
+            selectDisk(state, fileSelectIconData[selectingIconIndex].driveNo);
+            break;
+#endif
+#ifdef USE_TAPE
+        case CASETTE_TAPE:
+            selectTape(state);
+            break;
+#endif
+    }
+    return;
 }
 
 void selectMedia(struct android_app *state) {
@@ -1235,6 +1291,42 @@ jint showAlert(struct android_app *state, const char *message, const char *itemN
 
     return result;
 }
+
+void showNewFileDialog(struct android_app *state, const char *message, const char *itemNames, const char *fileExtension, jint driveNo, jint type, const char *addPath) {
+    JNIEnv* env = nullptr;
+    state->activity->vm->AttachCurrentThread(&env, nullptr);
+
+    jclass clazz = env->GetObjectClass(state->activity->clazz);
+    // 更新されたメソッドシグネチャに注意
+    jmethodID mid = env->GetMethodID(clazz, "showNewFileDialog", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IILjava/lang/String;)V");
+
+    if (mid == nullptr) {
+        // メソッドIDが取得できなかった場合のエラー処理
+        env->DeleteLocalRef(clazz);
+        state->activity->vm->DetachCurrentThread();
+        return;
+    }
+
+    jstring jMessage = env->NewStringUTF(message);
+    jstring jItemList = env->NewStringUTF(itemNames);
+    jstring jExtension = env->NewStringUTF(fileExtension);
+    jstring jAddPath = env->NewStringUTF(addPath); // 追加パスのためのjstringを作成
+
+    env->CallVoidMethod(state->activity->clazz, mid, jMessage, jItemList, jExtension, driveNo, type, jAddPath);
+
+    // ローカル参照の解放
+    env->DeleteLocalRef(jMessage);
+    env->DeleteLocalRef(jItemList);
+    env->DeleteLocalRef(jExtension);
+    env->DeleteLocalRef(jAddPath); // jAddPathのローカル参照を解放
+    env->DeleteLocalRef(clazz);
+
+    state->activity->vm->DetachCurrentThread();
+}
+
+
+
+
 
 jint showExtendMenu(struct android_app *state, const char *title, const char *extendMenuString) {
     JNIEnv *jni = NULL;
@@ -1307,8 +1399,6 @@ void select_d88_bank(int drv, int index) {
 
 void close_floppy_disk(int drv) {
     emu->close_floppy_disk(drv);
-    emu->d88_file[drv].bank_num = 0;
-    emu->d88_file[drv].cur_bank = -1;
 }
 
 #endif // USE_FLOPPY_DISK
@@ -1346,6 +1436,42 @@ void checkPermissionsAndInitialize(JNIEnv *env, jobject activity) {
     jmethodID methodID = env->GetMethodID(clazz, "checkPermissionsAsync", "()V");
     env->CallVoidMethod(activity, methodID);
 }
+
+JNIEXPORT void JNICALL
+Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_newFileCallback(JNIEnv *env, jobject obj, jstring filename, jint drv, jint type, jstring addPath) {
+    // GetStringUTFCharsを呼び出す前にnullチェックを行う
+    if (filename == nullptr || addPath == nullptr) {
+        LOGE("Filename or addPath is null");
+        return;
+    }
+
+    const char *fileStr = env->GetStringUTFChars(filename, nullptr);
+    const char *addPathStr = env->GetStringUTFChars(addPath, nullptr);
+
+    // ファイル名を使った処理を行う
+    // 例: ログ出力
+    const char *applicationPath = get_application_path();
+    char path[_MAX_PATH];
+    sprintf(path, "%s%s/%s", applicationPath, addPathStr, fileStr);
+    LOGI("Selected file: %s", path);
+
+    if (path[0] != '\0') {
+        if (!check_file_extension(path, ".d88") && !check_file_extension(path, ".d77")) {
+            strcat(path, ".d88"); // my_tcscat_sは標準のC++関数ではないため、strcatを使用
+        }
+        if (emu->create_blank_floppy_disk(path, type)) {
+            // my_tcscpy_sは標準のC++関数ではないため、strcpyを使用
+            strcpy(config.initial_floppy_disk_dir, get_parent_dir(path));
+            emu->open_floppy_disk(drv, path, 0);
+        }
+    }
+
+    // メモリ解放
+    env->ReleaseStringUTFChars(filename, fileStr);
+    env->ReleaseStringUTFChars(addPath, addPathStr);
+}
+
+
 
 #if defined(_EXTEND_MENU)
 // 通知メニュー情報
@@ -1415,6 +1541,7 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_fileSelectCallback(JNIEnv 
 #ifdef USE_FLOPPY_DISK
             case FLOPPY_DISK:
                 close_floppy_disk(fileSelectIconData[selectingIconIndex].driveNo);
+                break;
 #endif
 #ifdef USE_TAPE
             case CASETTE_TAPE:
@@ -1902,6 +2029,15 @@ void android_main(struct android_app *state) {
     if (access(configPath, F_OK) == -1) {
         // コンフィグファイルが存在しない場合は初期化
         initialize_config();
+#if defined(_PC8801MA)
+        // 設定上、PC-8801MAの場合は初期値を設定しないと起動しない事がある
+        config.boot_mode = 2;
+        config.cpu_type = 0;
+        config.sound_type = 2;
+        config.monitor_type = 0;
+        config.scan_line = 0;
+        config.scan_line_auto = 0;
+#endif
         // コンフィグファイルを保存
         save_config(configPath);
         // ファイル名付きでコンフィグ新規作成ログ出力
@@ -2155,6 +2291,24 @@ void android_main(struct android_app *state) {
 
 #define LOWORD(l) l
 
+// ----------------------------------------------------------------------------
+// file
+// ----------------------------------------------------------------------------
+
+#define UPDATE_HISTORY(path, recent) { \
+	int index = MAX_HISTORY - 1; \
+	for(int i = 0; i < MAX_HISTORY; i++) { \
+		if(_tcsicmp(recent[i], path) == 0) { \
+			index = i; \
+			break; \
+		} \
+	} \
+	for(int i = index; i > 0; i--) { \
+		my_tcscpy_s(recent[i], _MAX_PATH, recent[i - 1]); \
+	} \
+	my_tcscpy_s(recent[0], _MAX_PATH, path); \
+}
+
 // フロッピー選択ダイアログを開く
 void open_floppy_disk_dialog(struct android_app *app, int drive) {
     // ドライブ番号（ここではアイコンインデックスにもなる）のタイプがフロッピでなければ何もしない
@@ -2163,6 +2317,11 @@ void open_floppy_disk_dialog(struct android_app *app, int drive) {
     }
     selectingIconIndex = drive;
     selectMedia(app);
+}
+
+void open_blank_floppy_disk_dialog(struct android_app * app, int drv, uint8_t type)
+{
+    createBlankDisk(app, drv, type,"DISK");
 }
 
 // カセットテープ選択ダイアログを開く
@@ -2256,7 +2415,7 @@ void open_quick_disk_dialog(struct android_app *app, int drive) {
     selectMedia(app);
 }
 
-void open_blank_floppy_disk_dialog(int a, int b, int c) {}
+//void open_blank_floppy_disk_dialog(int a, int b, int c) {}
 void open_recent_floppy_disk(int a, int b) {}
 void open_hard_disk_dialog(int a, int b) {}
 void open_blank_hard_disk_dialog(int a, int b, int c, int d, int e, int f) {}
@@ -2269,6 +2428,9 @@ void open_recent_cart(int drv, int recent) {}
 void open_recent_quick_disk(int drv, int recent) {}
 void open_bubble_casette_dialog(struct android_app *appp, int drv) {}
 void open_recent_bubble_casette(int drv, int recent) {}
+
+void open_binary_dialog(struct android_app *app, int drv, bool flag) {}
+void open_recent_binary(int drv, int recent) {}
 
 std::string getClipboardText(struct android_app *app) {
     JNIEnv *jni;
@@ -2827,17 +2989,17 @@ void extendMenuProc(engine* engine, MenuNode menuNode)
             break; \
         case ID_OPEN_BLANK_2D_FD: \
             if(emu) { \
-                open_blank_floppy_disk_dialog(hWnd, drv, 0x00); \
+                open_blank_floppy_disk_dialog(app, drv, 0x00); \
             } \
             break; \
         case ID_OPEN_BLANK_2DD_FD: \
             if(emu) { \
-                open_blank_floppy_disk_dialog(hWnd, drv, 0x10); \
+                open_blank_floppy_disk_dialog(app, drv, 0x10); \
             } \
             break; \
         case ID_OPEN_BLANK_2HD_FD: \
             if(emu) { \
-                open_blank_floppy_disk_dialog(hWnd, drv, 0x20); \
+                open_blank_floppy_disk_dialog(app, drv, 0x20); \
             } \
             break; \
         case ID_WRITE_PROTECT_FD: \
@@ -3116,12 +3278,12 @@ void extendMenuProc(engine* engine, MenuNode menuNode)
 #define BINARY_MENU_ITEMS(drv, ID_LOAD_BINARY, ID_SAVE_BINARY, ID_RECENT_BINARY) \
         case ID_LOAD_BINARY: \
             if(emu) { \
-                open_binary_dialog(hWnd, drv, true); \
+                open_binary_dialog(app, drv, true); \
             } \
             break; \
         case ID_SAVE_BINARY: \
             if(emu) { \
-                open_binary_dialog(hWnd, drv, false); \
+                open_binary_dialog(app, drv, false); \
             } \
             break; \
         case ID_RECENT_BINARY + 0: case ID_RECENT_BINARY + 1: case ID_RECENT_BINARY + 2: case ID_RECENT_BINARY + 3: \

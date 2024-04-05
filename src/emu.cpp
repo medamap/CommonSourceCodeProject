@@ -1815,7 +1815,11 @@ void EMU::write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path)
 // ----------------------------------------------------------------------------
 
 #ifdef USE_SOCKET
+#if defined(__ANDROID__)
+int EMU::get_socket(int ch)
+#else
 SOCKET EMU::get_socket(int ch)
+#endif
 {
 	return osd->get_socket(ch);
 }
@@ -2305,11 +2309,7 @@ bool EMU::is_cart_inserted(int drv)
 #endif
 
 #ifdef USE_FLOPPY_DISK
-#if !defined(__ANDROID__)
 bool EMU::create_blank_floppy_disk(const _TCHAR* file_path, uint8_t type)
-#else
-void EMU::create_bank_floppy_disk(const _TCHAR* file_path, uint8_t type)
-#endif
 {
 	/*
 		type: 0x00 = 2D, 0x10 = 2DD, 0x20 = 2HD
@@ -2334,9 +2334,7 @@ void EMU::create_bank_floppy_disk(const _TCHAR* file_path, uint8_t type)
 		fio->Fclose();
 	}
 	delete fio;
-#if !defined(__ANDROID__)
 	return true;
-#endif
 }
 
 void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)

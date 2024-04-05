@@ -94,17 +94,20 @@ Menu::Menu() {
     int cpuId = addNode(deviceId, "CPU", Category, -1);
     addNode(cpuId, "4MHz", Property, ID_VM_CPU_TYPE0);
     addNode(cpuId, "6MHz", Property, ID_VM_CPU_TYPE1);
+
     int soundId = addNode(deviceId, "Sound", Category, -1);
     addNode(soundId, "Play FDD Noise", Property, ID_VM_SOUND_NOISE_FDD);
     addNode(soundId, "Play CMT Noise", Property, ID_VM_SOUND_NOISE_CMT);
     addNode(soundId, "Play CMT Signal", Property, ID_VM_SOUND_TAPE_SIGNAL);
     addNode(soundId, "Play CMT Voice", Property, ID_VM_SOUND_TAPE_VOICE);
+
     int displayId = addNode(deviceId, "Display", Category, -1);
     addNode(displayId, "Color Monitor", Property, ID_VM_MONITOR_TYPE0);
     addNode(displayId, "Green Monitor", Property, ID_VM_MONITOR_TYPE1);
     addNode(displayId, "Both Color and Green", Property, ID_VM_MONITOR_TYPE2);
     addNode(displayId, "Both Green and Color", Property, ID_VM_MONITOR_TYPE3);
     addNode(displayId, "Scanline", Property, ID_VM_MONITOR_SCANLINE);
+
     int printerId = addNode(deviceId, "Printer", Category, -1);
     addNode(printerId, "Write Printer to File", Property, ID_VM_PRINTER_TYPE0);
     addNode(printerId, "MZ-1P17 (MZ-1)", Property, ID_VM_PRINTER_TYPE1);

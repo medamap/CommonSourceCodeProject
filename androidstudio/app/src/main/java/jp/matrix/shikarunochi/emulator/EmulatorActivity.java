@@ -25,16 +25,22 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class EmulatorActivity extends NativeActivity {
@@ -131,6 +137,91 @@ public class EmulatorActivity extends NativeActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
+    }
+
+    // ネイティブメソッドの宣言
+    public native void newFileCallback(String filename, int driveNo, int type, String addPath);
+
+    // コールバック用のインターフェースを定義
+    interface NewFileCallback {
+        void onNewFileSelected(String filename, int driveNo, int type, String addPath);
+    }
+
+    // NDKから呼び出すためのメソッド
+    public void showNewFileDialog(String message, String itemList, String extension, int driveNo, int type, String addPath) {
+        showNewFileDialogExecute(message, itemList, extension, driveNo, type, addPath, new NewFileCallback() {
+            @Override
+            public void onNewFileSelected(String filename, int driveNo, int type, String addPath) {
+                newFileCallback(filename, driveNo, type, addPath);
+            }
+        });
+    }
+
+    // ファイル選択ダイアログを表示する
+    public void showNewFileDialogExecute(final String message, final String itemList, final String extension, final int driveNo, final int type, final String addPath, final NewFileCallback callback) {
+        final Activity activity = this;
+        activity.runOnUiThread(new Runnable() {
+            final EditText input = new EditText(activity);
+            @Override
+            public void run() {
+                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                builder.setTitle(message);
+
+                input.setHint("ファイル名を入力してください（" + extension + "ファイル）");
+                input.setSingleLine(true);
+                builder.setView(input);
+
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        validateAndProcessInput((AlertDialog) dialog);
+                    }
+                });
+
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                        if (callback != null) {
+                            callback.onNewFileSelected("", 0, 0, "");
+                        }
+                    }
+                });
+
+                final AlertDialog dialog = builder.create();
+
+                input.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                    @Override
+                    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                        if (actionId == EditorInfo.IME_ACTION_DONE ||
+                                (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                            validateAndProcessInput(dialog);
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+
+                dialog.show();
+            }
+
+            private void validateAndProcessInput(AlertDialog dialog) {
+                String enteredText = input.getText().toString().trim();
+                String fullFilename = enteredText.endsWith(extension) ? enteredText : enteredText + extension;
+
+                List<String> existingFiles = Arrays.asList(itemList.toLowerCase().split(";"));
+                if (!enteredText.isEmpty()) {
+                    if (existingFiles.contains(fullFilename.toLowerCase())) {
+                        Toast.makeText(activity, "ファイル名が重複しています。", Toast.LENGTH_SHORT).show();
+                    } else {
+                        dialog.dismiss();
+                        if (callback != null) {
+                            callback.onNewFileSelected(fullFilename, driveNo, type, addPath);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     //https://stackoverflow.com/questions/11730001/create-a-message-dialog-in-android-via-ndk-callback

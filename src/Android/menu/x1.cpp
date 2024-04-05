@@ -46,6 +46,7 @@ Menu::Menu() {
     addNode(controlId, "Debug Keyboard CPU", Property, ID_OPEN_DEBUGGER2);
     addNode(controlId, "Close Debugger", Property, ID_CLOSE_DEBUGGER);
     addNode(controlId, "Exit", Property, ID_EXIT);
+
     // FD0 メニューを作成
     addNode(fd0Id, "Insert", Property, ID_OPEN_FD1);
     addNode(fd0Id, "Eject", Property, ID_CLOSE_FD1);
@@ -54,6 +55,7 @@ Menu::Menu() {
     addNode(fd0Id, "Correct Timing", Property, ID_CORRECT_TIMING_FD1);
     addNode(fd0Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD1);
     addNode(fd0Id, "Recent", Category, ID_RECENT_FD1);
+
     // FD1 メニューを作成
     addNode(fd1Id, "Insert", Property, ID_OPEN_FD2);
     addNode(fd1Id, "Eject", Property, ID_CLOSE_FD2);
@@ -62,6 +64,7 @@ Menu::Menu() {
     addNode(fd1Id, "Correct Timing", Property, ID_CORRECT_TIMING_FD2);
     addNode(fd1Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD2);
     addNode(fd1Id, "Recent", Category, ID_RECENT_FD2);
+
     // FD2 メニューを作成
     addNode(fd2Id, "Insert", Property, ID_OPEN_FD3);
     addNode(fd2Id, "Eject", Property, ID_CLOSE_FD3);
@@ -72,6 +75,7 @@ Menu::Menu() {
     addNode(fd2Id, "Correct Timing", Property, ID_CORRECT_TIMING_FD3);
     addNode(fd2Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD3);
     addNode(fd2Id, "Recent", Category, ID_RECENT_FD3);
+
     // FD3 メニューを作成
     addNode(fd3Id, "Insert", Property, ID_OPEN_FD4);
     addNode(fd3Id, "Eject", Property, ID_CLOSE_FD4);
@@ -82,6 +86,7 @@ Menu::Menu() {
     addNode(fd3Id, "Correct Timing", Property, ID_CORRECT_TIMING_FD4);
     addNode(fd3Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD4);
     addNode(fd3Id, "Recent", Category, ID_RECENT_FD4);
+
     // CMT メニューを作成
     addNode(cmtId, "Play", Property, ID_PLAY_TAPE1);
     addNode(cmtId, "Rec", Property, ID_REC_TAPE1);
@@ -94,30 +99,36 @@ Menu::Menu() {
     addNode(cmtId, "APSS Rewind", Property, ID_APSS_REWIND1);
     addNode(cmtId, "Waveform Shaper", Property, ID_USE_WAVE_SHAPER1);
     addNode(cmtId, "Recent", Category, ID_RECENT_TAPE1);
+
     // HD0 メニューを作成
     addNode(hd0Id, "Mount", Property, ID_OPEN_HD1);
     addNode(hd0Id, "Unmount", Property, ID_CLOSE_HD1);
     addNode(hd0Id, "Mount Blank 20MB Disk", Property, ID_OPEN_BLANK_20MB_HD1);
     addNode(hd0Id, "Recent", Category, ID_RECENT_HD1);
+
     // HD1 メニューを作成
     addNode(hd1Id, "Mount", Property, ID_OPEN_HD2);
     addNode(hd1Id, "Unmount", Property, ID_CLOSE_HD2);
     addNode(hd1Id, "Mount Blank 20MB Disk", Property, ID_OPEN_BLANK_20MB_HD2);
     addNode(hd1Id, "Recent", Category, ID_RECENT_HD2);
+
     // HD2 メニューを作成
     addNode(hd2Id, "Mount", Property, ID_OPEN_HD3);
     addNode(hd2Id, "Unmount", Property, ID_CLOSE_HD3);
     addNode(hd2Id, "Mount Blank 20MB Disk", Property, ID_OPEN_BLANK_20MB_HD3);
     addNode(hd2Id, "Recent", Category, ID_RECENT_HD3);
+
     // HD3 メニューを作成
     addNode(hd3Id, "Mount", Property, ID_OPEN_HD4);
     addNode(hd3Id, "Unmount", Property, ID_CLOSE_HD4);
     addNode(hd3Id, "Mount Blank 20MB Disk", Property, ID_OPEN_BLANK_20MB_HD4);
     addNode(hd3Id, "Recent", Category, ID_RECENT_HD4);
+
     // Device メニューを作成
     int soundId = addNode(deviceId, "Sound", Category, -1);
     int displayId = addNode(deviceId, "Display", Category, -1);
     int printerId = addNode(deviceId, "Printer", Category, -1);
+
     // Sound メニューを作成
     addNode(soundId, "PSG", Property, ID_VM_SOUND_TYPE0);
     addNode(soundId, "CZ-8BS1 x1", Property, ID_VM_SOUND_TYPE1);
@@ -126,14 +137,17 @@ Menu::Menu() {
     addNode(soundId, "Play CMT Noise", Property, ID_VM_SOUND_NOISE_CMT);
     addNode(soundId, "Play CMT Signal", Property, ID_VM_SOUND_TAPE_SIGNAL);
     addNode(soundId, "Play CMT Voice", Property, ID_VM_SOUND_TAPE_VOICE);
+
     // Display メニューを作成
     addNode(displayId, "Scanline", Property, ID_VM_MONITOR_SCANLINE);
+
     // Printer メニューを作成
     addNode(printerId, "Write Printer to File", Property, ID_VM_PRINTER_TYPE0);
     addNode(printerId, "MZ-1P17", Property, ID_VM_PRINTER_TYPE1);
     addNode(printerId, "PC-PR201", Property, ID_VM_PRINTER_TYPE2);
     addNode(printerId, "JAST SOUND", Property, ID_VM_PRINTER_TYPE3);
     addNode(printerId, "None", Property, ID_VM_PRINTER_TYPE4);
+
     // Host メニューを作成
     int recMovieId = addNode(hostId, "Rec Movie", Category, -1);
     int recSoundId = addNode(hostId, "Rec Sound", Category, -1);
@@ -175,6 +189,7 @@ Menu::Menu() {
 
     addNode(filterId, "RGB Filter", Property, ID_FILTER_RGB);
     addNode(filterId, "None", Property, ID_FILTER_NONE);
+
     addNode(soundId2, "Switch On / Off", Property, ID_SOUND_ON);
     addNode(soundId2, "2000Hz", Property, ID_SOUND_FREQ0);
     addNode(soundId2, "4000Hz", Property, ID_SOUND_FREQ1);
@@ -192,9 +207,11 @@ Menu::Menu() {
     addNode(soundId2, "Realtime Mix", Property, ID_SOUND_STRICT_RENDER);
     addNode(soundId2, "Light Weight Mix", Property, ID_SOUND_LIGHT_RENDER);
     addNode(soundId2, "Volume", Property, ID_SOUND_VOLUME);
+
     addNode(inputId, "Joystick #1", Property, ID_INPUT_JOYSTICK0);
     addNode(inputId, "Joystick #2", Property, ID_INPUT_JOYSTICK1);
     addNode(inputId, "Joystick To Keyboard", Property, ID_INPUT_JOYTOKEY);
+
     addNode(hostId, "Use Direct2D1", Property, ID_HOST_USE_D2D1);
     addNode(hostId, "Use Direct3D9", Property, ID_HOST_USE_D3D9);
     addNode(hostId, "Wait Vsync", Property, ID_HOST_WAIT_VSYNC);

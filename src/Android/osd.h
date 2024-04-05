@@ -20,9 +20,6 @@
 #define ENABLE_SOUND 1
 
 #include <android/log.h>
-#if !defined(__ANDROID__)
-#include "../windows.h"
-#endif
 #include "../vm/vm.h"
 //#include "../emu.h"
 #include "../common.h"
@@ -49,13 +46,18 @@
 	#endif
 #endif
 
-#if defined(__ANDROID__)
-#undef USE_SOCKET
-#endif
-
 #ifdef USE_SOCKET
+#if defined(__ANDROID__)
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#else
 #include <winsock.h>
 #pragma comment(lib, "wsock32.lib")
+#endif
 #endif
 
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
@@ -129,8 +131,14 @@ public:
 #define WM_SOCKET3 (WM_USER + 5)
 
 #ifdef USE_SOCKET
+
 #define SOCKET_MAX 4
 #define SOCKET_BUFFER_MAX 0x100000
+
+// POSIX 標準では無効なソケットとエラーは -1 で表される
+#define INVALID_SOCKET (-1)
+#define SOCKET_ERROR (-1)
+
 #endif
 
 #ifdef USE_VIDEO_CAPTURE

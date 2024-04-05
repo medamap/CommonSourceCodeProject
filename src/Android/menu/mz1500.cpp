@@ -75,13 +75,16 @@ Menu::Menu() {
     addNode(joystick, "MZ-1X03", Property, ID_VM_JOYSTICK_TYPE0);
     addNode(joystick, "Tsukumo JOY-700", Property, ID_VM_JOYSTICK_TYPE1);
     addNode(joystick, "AM7J adapter", Property, ID_VM_JOYSTICK_TYPE2);
+
     int sound = addNode(device, "Sound", Category, -1);
     addNode(sound, "Play FDD Noise", Property, ID_VM_SOUND_NOISE_FDD);
     addNode(sound, "Play CMT Noise", Property, ID_VM_SOUND_NOISE_CMT);
     addNode(sound, "Play CMT Signal", Property, ID_VM_SOUND_TAPE_SIGNAL);
     addNode(sound, "Play CMT Voice", Property, ID_VM_SOUND_TAPE_VOICE);
+
     int display = addNode(device, "Display", Category, -1);
     addNode(display, "Scanline", Property, ID_VM_MONITOR_SCANLINE);
+
     int printer = addNode(device, "Printer", Category, -1);
     addNode(printer, "Write Printer to File", Property, ID_VM_PRINTER_TYPE0);
     addNode(printer, "MZ-1P17", Property, ID_VM_PRINTER_TYPE1);
@@ -95,6 +98,7 @@ Menu::Menu() {
     addNode(host, "Rec Sound", Property, ID_HOST_REC_SOUND);
     addNode(host, "Stop", Property, ID_HOST_REC_STOP);
     addNode(host, "Capture Screen", Property, ID_HOST_CAPTURE_SCREEN);
+
     int screen = addNode(host, "Screen", Category, -1);
     addNode(screen, "Window x1", Property, ID_SCREEN_WINDOW);
     addNode(screen, "Fullscreen 640x400", Property, ID_SCREEN_FULLSCREEN);
@@ -124,6 +128,7 @@ Menu::Menu() {
     int filter = addNode(host, "Filter", Category, -1);
     addNode(filter, "RGB Filter", Property, ID_FILTER_RGB);
     addNode(filter, "None", Property, ID_FILTER_NONE);
+
     int sound2 = addNode(host, "Sound", Category, -1);
     addNode(sound2, "Switch On / Off", Property, ID_SOUND_ON);
     addNode(sound2, "2000Hz", Property, ID_SOUND_FREQ0);
