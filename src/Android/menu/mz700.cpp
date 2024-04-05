@@ -33,6 +33,7 @@ Menu::Menu() {
     addNode(controlId, "Debug Main CPU", Property, ID_OPEN_DEBUGGER0);
     addNode(controlId, "Close Debugger", Property, ID_CLOSE_DEBUGGER);
     addNode(controlId, "Exit", Property, ID_EXIT);
+
     int cmtId = addNode(rootId, "CMT", Category, -1);
     addNode(cmtId, "Play", Property, ID_PLAY_TAPE1);
     addNode(cmtId, "Rec", Property, ID_REC_TAPE1);
@@ -43,10 +44,12 @@ Menu::Menu() {
     addNode(cmtId, "Fast Rewind", Property, ID_FAST_REWIND1);
     addNode(cmtId, "Waveform Shaper", Property, ID_USE_WAVE_SHAPER1);
     addNode(cmtId, "Recent", Property, ID_RECENT_TAPE1);
+
     int qdId = addNode(rootId, "QD", Category, -1);
     addNode(qdId, "Insert", Property, ID_OPEN_QD1);
     addNode(qdId, "Eject", Property, ID_CLOSE_QD1);
     addNode(qdId, "Recent", Property, ID_RECENT_QD1);
+
     int fd1Id = addNode(rootId, "FD1", Category, -1);
     addNode(fd1Id, "Insert", Property, ID_OPEN_FD1);
     addNode(fd1Id, "Eject", Property, ID_CLOSE_FD1);
@@ -56,6 +59,7 @@ Menu::Menu() {
     addNode(fd1Id, "Correct Timing", Property, ID_CORRECT_TIMING_FD1);
     addNode(fd1Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD1);
     addNode(fd1Id, "Recent", Property, ID_RECENT_FD1);
+
     int fd2Id = addNode(rootId, "FD2", Category, -1);
     addNode(fd2Id, "Insert", Property, ID_OPEN_FD2);
     addNode(fd2Id, "Eject", Property, ID_CLOSE_FD2);
@@ -65,23 +69,28 @@ Menu::Menu() {
     addNode(fd2Id, "Correct Timing", Property, ID_CORRECT_TIMING_FD2);
     addNode(fd2Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD2);
     addNode(fd2Id, "Recent", Property, ID_RECENT_FD2);
+
     int deviceId = addNode(rootId, "Device", Category, -1);
     int optionId = addNode(deviceId, "Option", Category, -1);
     addNode(optionId, "PCG-700", Property, ID_VM_DIPSWITCH0);
     addNode(optionId, "MZ-1E05", Property, ID_VM_DIPSWITCH1);
     addNode(optionId, "MZ-1E14", Property, ID_VM_DIPSWITCH2);
     addNode(optionId, "MZ-1R12", Property, ID_VM_DIPSWITCH3);
+
     int joystickId = addNode(deviceId, "Joystick", Category, -1);
     addNode(joystickId, "MZ-1X03", Property, ID_VM_JOYSTICK_TYPE0);
     addNode(joystickId, "Tsukumo JOY-700", Property, ID_VM_JOYSTICK_TYPE1);
     addNode(joystickId, "AM7J adapter", Property, ID_VM_JOYSTICK_TYPE2);
+
     int soundId = addNode(deviceId, "Sound", Category, -1);
     addNode(soundId, "Play FDD Noise", Property, ID_VM_SOUND_NOISE_FDD);
     addNode(soundId, "Play CMT Noise", Property, ID_VM_SOUND_NOISE_CMT);
     addNode(soundId, "Play CMT Signal", Property, ID_VM_SOUND_TAPE_SIGNAL);
     addNode(soundId, "Play CMT Voice", Property, ID_VM_SOUND_TAPE_VOICE);
+
     int displayId = addNode(deviceId, "Display", Category, -1);
     addNode(displayId, "Scanline", Property, ID_VM_MONITOR_SCANLINE);
+
     int hostId = addNode(rootId, "Host", Category, -1);
     addNode(hostId, "Rec Movie 60fps", Property, ID_HOST_REC_MOVIE_60FPS);
     addNode(hostId, "Rec Movie 30fps", Property, ID_HOST_REC_MOVIE_30FPS);
@@ -89,6 +98,7 @@ Menu::Menu() {
     addNode(hostId, "Rec Sound", Property, ID_HOST_REC_SOUND);
     addNode(hostId, "Stop", Property, ID_HOST_REC_STOP);
     addNode(hostId, "Capture Screen", Property, ID_HOST_CAPTURE_SCREEN);
+
     int screenId = addNode(hostId, "Screen", Category, -1);
     addNode(screenId, "Window x1", Property, ID_SCREEN_WINDOW);
     addNode(screenId, "Fullscreen 640x400", Property, ID_SCREEN_FULLSCREEN);
@@ -102,6 +112,7 @@ Menu::Menu() {
     addNode(screenId, "Rotate +90deg", Property, ID_SCREEN_ROTATE_90);
     addNode(screenId, "Rotate 180deg", Property, ID_SCREEN_ROTATE_180);
     addNode(screenId, "Rotate -90deg", Property, ID_SCREEN_ROTATE_270);
+
     int marginId = addNode(screenId, "Screen Bottom Margin", Category, -1);
     addNode(marginId, "0", Property, ID_SCREEN_BOTTOM_MARGIN_0);
     addNode(marginId, "30", Property, ID_SCREEN_BOTTOM_MARGIN_30);
@@ -113,9 +124,11 @@ Menu::Menu() {
     addNode(marginId, "210", Property, ID_SCREEN_BOTTOM_MARGIN_210);
     addNode(marginId, "240", Property, ID_SCREEN_BOTTOM_MARGIN_240);
     addNode(marginId, "270", Property, ID_SCREEN_BOTTOM_MARGIN_270);
+
     int filterId = addNode(hostId, "Filter", Category, -1);
     addNode(filterId, "RGB Filter", Property, ID_FILTER_RGB);
     addNode(filterId, "None", Property, ID_FILTER_NONE);
+
     int soundId2 = addNode(hostId, "Sound", Category, -1);
     addNode(soundId2, "Switch On / Off", Property, ID_SOUND_ON);
     addNode(soundId2, "2000Hz", Property, ID_SOUND_FREQ0);
@@ -134,10 +147,12 @@ Menu::Menu() {
     addNode(soundId2, "Realtime Mix", Property, ID_SOUND_STRICT_RENDER);
     addNode(soundId2, "Light Weight Mix", Property, ID_SOUND_LIGHT_RENDER);
     addNode(soundId2, "Volume", Property, ID_SOUND_VOLUME);
+
     int inputId = addNode(hostId, "Input", Category, -1);
     addNode(inputId, "Joystick #1", Property, ID_INPUT_JOYSTICK0);
     addNode(inputId, "Joystick #2", Property, ID_INPUT_JOYSTICK1);
     addNode(inputId, "Joystick To Keyboard", Property, ID_INPUT_JOYTOKEY);
+
     addNode(hostId, "Use Direct2D1", Property, ID_HOST_USE_D2D1);
     addNode(hostId, "Use Direct3D9", Property, ID_HOST_USE_D3D9);
     addNode(hostId, "Wait Vsync", Property, ID_HOST_WAIT_VSYNC);

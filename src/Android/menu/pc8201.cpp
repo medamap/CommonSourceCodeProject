@@ -32,15 +32,18 @@ Menu::Menu() {
     addNode(controlId, "Debug Main CPU", Property, ID_OPEN_DEBUGGER0);
     addNode(controlId, "Close Debugger", Property, ID_CLOSE_DEBUGGER);
     addNode(controlId, "Exit", Property, ID_EXIT);
+
     int cmtId = addNode(rootId, "CMT", Category, -1);
     addNode(cmtId, "Play", Property, ID_PLAY_TAPE1);
     addNode(cmtId, "Rec", Property, ID_REC_TAPE1);
     addNode(cmtId, "Eject", Property, ID_CLOSE_TAPE1);
+
     int deviceId = addNode(rootId, "Device", Category, -1);
     int soundId = addNode(deviceId, "Sound", Category, -1);
     addNode(soundId, "Play CMT Noise", Property, ID_VM_SOUND_NOISE_CMT);
     addNode(soundId, "Play CMT Signal", Property, ID_VM_SOUND_TAPE_SIGNAL);
     addNode(soundId, "Play CMT Voice", Property, ID_VM_SOUND_TAPE_VOICE);
+
     int hostId = addNode(rootId, "Host", Category, -1);
     addNode(hostId, "Rec Movie 60fps", Property, ID_HOST_REC_MOVIE_60FPS);
     addNode(hostId, "Rec Movie 30fps", Property, ID_HOST_REC_MOVIE_30FPS);
@@ -48,6 +51,7 @@ Menu::Menu() {
     addNode(hostId, "Rec Sound", Property, ID_HOST_REC_SOUND);
     addNode(hostId, "Stop", Property, ID_HOST_REC_STOP);
     addNode(hostId, "Capture Screen", Property, ID_HOST_CAPTURE_SCREEN);
+
     int screenId = addNode(hostId, "Screen", Category, -1);
     addNode(screenId, "Window x1", Property, ID_SCREEN_WINDOW);
     addNode(screenId, "Fullscreen 640x400", Property, ID_SCREEN_FULLSCREEN);
@@ -84,6 +88,7 @@ Menu::Menu() {
     addNode(soundId2, "Realtime Mix", Property, ID_SOUND_STRICT_RENDER);
     addNode(soundId2, "Light Weight Mix", Property, ID_SOUND_LIGHT_RENDER);
     addNode(soundId2, "Volume", Property, ID_SOUND_VOLUME);
+
     addNode(hostId, "Use Direct2D1", Property, ID_HOST_USE_D2D1);
     addNode(hostId, "Use Direct3D9", Property, ID_HOST_USE_D3D9);
     addNode(hostId, "Wait Vsync", Property, ID_HOST_WAIT_VSYNC);

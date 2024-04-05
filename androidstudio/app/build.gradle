@@ -192,14 +192,14 @@ android {
                 }
             }
         }
-        msx {
+        msx1 {
             dimension "machine"
-            applicationIdSuffix ".msx"
-            versionNameSuffix "-msx"
+            applicationIdSuffix ".msx1"
+            versionNameSuffix "-msx1"
             applicationId 'jp.matrix.shikarunochi.emulator'
             externalNativeBuild {
                 cmake {
-                    arguments "-D_MSX=1"
+                    arguments "-D_MSX1=1"
                 }
             }
         }
@@ -522,14 +522,14 @@ android {
                 }
             }
         }
-        pc8001mk2sr {
+        pc8001sr {
             dimension "machine"
-            applicationIdSuffix ".pc8001mk2sr"
-            versionNameSuffix "-pc8001mk2sr"
+            applicationIdSuffix ".pc8001sr"
+            versionNameSuffix "-pc8001sr"
             applicationId 'jp.matrix.shikarunochi.emulator'
             externalNativeBuild {
                 cmake {
-                    arguments "-D_PC8001MK2SR=1"
+                    arguments "-D_PC8001SR=1"
                 }
             }
         }

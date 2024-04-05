@@ -42,6 +42,10 @@
 #elif defined(_WIN32)
 #define OSD_WIN32
 #elif defined(__ANDROID__)
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 #define OSD_ANDROID
 #else
 // oops!
@@ -387,7 +391,11 @@ public:
 	
 	// socket
 #ifdef USE_SOCKET
-	SOCKET get_socket(int ch);
+#if defined(__ANDROID__)
+	int get_socket(int ch);
+#else
+    SOCKET get_socket(int ch);
+#endif
 	void notify_socket_connected(int ch);
 	void notify_socket_disconnected(int ch);
 	bool initialize_socket_tcp(int ch);
@@ -458,11 +466,9 @@ public:
 		int bank_num;
 		int cur_bank;
 	} d88_file[USE_FLOPPY_DISK];
-#if !defined(__ANDROID__)
+
 	bool create_blank_floppy_disk(const _TCHAR* file_path, uint8_t type);
-#else
-    void create_bank_floppy_disk(const _TCHAR* file_path, uint8_t type);
-#endif
+
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
 #if !defined(__ANDROID__)
