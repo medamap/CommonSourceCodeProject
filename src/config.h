@@ -174,11 +174,14 @@ typedef struct {
 		int filter_type;
     #endif
 
-    #if defined(__ANDROID__)
+    #if defined(__ANDROID__) // Medamap
         int screen_bottom_margin;
     #endif
 	
 	// sound
+    #if defined(__ANDROID__) // Medamap
+        bool sound_on;
+    #endif
 	int sound_frequency;
 	int sound_latency;
 	bool sound_strict_rendering;

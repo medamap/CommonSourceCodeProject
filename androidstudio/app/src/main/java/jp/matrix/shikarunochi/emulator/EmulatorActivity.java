@@ -7,6 +7,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.NativeActivity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
@@ -23,13 +25,22 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class EmulatorActivity extends NativeActivity {
@@ -128,6 +139,91 @@ public class EmulatorActivity extends NativeActivity {
         super.onDestroy();
     }
 
+    // ネイティブメソッドの宣言
+    public native void newFileCallback(String filename, int driveNo, int type, String addPath);
+
+    // コールバック用のインターフェースを定義
+    interface NewFileCallback {
+        void onNewFileSelected(String filename, int driveNo, int type, String addPath);
+    }
+
+    // NDKから呼び出すためのメソッド
+    public void showNewFileDialog(String message, String itemList, String extension, int driveNo, int type, String addPath) {
+        showNewFileDialogExecute(message, itemList, extension, driveNo, type, addPath, new NewFileCallback() {
+            @Override
+            public void onNewFileSelected(String filename, int driveNo, int type, String addPath) {
+                newFileCallback(filename, driveNo, type, addPath);
+            }
+        });
+    }
+
+    // ファイル選択ダイアログを表示する
+    public void showNewFileDialogExecute(final String message, final String itemList, final String extension, final int driveNo, final int type, final String addPath, final NewFileCallback callback) {
+        final Activity activity = this;
+        activity.runOnUiThread(new Runnable() {
+            final EditText input = new EditText(activity);
+            @Override
+            public void run() {
+                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                builder.setTitle(message);
+
+                input.setHint("ファイル名を入力してください（" + extension + "ファイル）");
+                input.setSingleLine(true);
+                builder.setView(input);
+
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        validateAndProcessInput((AlertDialog) dialog);
+                    }
+                });
+
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                        if (callback != null) {
+                            callback.onNewFileSelected("", 0, 0, "");
+                        }
+                    }
+                });
+
+                final AlertDialog dialog = builder.create();
+
+                input.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                    @Override
+                    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                        if (actionId == EditorInfo.IME_ACTION_DONE ||
+                                (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                            validateAndProcessInput(dialog);
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+
+                dialog.show();
+            }
+
+            private void validateAndProcessInput(AlertDialog dialog) {
+                String enteredText = input.getText().toString().trim();
+                String fullFilename = enteredText.endsWith(extension) ? enteredText : enteredText + extension;
+
+                List<String> existingFiles = Arrays.asList(itemList.toLowerCase().split(";"));
+                if (!enteredText.isEmpty()) {
+                    if (existingFiles.contains(fullFilename.toLowerCase())) {
+                        Toast.makeText(activity, "ファイル名が重複しています。", Toast.LENGTH_SHORT).show();
+                    } else {
+                        dialog.dismiss();
+                        if (callback != null) {
+                            callback.onNewFileSelected(fullFilename, driveNo, type, addPath);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     //https://stackoverflow.com/questions/11730001/create-a-message-dialog-in-android-via-ndk-callback
     public int showAlert(final String message, final String itemList, boolean model, final int selectMode) {
         final AtomicInteger buttonId = new AtomicInteger();
@@ -193,6 +289,85 @@ public class EmulatorActivity extends NativeActivity {
         return buttonId.get();
     }
 
+    public int showExtendMenu(final String title, final String extendMenu) {
+        final AtomicInteger buttonId = new AtomicInteger();
+        final String[] nodes;
+        buttonId.set(-1);
+        if (!extendMenu.isEmpty()) {
+            nodes = extendMenu.split(",");
+        } else {
+            return buttonId.get();
+        }
+
+        this.runOnUiThread(new Runnable() {
+            public void run() {
+                final Dialog dialog = new Dialog(EmulatorActivity.this);
+                dialog.setTitle(title);
+                dialog.setContentView(R.layout.custom_dialog_layout); // 事前に定義したカスタムレイアウトを使用
+
+                LinearLayout layout = dialog.findViewById(R.id.custom_dialog_layout);
+                for (int i = 0; i < nodes.length; i++) {
+                    String[] node = nodes[i].split(";");
+                    Button button = new Button(EmulatorActivity.this);
+                    button.setText(node[1]);
+                    // nodes[2] が "0" の時はフォルダ、"1" の時はファイル
+                    //  フォルダの時はボタンの色を薄い黄色、ファイルの時は薄い青色にする
+                    // 白に近い黄色の背景色を設定
+                    if (node[2].equals("0")) {
+                        button.setBackgroundColor(Color.argb(255, 255, 255, 200)); // ARGBで白に近い黄色
+                    } else {
+                        button.setBackgroundColor(Color.argb(255, 200, 255, 255)); // ARGBで白に近い青
+                    }
+                    // テキスト色を設定（ここでは黒を例としています）
+                    button.setTextColor(Color.BLACK);
+                    final int index = i;
+                    button.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            buttonId.set(index);
+                            extendMenuCallback(nodes[buttonId.get()]);
+                            dialog.dismiss();
+                        }
+                    });
+                    layout.addView(button);
+                    // ボタンの下に少しマージンを空ける
+                    View margin = new View(EmulatorActivity.this);
+                    margin.setMinimumHeight(10);
+                    layout.addView(margin);
+                }
+
+                Button cancelButton = dialog.findViewById(R.id.cancelButton);
+                cancelButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        extendMenuCallback("");
+                        dialog.dismiss();
+                    }
+                });
+
+                Button backButton = dialog.findViewById(R.id.backButton);
+                backButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (nodes.length > 0) {
+                            String[] node = nodes[0].split(";");
+                            extendMenuCallback(node[4]); // 親IDを渡す
+                        } else {
+                            extendMenuCallback("");
+                        }
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog.setCancelable(false);
+                dialog.show();
+            }
+        });
+
+        return buttonId.get();
+    }
+
+    public native void extendMenuCallback(String extendMenu);
     public native void fileSelectCallback(int id);
     public native void bankSelectCallback(int id);
     public native void bootSelectCallback(int id);
@@ -210,6 +385,8 @@ public class EmulatorActivity extends NativeActivity {
                         return R.drawable.sound;
                     case 3:
                         return R.drawable.pcg;
+                    case 4:
+                        return R.drawable.config;
 
              }
             case 1://mediaIcon
@@ -300,4 +477,14 @@ public class EmulatorActivity extends NativeActivity {
 
         return returnData;
     }
+
+    public String getClipboardText() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard.hasPrimaryClip()) {
+            ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+            return item.getText().toString();
+        }
+        return "";
+    }
+
 }

@@ -81,8 +81,8 @@ ScreenSize preScreenSize = SCREEN_SIZE_MAX;
 typedef void *(OnClickListener)(int id);
 
 void selectMedia(struct android_app *state);
+
 void selectBootMode(struct android_app *state);
-void close_floppy_disk(int drv);
 
 jint
 showAlert(struct android_app *state, const char *message, const char *filenames, bool model = false,
@@ -779,39 +779,6 @@ static void engine_term_display(struct engine *engine) {
     engine->animating = 0;
 }
 
-static void all_eject() {
-    // 各種メディアの排出処理
-
-    for (int index = 0; index < MAX_FILE_SELECT_ICON; index++) {
-        switch (fileSelectIconData[index].fileSelectType) {
-#ifdef USE_FLOPPY_DISK
-            case FLOPPY_DISK:
-                close_floppy_disk(fileSelectIconData[index].driveNo);
-                LOGI("Eject Floppy Disk %d", fileSelectIconData[index].driveNo);
-                break;
-#endif
-#ifdef USE_QUICK_DISK
-            case QUICK_DISK:
-                emu->close_quick_disk(fileSelectIconData[index].driveNo);
-                LOGI("Eject Quick Disk %d", fileSelectIconData[index].driveNo);
-                break;
-#endif
-#ifdef USE_TAPE
-            case CASETTE_TAPE:
-                emu->close_tape(fileSelectIconData[index].driveNo);
-                LOGI("Eject Tape %d", fileSelectIconData[index].driveNo);
-                break;
-#endif
-#ifdef USE_CART
-            case CARTRIDGE:
-                emu->close_cart(fileSelectIconData[selectingIconIndex].driveNo);
-                LOGI("Eject Cartridge %d", fileSelectIconData[selectingIconIndex].driveNo);
-                break;
-#endif
-        }
-    }
-}
-
 static void clear_screen(struct engine *engine) {
     if (engine->app->window == NULL) {
         // No window.
@@ -1072,12 +1039,6 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
                 ANativeWindow_setBuffersGeometry(app->window, 0, 0, WINDOW_FORMAT_RGB_565);
             }
             AConfiguration_delete(aconfig);
-            break;
-        }
-        case APP_CMD_DESTROY:
-        {
-            // 強制排出
-            all_eject();
             break;
         }
     }
@@ -1394,7 +1355,8 @@ void open_floppy_disk(int drv, const _TCHAR *path, int bank) {
             try {
                 fio->Fseek(0, FILEIO_SEEK_END);
                 uint32_t file_size = fio->Ftell(), file_offset = 0;
-                while (file_offset + 0x2b0 <= file_size && emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
+                while (file_offset + 0x2b0 <= file_size &&
+                       emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
                     fio->Fseek(file_offset, FILEIO_SEEK_SET);
 //#ifdef _UNICODE
                     char tmp[18];
@@ -1696,8 +1658,6 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_exitSelectCallback(JNIEnv 
     if (id < 0) {
         return;
     }
-    // 強制排出
-    all_eject();
     //TODO:free?
     exit(0);
 }
@@ -2164,10 +2124,10 @@ void android_main(struct android_app *state) {
         if (source != NULL) {
             source->process(state, source);
         }
+
         // Check if we are exiting.
         if (state->destroyRequested != 0) {
             LOGI("Engine thread destroy requested!");
-            all_eject();
             engine_term_display(&engine);
             return;
         }
@@ -2615,8 +2575,6 @@ void extendMenuProc(engine* engine, MenuNode menuNode)
 #endif
         case ID_EXIT:
             //SendMessage(hWnd, WM_CLOSE, 0, 0L);
-            // 強制排出
-            all_eject();
             exit(0);
             break;
 #ifdef USE_BOOT_MODE
