@@ -290,12 +290,15 @@ public class EmulatorActivity extends NativeActivity {
     }
 
     public int showExtendMenu(final String title, final String extendMenu) {
+        Log.i("EmulatorActivity", "showExtendMenu called");
         final AtomicInteger buttonId = new AtomicInteger();
         final String[] nodes;
         buttonId.set(-1);
         if (!extendMenu.isEmpty()) {
+            Log.i("EmulatorActivity", "extendMenu: " + extendMenu);
             nodes = extendMenu.split(",");
         } else {
+            Log.i("EmulatorActivity", "extendMenu is empty");
             return buttonId.get();
         }
 
@@ -304,9 +307,11 @@ public class EmulatorActivity extends NativeActivity {
                 final Dialog dialog = new Dialog(EmulatorActivity.this);
                 dialog.setTitle(title);
                 dialog.setContentView(R.layout.custom_dialog_layout); // 事前に定義したカスタムレイアウトを使用
+                Log.i("EmulatorActivity", "nodes: " + nodes.length);
 
                 LinearLayout layout = dialog.findViewById(R.id.custom_dialog_layout);
                 for (int i = 0; i < nodes.length; i++) {
+                    Log.i("EmulatorActivity", "node: " + nodes[i]);
                     String[] node = nodes[i].split(";");
                     Button button = new Button(EmulatorActivity.this);
                     button.setText(node[1]);
@@ -330,6 +335,7 @@ public class EmulatorActivity extends NativeActivity {
                         @Override
                         public void onClick(View v) {
                             buttonId.set(index);
+                            Log.i("EmulatorActivity", "button clicked: " + nodes[index]);
                             extendMenuCallback(nodes[buttonId.get()]);
                             dialog.dismiss();
                         }
@@ -339,12 +345,14 @@ public class EmulatorActivity extends NativeActivity {
                     View margin = new View(EmulatorActivity.this);
                     margin.setMinimumHeight(10);
                     layout.addView(margin);
+                    Log.i("EmulatorActivity", "button added: " + node[1] + " (" + node[2] + ")");
                 }
 
                 Button cancelButton = dialog.findViewById(R.id.cancelButton);
                 cancelButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        Log.i("EmulatorActivity", "cancelButton clicked");
                         extendMenuCallback("");
                         dialog.dismiss();
                     }
@@ -356,8 +364,10 @@ public class EmulatorActivity extends NativeActivity {
                     public void onClick(View v) {
                         if (nodes.length > 0) {
                             String[] node = nodes[0].split(";");
+                            Log.i("EmulatorActivity", "backButton clicked: " + node[4]);
                             extendMenuCallback(node[4]); // 親IDを渡す
                         } else {
+                            Log.i("EmulatorActivity", "backButton clicked: empty");
                             extendMenuCallback("");
                         }
                         dialog.dismiss();
@@ -369,6 +379,7 @@ public class EmulatorActivity extends NativeActivity {
             }
         });
 
+        Log.i("EmulatorActivity", "showExtendMenu end");
         return buttonId.get();
     }
 
