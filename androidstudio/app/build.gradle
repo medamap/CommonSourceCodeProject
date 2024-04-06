@@ -27,6 +27,17 @@ android {
     }
     flavorDimensions "machine"
     productFlavors {
+        bmjr {
+            dimension "machine"
+            applicationIdSuffix ".bmjr"
+            versionNameSuffix "-bmjr"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_BMJR=1"
+                }
+            }
+        }
         familybasic {
             dimension "machine"
             applicationIdSuffix ".familybasic"
@@ -247,6 +258,17 @@ android {
                 }
             }
         }
+        mz80a {
+            dimension "machine"
+            applicationIdSuffix ".mz80a"
+            versionNameSuffix "-mz80a"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ80A=1"
+                }
+            }
+        }
         mz80b {
             dimension "machine"
             applicationIdSuffix ".mz80b"
@@ -321,6 +343,61 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments "-D_MZ2500=1"
+                }
+            }
+        }
+        mz2800 {
+            dimension "machine"
+            applicationIdSuffix ".mz2800"
+            versionNameSuffix "-mz2800"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ2800=1"
+                }
+            }
+        }
+        mz3500 {
+            dimension "machine"
+            applicationIdSuffix ".mz3500"
+            versionNameSuffix "-mz3500"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ3500=1"
+                }
+            }
+        }
+        mz5500 {
+            dimension "machine"
+            applicationIdSuffix ".mz5500"
+            versionNameSuffix "-mz5500"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ5500=1"
+                }
+            }
+        }
+        mz6500 {
+            dimension "machine"
+            applicationIdSuffix ".mz6500"
+            versionNameSuffix "-mz6500"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ6500=1"
+                }
+            }
+        }
+        mz6550 {
+            dimension "machine"
+            applicationIdSuffix ".mz6550"
+            versionNameSuffix "-mz6550"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ6550=1"
                 }
             }
         }
@@ -665,6 +742,61 @@ android {
                 }
             }
         }
+        phc20 {
+            dimension "machine"
+            applicationIdSuffix ".phc20"
+            versionNameSuffix "-phc20"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PHC20=1"
+                }
+            }
+        }
+        phc25 {
+            dimension "machine"
+            applicationIdSuffix ".phc25"
+            versionNameSuffix "-phc25"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PHC25=1"
+                }
+            }
+        }
+        pv1000 {
+            dimension "machine"
+            applicationIdSuffix ".pv1000"
+            versionNameSuffix "-pv1000"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PV1000=1"
+                }
+            }
+        }
+        pv2000 {
+            dimension "machine"
+            applicationIdSuffix ".pv2000"
+            versionNameSuffix "-pv2000"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PV2000=1"
+                }
+            }
+        }
+        px7 {
+            dimension "machine"
+            applicationIdSuffix ".px7"
+            versionNameSuffix "-px7"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PX7=1"
+                }
+            }
+        }
         pyuta {
             dimension "machine"
             applicationIdSuffix ".pyuta"
@@ -673,6 +805,17 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments "-D_PYUTA=1"
+                }
+            }
+        }
+        qc10 {
+            dimension "machine"
+            applicationIdSuffix ".qc10"
+            versionNameSuffix "-qc10"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_QC10=1"
                 }
             }
         }
@@ -695,6 +838,28 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments "-D_SC3000=1"
+                }
+            }
+        }
+        scv {
+            dimension "machine"
+            applicationIdSuffix ".scv"
+            versionNameSuffix "-scv"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_SCV=1"
+                }
+            }
+        }
+        smb80te {
+            dimension "machine"
+            applicationIdSuffix ".smb80te"
+            versionNameSuffix "-smb80te"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_SMB80TE=1"
                 }
             }
         }
@@ -728,6 +893,17 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments "-D_TK85=1"
+                }
+            }
+        }
+        tvboy {
+            dimension "machine"
+            applicationIdSuffix ".tvboy"
+            versionNameSuffix "-tvboy"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_TVBOY=1"
                 }
             }
         }
