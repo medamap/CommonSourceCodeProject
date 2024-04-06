@@ -600,11 +600,13 @@ void extendMenuProc(engine *engine, MenuNode menuNode);
 // 拡張メニュー生成と表示
 void extendMenu(struct android_app *app)
 {
+    LOGI("extendMenu start %d", extendMenuDisplay);
     if (extendMenuDisplay) return;
     // メニュー文字列を取得する
     extendMenuString = menu->getExtendMenuString(1);
     // NDKからJavaの関数を呼び出す
     extendMenuDisplay = true;
+    LOGI("extendMenu end %d", extendMenuDisplay);
     jint nodeId = showExtendMenu(app, menu->getCaption(1).c_str(), extendMenuString.c_str());
 }
 
@@ -904,7 +906,7 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                     return 1;
 #if defined(_EXTEND_MENU)
                 } else if (x > adjustedWidth - unitPixel * 5) {
-                    LOGI("Tap Config");
+                    LOGI("Tap Config ******");
                     extendMenu(app);
                     return 1;
                 } else {
@@ -1369,16 +1371,27 @@ void showNewFileDialog(struct android_app *state, const char *message, const cha
 
 
 jint showExtendMenu(struct android_app *state, const char *title, const char *extendMenuString) {
+    LOGI("showExtendMenu %s", title);
     JNIEnv *jni = NULL;
+    LOGI("showExtendMenu #1");
     state->activity->vm->AttachCurrentThread(&jni, NULL);
+    LOGI("showExtendMenu #2");
     jclass clazz = jni->GetObjectClass(state->activity->clazz);
+    LOGI("showExtendMenu #3");
     jmethodID methodID = jni->GetMethodID(clazz, "showExtendMenu", "(Ljava/lang/String;Ljava/lang/String;)I");
+    LOGI("showExtendMenu #4");
     jstring jtitle = jni->NewStringUTF(title);
+    LOGI("showExtendMenu #5");
     jstring jextendMenu = jni->NewStringUTF(extendMenuString);
+    LOGI("showExtendMenu #6");
     jint result = jni->CallIntMethod(state->activity->clazz, methodID, jtitle, jextendMenu);
+    LOGI("showExtendMenu #7");
     jni->DeleteLocalRef(jextendMenu);
+    LOGI("showExtendMenu #8");
     jni->DeleteLocalRef(jtitle);
+    LOGI("showExtendMenu #9");
     state->activity->vm->DetachCurrentThread();
+    LOGI("showExtendMenu #10");
     return result;
 }
 
@@ -1534,6 +1547,7 @@ JNIEXPORT void JNICALL Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_ext
     if (extendMenuString == nullptr || strlen(extendMenuString) == 0) {
         // 何もしない
         notifyMenuNode = MenuNode::emptyNode();
+        LOGI("Empty extendMenuString");
     }
     // else if で、親IDのみか判断する、親IDとは1トークンで、数字のみの文字列
     else if (std::all_of(extendMenuString, extendMenuString + strlen(extendMenuString), ::isdigit)) {
@@ -1547,19 +1561,23 @@ JNIEXPORT void JNICALL Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_ext
         } catch (std::invalid_argument &e) {
             // 何もしない
             notifyMenuNode = MenuNode::emptyNode();
+            LOGI("Invalid extendMenuString: %s", extendMenuString);
         }
     }
     // else if で、ノード情報か判断する
     else if (menu->isValidExtendMenuString(extendMenuString)) {
         // ノード情報を取得する
         notifyMenuNode = menu->getNodeFromExtendMenuString(extendMenuString);
+        LOGI("Notify node: %s", menu->getNodeString(notifyMenuNode).c_str());
     }
     // else 何もないので何もしない
     else {
         notifyMenuNode = MenuNode::emptyNode();
+        LOGI("Nothing extendMenuString: %s", extendMenuString);
     }
     // メモリ解放
     env->ReleaseStringUTFChars(extendMenu, extendMenuString);
+    LOGI("extendMenuCallback end");
 }
 #else
 JNIEXPORT void JNICALL Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_extendMenuCallback(
