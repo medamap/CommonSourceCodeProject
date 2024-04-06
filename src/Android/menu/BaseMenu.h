@@ -62,7 +62,14 @@ public:
     // ノードを追加する
     int addNode(int parentId, const std::string& caption, ItemType itemType, int returnValue) {
         int nodeId = nextNodeId++;
-        nodes.emplace_back(parentId, nodeId, caption, itemType, returnValue);
+        // 文字列引数の中にカンマやセミコロンがある場合、空白に置き換える
+        std::string captionCopy = caption;
+        for (char& c : captionCopy) {
+            if (c == ',' || c == ';') {
+                c = ' ';
+            }
+        }
+        nodes.emplace_back(parentId, nodeId, captionCopy, itemType, returnValue);
         return nodeId;
     }
 
