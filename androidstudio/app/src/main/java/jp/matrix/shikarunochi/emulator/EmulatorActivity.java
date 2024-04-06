@@ -313,6 +313,11 @@ public class EmulatorActivity extends NativeActivity {
                     // nodes[2] が "0" の時はフォルダ、"1" の時はファイル
                     //  フォルダの時はボタンの色を薄い黄色、ファイルの時は薄い青色にする
                     // 白に近い黄色の背景色を設定
+                    // node 配列の数が足りない場合、可能なら配列の中の情報を logcat ダンプして continue する
+                    if (node.length < 3) {
+                        Log.e("EmulatorActivity", "node array length is less than 3: " + node);
+                        continue;
+                    }
                     if (node[2].equals("0")) {
                         button.setBackgroundColor(Color.argb(255, 255, 255, 200)); // ARGBで白に近い黄色
                     } else {
