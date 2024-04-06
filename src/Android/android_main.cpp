@@ -83,6 +83,7 @@ typedef void *(OnClickListener)(int id);
 void selectMedia(struct android_app *state);
 
 void selectBootMode(struct android_app *state);
+void close_floppy_disk(int drv);
 
 jint
 showAlert(struct android_app *state, const char *message, const char *filenames, bool model = false,
@@ -779,6 +780,39 @@ static void engine_term_display(struct engine *engine) {
     engine->animating = 0;
 }
 
+static void all_eject() {
+    // 各種メディアの排出処理
+
+    for (int index = 0; index < MAX_FILE_SELECT_ICON; index++) {
+        switch (fileSelectIconData[index].fileSelectType) {
+#ifdef USE_FLOPPY_DISK
+            case FLOPPY_DISK:
+                close_floppy_disk(fileSelectIconData[index].driveNo);
+                LOGI("Eject Floppy Disk %d", fileSelectIconData[index].driveNo);
+                break;
+#endif
+#ifdef USE_QUICK_DISK
+                case QUICK_DISK:
+                emu->close_quick_disk(fileSelectIconData[index].driveNo);
+                LOGI("Eject Quick Disk %d", fileSelectIconData[index].driveNo);
+                break;
+#endif
+#ifdef USE_TAPE
+            case CASETTE_TAPE:
+                emu->close_tape(fileSelectIconData[index].driveNo);
+                LOGI("Eject Tape %d", fileSelectIconData[index].driveNo);
+                break;
+#endif
+#ifdef USE_CART
+                case CARTRIDGE:
+                emu->close_cart(fileSelectIconData[selectingIconIndex].driveNo);
+                LOGI("Eject Cartridge %d", fileSelectIconData[selectingIconIndex].driveNo);
+                break;
+#endif
+        }
+    }
+}
+
 static void clear_screen(struct engine *engine) {
     if (engine->app->window == NULL) {
         // No window.
@@ -1039,6 +1073,12 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
                 ANativeWindow_setBuffersGeometry(app->window, 0, 0, WINDOW_FORMAT_RGB_565);
             }
             AConfiguration_delete(aconfig);
+            break;
+        }
+        case APP_CMD_DESTROY:
+        {
+            // 強制排出
+            all_eject();
             break;
         }
     }
@@ -1355,8 +1395,7 @@ void open_floppy_disk(int drv, const _TCHAR *path, int bank) {
             try {
                 fio->Fseek(0, FILEIO_SEEK_END);
                 uint32_t file_size = fio->Ftell(), file_offset = 0;
-                while (file_offset + 0x2b0 <= file_size &&
-                       emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
+                while (file_offset + 0x2b0 <= file_size && emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
                     fio->Fseek(file_offset, FILEIO_SEEK_SET);
 //#ifdef _UNICODE
                     char tmp[18];
@@ -1455,6 +1494,7 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_newFileCallback(JNIEnv *en
     sprintf(path, "%s%s/%s", applicationPath, addPathStr, fileStr);
     LOGI("Selected file: %s", path);
 
+#ifdef USE_FLOPPY_DISK
     if (path[0] != '\0') {
         if (!check_file_extension(path, ".d88") && !check_file_extension(path, ".d77")) {
             strcat(path, ".d88"); // my_tcscat_sは標準のC++関数ではないため、strcatを使用
@@ -1465,6 +1505,7 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_newFileCallback(JNIEnv *en
             emu->open_floppy_disk(drv, path, 0);
         }
     }
+#endif
 
     // メモリ解放
     env->ReleaseStringUTFChars(filename, fileStr);
@@ -1658,6 +1699,8 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_exitSelectCallback(JNIEnv 
     if (id < 0) {
         return;
     }
+    // 強制排出
+    all_eject();
     //TODO:free?
     exit(0);
 }
@@ -2128,6 +2171,7 @@ void android_main(struct android_app *state) {
         // Check if we are exiting.
         if (state->destroyRequested != 0) {
             LOGI("Engine thread destroy requested!");
+            all_eject();
             engine_term_display(&engine);
             return;
         }
@@ -2319,64 +2363,15 @@ void open_floppy_disk_dialog(struct android_app *app, int drive) {
     selectMedia(app);
 }
 
+#ifdef USE_FLOPPY_DISK
 void open_blank_floppy_disk_dialog(struct android_app * app, int drv, uint8_t type)
 {
     createBlankDisk(app, drv, type,"DISK");
 }
+#endif
 
 // カセットテープ選択ダイアログを開く
 void open_tape_dialog(struct android_app *app, int drive, bool play) {
-#if false
-    _TCHAR* path = get_open_file_name(
-		hWnd,
-#if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
-		play ? _T("Supported Files (*.wav;*.cas;*.p6;*.p6t;*.gz)\0*.wav;*.cas;*.p6;*.p6t;*.gz\0All Files (*.*)\0*.*\0\0")
-		     : _T("Supported Files (*.wav;*.cas;*.p6;*.p6t)\0*.wav;*.cas;*.p6;*.p6t\0All Files (*.*)\0*.*\0\0"),
-#elif defined(_PC8001) || defined(_PC8001MK2) || defined(_PC8001SR) || defined(_PC8801) || defined(_PC8801MK2) || defined(_PC8801MA) || defined(_PC98DO)
-		play ? _T("Supported Files (*.cas;*.cmt;*.n80;*.t88)\0*.cas;*.cmt;*.n80;*.t88\0All Files (*.*)\0*.*\0\0")
-		     : _T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
-#elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
-		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.mzf;*.m12;*.gz)\0*.wav;*.cas;*.mzt;*.mzf;*.m12;*.gz\0All Files (*.*)\0*.*\0\0")
-		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
-#elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
-		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.mzf;*.mti;*.mtw;*.dat;*.gz)\0*.wav;*.cas;*.mzt;*.mzf;*.mti;*.mtw;*.dat;*.gz\0All Files (*.*)\0*.*\0\0")
-		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
-#elif defined(_MZ2500)
-		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.mzf;*.mti;*.gz)\0*.wav;*.cas;*.mzt;*.mzf;*.mti;*.gz\0All Files (*.*)\0*.*\0\0")
-		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
-#elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
-		play ? _T("Supported Files (*.wav;*.cas;*.tap;*.gz)\0*.wav;*.cas;*.tap;*.gz\0All Files (*.*)\0*.*\0\0")
-		     : _T("Supported Files (*.wav;*.cas;*.tap)\0*.wav;*.cas;*.tap\0All Files (*.*)\0*.*\0\0"),
-#elif defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-		play ? _T("Supported Files (*.wav;*.cas;*.t77;*.gz)\0*.wav;*.cas;*.t77;*.gz\0All Files (*.*)\0*.*\0\0")
-		     : _T("Supported Files (*.wav;*.cas;*.t77)\0*.wav;*.cas;*.t77\0All Files (*.*)\0*.*\0\0"),
-#elif defined(_BMJR)
-		play ? _T("Supported Files (*.wav;*.cas;*.bin;*.gz)\0*.wav;*.cas;*.bin;*.gz\0All Files (*.*)\0*.*\0\0")
-		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
-#elif defined(_TK80BS)
-		drv == 1 ? _T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0")
-		: play   ? _T("Supported Files (*.wav;*.cas;*.gz)\0*.wav;*.cas;*.gz\0All Files (*.*)\0*.*\0\0")
-		         : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
-#elif !defined(TAPE_BINARY_ONLY)
-		play ? _T("Supported Files (*.wav;*.cas;*.gz)\0*.wav;*.cas;*.gz\0All Files (*.*)\0*.*\0\0")
-		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
-#else
-		_T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
-#endif
-		play ? _T("Data Recorder Tape [Play]") : _T("Data Recorder Tape [Rec]"),
-		NULL,
-		config.initial_tape_dir, _MAX_PATH
-	);
-	if(path) {
-		UPDATE_HISTORY(path, config.recent_tape_path[drv]);
-		my_tcscpy_s(config.initial_tape_dir, _MAX_PATH, get_parent_dir(path));
-		if(play) {
-			emu->play_tape(drv, path);
-		} else {
-			emu->rec_tape(drv, path);
-		}
-	}
-#endif
     // ドライブ番号 drive は 0 オリジンになっているが、アイコンインデックスは .fileSelectType が CASETTE_TAPE になっているため、
     // CASETTE_TAPE が設定されているインデックスをオフセットとして加算する
     // オフセットの設定方法は、fileSelectIconData[?].fileSelectType を上から順に走査し、最初に CASETTE_TAPE が設定されているインデックスを探す
@@ -2575,6 +2570,8 @@ void extendMenuProc(engine* engine, MenuNode menuNode)
 #endif
         case ID_EXIT:
             //SendMessage(hWnd, WM_CLOSE, 0, 0L);
+            // 強制排出
+            all_eject();
             exit(0);
             break;
 #ifdef USE_BOOT_MODE
