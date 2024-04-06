@@ -2,7 +2,7 @@ set(HEADER
         ../../../../../src/common.h
         ../../../../../src/config.h
         ../../../../../src/emu.h
-        ../../../../../src/fifo.h0
+        ../../../../../src/fifo.h
         ../../../../../src/fileio.h
         ../../../../../src/res/resource.h
         ../../../../../src/vm/debugger.h
