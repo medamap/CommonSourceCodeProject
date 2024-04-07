@@ -2445,60 +2445,66 @@ void open_recent_bubble_casette(int drv, int recent) {}
 void open_binary_dialog(struct android_app *app, int drv, bool flag) {}
 void open_recent_binary(int drv, int recent) {}
 
-std::string getClipboardText(struct android_app *app) {
+std::vector<uint8_t> getClipboardText(struct android_app *app) {
     JNIEnv *jni;
     app->activity->vm->AttachCurrentThread(&jni, NULL);
 
-    // クリップボードサービスを取得するための Java コードを呼び出す
     jclass activityClass = jni->GetObjectClass(app->activity->clazz);
-    jmethodID getSystemServiceMethodId = jni->GetMethodID(activityClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;");
-    jstring clipboardServiceString = jni->NewStringUTF("clipboard");
-    jobject clipboardManager = jni->CallObjectMethod(app->activity->clazz, getSystemServiceMethodId, clipboardServiceString);
+    jmethodID getClipboardTextMethodId = jni->GetMethodID(activityClass, "getClipboardTextEncoded", "()[B");
 
-    // クリップボードからテキストを取得する Java コードを呼び出す
-    jclass clipboardManagerClass = jni->GetObjectClass(clipboardManager);
-    jmethodID getTextMethodId = jni->GetMethodID(clipboardManagerClass, "getText", "()Ljava/lang/CharSequence;");
-    jstring text = (jstring)jni->CallObjectMethod(clipboardManager, getTextMethodId);
-
-    // ここで null チェックを行う
-    std::string clipboardText;
-    if (text != NULL) {
-        const char *textStr = jni->GetStringUTFChars(text, NULL);
-        clipboardText = textStr;
-        jni->ReleaseStringUTFChars(text, textStr);
+    if (getClipboardTextMethodId == NULL) {
+        jni->ExceptionDescribe();
+        jni->ExceptionClear();
+        app->activity->vm->DetachCurrentThread();
+        return std::vector<uint8_t>(); // メソッドIDが見つからない場合は空のベクターを返す
     }
 
-    // ローカルリファレンスを削除
-    jni->DeleteLocalRef(clipboardServiceString);
-    jni->DeleteLocalRef(clipboardManager);
-    jni->DeleteLocalRef(activityClass);
-    jni->DeleteLocalRef(clipboardManagerClass);
+    jbyteArray byteArray = (jbyteArray)jni->CallObjectMethod(app->activity->clazz, getClipboardTextMethodId);
+    if (jni->ExceptionCheck()) {
+        jni->ExceptionDescribe();
+        jni->ExceptionClear();
+        jni->DeleteLocalRef(activityClass);
+        app->activity->vm->DetachCurrentThread();
+        return std::vector<uint8_t>(); // 例外が発生した場合は空のベクターを返す
+    }
 
+    // バイト配列を std::vector<uint8_t> に変換
+    std::vector<uint8_t> clipboardData;
+    if (byteArray != NULL) {
+        jsize length = jni->GetArrayLength(byteArray);
+        jbyte *bytes = jni->GetByteArrayElements(byteArray, NULL);
+
+        clipboardData.assign(bytes, bytes + length);
+
+        jni->ReleaseByteArrayElements(byteArray, bytes, JNI_ABORT);
+        jni->DeleteLocalRef(byteArray);
+    }
+
+    jni->DeleteLocalRef(activityClass);
     app->activity->vm->DetachCurrentThread();
 
-    return clipboardText;
+    return clipboardData;
 }
 
 #ifdef USE_AUTO_KEY
 void start_auto_key(struct android_app *app)
 {
-    std::string clipboardText = getClipboardText(app);
+    LOGI("start_auto_key");
+    std::vector<uint8_t> clipboardData = getClipboardText(app);
 
-    if (!clipboardText.empty()) {
-        // clipboardText.c_str() から char* へのキャストは一般的には推奨されない
-        // バッファを変更する場合は、変更可能なコピーが必要
-        char* buf = new char[clipboardText.length() + 1];  // +1 for null terminator
-        strcpy(buf, clipboardText.c_str());
+    if (!clipboardData.empty()) {
+        // vectorのデータを直接ポインタとして使用
+        uint8_t* buf = clipboardData.data();
+        int size = static_cast<int>(clipboardData.size());
 
-        int size = static_cast<int>(clipboardText.size());
+        LOGI("clipboardData size: %d", size);
 
         if(size > 0) {
             emu->stop_auto_key();
-            emu->set_auto_key_list(buf, size);
+            // set_auto_key_list が char* を受け取る場合、キャストが必要です
+            emu->set_auto_key_list(reinterpret_cast<char*>(buf), size);
             emu->start_auto_key();
         }
-
-        delete[] buf;
     }
 }
 #endif
