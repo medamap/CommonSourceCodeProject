@@ -24,6 +24,9 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -39,6 +42,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -145,6 +149,71 @@ public class EmulatorActivity extends NativeActivity {
     // コールバック用のインターフェースを定義
     interface NewFileCallback {
         void onNewFileSelected(String filename, int driveNo, int type, String addPath);
+    }
+
+    // NDK から呼び出せるクリップボード取得メソッド
+    public String getClipboardText() {
+        final String[] result = new String[1];
+
+        // UI スレッドで実行するための Handler
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                if (clipboardManager.hasPrimaryClip() && clipboardManager.getPrimaryClip().getItemCount() > 0) {
+                    CharSequence charSequence = clipboardManager.getPrimaryClip().getItemAt(0).getText();
+                    result[0] = charSequence == null ? "" : charSequence.toString();
+                } else {
+                    result[0] = "";
+                }
+            }
+        });
+
+        // 非同期処理完了を待機
+        try {
+            Thread.sleep(100);  // 実際のアプリケーションでは、適切な同期処理を実装する必要がある
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        return result[0];
+    }
+
+    public byte[] getClipboardTextEncoded() {
+        final byte[][] result = new byte[1][];
+
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                if (clipboardManager.hasPrimaryClip() && clipboardManager.getPrimaryClip().getItemCount() > 0) {
+                    CharSequence charSequence = clipboardManager.getPrimaryClip().getItemAt(0).getText();
+                    if (charSequence != null) {
+                        try {
+                            result[0] = charSequence.toString().getBytes("Shift_JIS");
+                        } catch (UnsupportedEncodingException e) {
+                            try {
+                                // Shift_JIS に変換できない場合は UTF-8 でエンコードする
+                                result[0] = charSequence.toString().getBytes("UTF-8");
+                            } catch (UnsupportedEncodingException ex) {
+                                // UTF-8 での変換にも失敗した場合の処理
+                                result[0] = null;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        try {
+            Thread.sleep(100); // 非同期処理完了を待機
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        return result[0];
     }
 
     // NDKから呼び出すためのメソッド
@@ -492,15 +561,6 @@ public class EmulatorActivity extends NativeActivity {
         System.arraycopy(pixels, 0, returnData, 2, pixels.length);
 
         return returnData;
-    }
-
-    public String getClipboardText() {
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        if (clipboard.hasPrimaryClip()) {
-            ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
-            return item.getText().toString();
-        }
-        return "";
     }
 
 }
