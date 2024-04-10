@@ -1384,7 +1384,8 @@ void createBlankDisk(struct android_app *state, int driveNo, uint8_t type, const
         // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
         fileExtension = ".cas";
 #else
-		_T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
+		//_T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
+        fileExtension = ".cas";
 #endif
     }
 
@@ -2281,6 +2282,8 @@ void android_main(struct android_app *state) {
         config.scan_line = 0;
         config.scan_line_auto = 0;
 #endif
+        // 画面下にマージンを設定する
+        config.screen_bottom_margin = 60;
         // コンフィグファイルを保存
         save_config(configPath);
         // ファイル名付きでコンフィグ新規作成ログ出力
@@ -2570,6 +2573,7 @@ void open_blank_floppy_disk_dialog(struct android_app * app, int drv, uint8_t ty
 }
 #endif
 
+#if defined(USE_TAPE)
 // カセットテープ選択ダイアログを開く
 void open_tape_dialog(struct android_app *app, int drive, bool play) {
     // ドライブ番号 drive は 0 オリジンになっているが、アイコンインデックスは .fileSelectType が CASETTE_TAPE になっているため、
@@ -2595,7 +2599,9 @@ void open_tape_dialog(struct android_app *app, int drive, bool play) {
         createBlankDisk(app, drive, 0, "TAPE");
     }
 }
+#endif
 
+#if defined(USE_QUICK_DISK)
 void open_quick_disk_dialog(struct android_app *app, int drive) {
     // ドライブ番号 drive は 0 オリジンになっているが、アイコンインデックスは .fileSelectType が QUICK_DISK になっているため、
     // QUICK_DISK が設定されているインデックスをオフセットとして加算する
@@ -2614,6 +2620,7 @@ void open_quick_disk_dialog(struct android_app *app, int drive) {
     selectingIconIndex = drive + offset;
     selectMedia(app);
 }
+#endif
 
 //void open_blank_floppy_disk_dialog(int a, int b, int c) {}
 void open_recent_floppy_disk(int a, int b) {}
