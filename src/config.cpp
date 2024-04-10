@@ -653,7 +653,11 @@ void save_config(const _TCHAR* config_path)
 		MyWritePrivateProfileInt(_T("Qt"), _T("RenderMajorVersion"), config.render_major_version, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("RenderMinorVersion"), config.render_minor_version, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("RenderType"), config.rendering_type, config_path);
-	#endif
+    #endif
+
+#if defined(__ANDROID__) // Medamap
+    MySavePrivateProfile(config_path);
+#endif
 }
 
 #define STATE_VERSION	7
