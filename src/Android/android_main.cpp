@@ -41,7 +41,6 @@
 #include "Android/menu/menu.h"
 #include "Android/menu/BaseMenu.h"
 #include "res/resource.h"
-Menu *menu;
 #endif
 
 // ストレージ権限付与イベント
@@ -49,6 +48,158 @@ Menu *menu;
 
 // emulation core
 EMU *emu;
+
+// menu
+#if defined(_EXTEND_MENU)
+Menu *menu;
+#endif
+
+#if _WIN32
+bool now_menuloop = false;
+
+void update_toplevel_menu(HWND hWnd, HMENU hMenu);
+void update_popup_menu(HWND hWnd, HMENU hMenu);
+void show_menu_bar(HWND hWnd);
+void hide_menu_bar(HWND hWnd);
+
+// status bar
+HWND hStatus = NULL;
+bool status_bar_visible = false;
+#endif
+
+#ifdef USE_FLOPPY_DISK
+uint32_t fd_status = 0x80000000;
+uint32_t fd_indicator_color = 0x80000000;
+#endif
+#ifdef USE_QUICK_DISK
+uint32_t qd_status = 0x80000000;
+#endif
+#ifdef USE_HARD_DISK
+uint32_t hd_status = 0x80000000;
+#endif
+#ifdef USE_COMPACT_DISC
+uint32_t cd_status = 0x80000000;
+#endif
+#ifdef USE_LASER_DISC
+uint32_t ld_status = 0x80000000;
+#endif
+#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
+_TCHAR tape_status[1024] = _T("uninitialized");
+int tape_position = 0;
+#endif
+
+#ifdef _WIN32
+void show_status_bar(HWND hWnd);
+void hide_status_bar(HWND hWnd);
+int get_status_bar_height();
+bool get_status_bar_updated();
+void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem);
+#endif
+
+// file
+#ifdef _WIN32
+#ifdef USE_CART
+void open_cart_dialog(HWND hWnd, int drv);
+void open_recent_cart(int drv, int index);
+#endif
+#ifdef USE_FLOPPY_DISK
+void open_floppy_disk_dialog(HWND hWnd, int drv);
+void open_blank_floppy_disk_dialog(HWND hWnd, int drv, uint8_t type);
+void open_recent_floppy_disk(int drv, int index);
+void select_d88_bank(int drv, int index);
+#endif
+#ifdef USE_QUICK_DISK
+void open_quick_disk_dialog(HWND hWnd, int drv);
+void open_recent_quick_disk(int drv, int index);
+#endif
+#ifdef USE_HARD_DISK
+void open_hard_disk_dialog(HWND hWnd, int drv);
+void open_recent_hard_disk(int drv, int index);
+void open_blank_hard_disk_dialog(HWND hWnd, int drv, int sector_size, int sectors, int surfaces, int cylinders);
+#endif
+#ifdef USE_TAPE
+void open_tape_dialog(HWND hWnd, int drv, bool play);
+void open_recent_tape(int drv, int index);
+#endif
+#ifdef USE_COMPACT_DISC
+void open_compact_disc_dialog(HWND hWnd, int drv);
+void open_recent_compact_disc(int drv, int index);
+#endif
+#ifdef USE_LASER_DISC
+void open_laser_disc_dialog(HWND hWnd, int drv);
+void open_recent_laser_disc(int drv, int index);
+#endif
+#ifdef USE_BINARY_FILE
+void open_binary_dialog(HWND hWnd, int drv, bool load);
+void open_recent_binary(int drv, int index);
+#endif
+#ifdef USE_BUBBLE
+void open_bubble_casette_dialog(HWND hWnd, int drv);
+void open_recent_bubble_casette(int drv, int index);
+#endif
+#if defined(USE_CART) || defined(USE_FLOPPY_DISK) || defined(USE_HARD_DISK) || defined(USE_TAPE) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || defined(USE_BINARY_FILE) || defined(USE_BUBBLE)
+#define SUPPORT_DRAG_DROP
+#endif
+#ifdef SUPPORT_DRAG_DROP
+void open_dropped_file(HDROP hDrop);
+void open_any_file(const _TCHAR* path);
+#endif
+#endif
+
+#ifdef _WIN32
+_TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title, const _TCHAR* new_file, _TCHAR* dir, size_t dir_len);
+#endif
+
+// screen
+#ifdef _WIN32
+int desktop_width;
+int desktop_height;
+int desktop_bpp;
+int prev_window_mode = 0;
+bool now_fullscreen = false;
+
+#define MAX_WINDOW	10
+#define MAX_FULLSCREEN	50
+
+int screen_mode_count;
+int screen_mode_width[MAX_FULLSCREEN];
+int screen_mode_height[MAX_FULLSCREEN];
+
+void enum_screen_mode();
+void set_window(HWND hWnd, int mode);
+#endif
+
+// input
+#ifdef USE_AUTO_KEY
+void start_auto_key();
+#endif
+
+// dialog
+// thanks Marukun (64bit)
+#ifdef _WIN32
+#ifdef USE_SOUND_VOLUME
+INT_PTR CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+#endif
+#ifdef USE_JOYSTICK
+INT_PTR CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+#endif
+#endif
+
+// buttons
+#ifdef _WIN32
+#ifdef ONE_BOARD_MICRO_COMPUTER
+void create_buttons(HWND hWnd);
+void draw_button(HDC hDC, UINT index, UINT pressed);
+#endif
+#endif
+
+// misc
+#ifdef _WIN32
+bool win8_or_later = false;
+#endif
+
+// Android
 #define SOFT_KEYBOARD_KEEP_COUNT  3
 int softKeyboardCount = 0;
 bool softKeyShift = false;
@@ -120,29 +271,6 @@ bool resetFlag;
 BitmapData systemIconData[16];
 BitmapData mediaIconData[16];
 DeviceInfo deviceInfo;
-
-// status bar
-//bool status_bar_visible = false;
-
-#ifdef USE_FLOPPY_DISK
-uint32_t fd_status = 0x80000000;
-#endif
-#ifdef USE_QUICK_DISK
-uint32_t qd_status = 0x80000000;
-#endif
-#ifdef USE_HARD_DISK
-uint32_t hd_status = 0x80000000;
-#endif
-#ifdef USE_COMPACT_DISC
-uint32_t cd_status = 0x80000000;
-#endif
-#ifdef USE_LASER_DISC
-uint32_t ld_status = 0x80000000;
-#endif
-#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
-_TCHAR tape_status[1024] = _T("uninitialized");
-int tape_position = 0;
-#endif
 
 
 void selectDisk(struct android_app *state, int diskNo);
@@ -600,13 +728,11 @@ void extendMenuProc(engine *engine, MenuNode menuNode);
 // 拡張メニュー生成と表示
 void extendMenu(struct android_app *app)
 {
-    LOGI("extendMenu start %d", extendMenuDisplay);
     if (extendMenuDisplay) return;
     // メニュー文字列を取得する
     extendMenuString = menu->getExtendMenuString(1);
     // NDKからJavaの関数を呼び出す
     extendMenuDisplay = true;
-    LOGI("extendMenu end %d", extendMenuDisplay);
     jint nodeId = showExtendMenu(app, menu->getCaption(1).c_str(), extendMenuString.c_str());
 }
 
@@ -1186,7 +1312,7 @@ void selectBootMode(struct android_app *state) {
     showAlert(state, message, itemList.c_str(), true, BOOT_MODE_SELECT, 0);
 }
 
-#ifdef USE_FLOPPY_DISK
+#if defined(USE_FLOPPY_DISK) || defined(USE_QUICK_DISK) || defined(USE_TAPE)
 
 void createBlankDisk(struct android_app *state, int driveNo, uint8_t type, const char *addPath) {
 
@@ -1220,9 +1346,52 @@ void createBlankDisk(struct android_app *state, int driveNo, uint8_t type, const
             fileList.push_back(filePath);
         }
     }
-    showNewFileDialog(state, "Input new file.", filenameList.c_str(), ".d88", driveNo, type, addPath);
+    // addPath が "DISK" か "QD" か "TAPE" かで拡張子を設定する
+    std::string fileExtension;
+    if (strcmp(addPath, "DISK") == 0) {
+        fileExtension = ".d88";
+    } else if (strcmp(addPath, "QD") == 0) {
+        fileExtension = ".d88";
+    } else if (strcmp(addPath, "TAPE") == 0) {
+#if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
+        // : _T("Supported Files (*.wav;*.cas;*.p6;*.p6t)\0*.wav;*.cas;*.p6;*.p6t\0All Files (*.*)\0*.*\0\0"),
+        fileExtension = ".cas";
+#elif defined(_PC8001) || defined(_PC8001MK2) || defined(_PC8001SR) || defined(_PC8801) || defined(_PC8801MK2) || defined(_PC8801MA) || defined(_PC98DO)
+        // : _T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
+        fileExtension = ".cmt";
+#elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
+        // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+        fileExtension = ".cas";
+#elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
+        // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+        fileExtension = ".cas";
+#elif defined(_MZ2500)
+        // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+        fileExtension = ".cas";
+#elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
+        // : _T("Supported Files (*.wav;*.cas;*.tap)\0*.wav;*.cas;*.tap\0All Files (*.*)\0*.*\0\0"),
+        fileExtension = ".tap";
+#elif defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+        // : _T("Supported Files (*.wav;*.cas;*.t77)\0*.wav;*.cas;*.t77\0All Files (*.*)\0*.*\0\0"),
+        fileExtension = ".cas";
+#elif defined(_BMJR)
+        // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+        fileExtension = ".cas";
+#elif defined(_TK80BS)
+        // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+        fileExtension = ".cas";
+#elif !defined(TAPE_BINARY_ONLY)
+        // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+        fileExtension = ".cas";
+#else
+		_T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
+#endif
+    }
+
+    showNewFileDialog(state, "Input new file.", filenameList.c_str(), fileExtension.c_str(), driveNo, type, addPath);
 }
 
+#if defined(USE_FLOPPY_DISK)
 void selectDisk(struct android_app *state, int driveNo) {
     char message[32];
     if (emu->d88_file[driveNo].bank_num > 0 && emu->d88_file[driveNo].cur_bank != -1) {
@@ -1233,6 +1402,7 @@ void selectDisk(struct android_app *state, int driveNo) {
     }
     selectDialog(state, message, "DISK");
 }
+#endif
 
 #endif
 
@@ -1371,27 +1541,16 @@ void showNewFileDialog(struct android_app *state, const char *message, const cha
 
 
 jint showExtendMenu(struct android_app *state, const char *title, const char *extendMenuString) {
-    LOGI("showExtendMenu %s", title);
     JNIEnv *jni = NULL;
-    LOGI("showExtendMenu #1");
     state->activity->vm->AttachCurrentThread(&jni, NULL);
-    LOGI("showExtendMenu #2");
     jclass clazz = jni->GetObjectClass(state->activity->clazz);
-    LOGI("showExtendMenu #3");
     jmethodID methodID = jni->GetMethodID(clazz, "showExtendMenu", "(Ljava/lang/String;Ljava/lang/String;)I");
-    LOGI("showExtendMenu #4");
     jstring jtitle = jni->NewStringUTF(title);
-    LOGI("showExtendMenu #5");
     jstring jextendMenu = jni->NewStringUTF(extendMenuString);
-    LOGI("showExtendMenu #6");
     jint result = jni->CallIntMethod(state->activity->clazz, methodID, jtitle, jextendMenu);
-    LOGI("showExtendMenu #7");
     jni->DeleteLocalRef(jextendMenu);
-    LOGI("showExtendMenu #8");
     jni->DeleteLocalRef(jtitle);
-    LOGI("showExtendMenu #9");
     state->activity->vm->DetachCurrentThread();
-    LOGI("showExtendMenu #10");
     return result;
 }
 
@@ -1507,18 +1666,41 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_newFileCallback(JNIEnv *en
     sprintf(path, "%s%s/%s", applicationPath, addPathStr, fileStr);
     LOGI("Selected file: %s", path);
 
-#ifdef USE_FLOPPY_DISK
     if (path[0] != '\0') {
-        if (!check_file_extension(path, ".d88") && !check_file_extension(path, ".d77")) {
-            strcat(path, ".d88"); // my_tcscat_sは標準のC++関数ではないため、strcatを使用
+#ifdef USE_FLOPPY_DISK
+        // ファイル拡張子が大文字小文字を区別せず ".d88" または ".d77" の時か確認する
+        if (check_file_extension(path, ".d88") || check_file_extension(path, ".d77")) {
+            if (emu->create_blank_floppy_disk(path, type)) {
+                // my_tcscpy_sは標準のC++関数ではないため、strcpyを使用
+                strcpy(config.initial_floppy_disk_dir, get_parent_dir(path));
+                emu->open_floppy_disk(drv, path, 0);
+            }
         }
-        if (emu->create_blank_floppy_disk(path, type)) {
-            // my_tcscpy_sは標準のC++関数ではないため、strcpyを使用
-            strcpy(config.initial_floppy_disk_dir, get_parent_dir(path));
-            emu->open_floppy_disk(drv, path, 0);
-        }
-    }
 #endif
+#ifdef USE_TAPE
+        // ファイル拡張子が大文字小文字を区別せず ".cas" または ".cmt" または ".mzt" の時か確認する
+        if (check_file_extension(path, ".cas") || check_file_extension(path, ".cmt") || check_file_extension(path, ".mzt")) {
+            LOGI("Selected file: %s", path);
+            LOGI("Drive: %d", drv);
+            if (emu->is_tape_inserted(drv)) {
+                emu->close_tape(drv);
+            }
+            if (extendMenuCmtPlay) {
+                LOGI("Play tape: %s", path);
+                emu->play_tape(drv, path);
+            } else {
+                LOGI("Rec tape: %s", path);
+                // 指定パスにファイルサイズ0のファイルを作成する
+                FILE *fp = fopen(path, "wb");
+                if (fp != nullptr) {
+                    fclose(fp);
+                }
+                emu->rec_tape(drv, path);
+            }
+        }
+#endif
+    }
+
 
     // メモリ解放
     env->ReleaseStringUTFChars(filename, fileStr);
@@ -2406,7 +2588,12 @@ void open_tape_dialog(struct android_app *app, int drive, bool play) {
     }
     extendMenuCmtPlay = play;
     selectingIconIndex = drive + offset;
-    selectMedia(app);
+
+    if (play) {
+        selectMedia(app);
+    } else {
+        createBlankDisk(app, drive, 0, "TAPE");
+    }
 }
 
 void open_quick_disk_dialog(struct android_app *app, int drive) {
