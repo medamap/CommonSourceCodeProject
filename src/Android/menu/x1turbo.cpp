@@ -234,4 +234,4 @@ Menu::Menu() {
     addNode(hostId, "Use DirectInput", Property, ID_HOST_USE_DINPUT);
     addNode(hostId, "Disable Windows 8 DWM", Property, ID_HOST_DISABLE_DWM);
     addNode(hostId, "Show Status Bar", Property, ID_HOST_SHOW_STATUS_BAR);
-};
+}
