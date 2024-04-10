@@ -38,6 +38,50 @@ android {
                 }
             }
         }
+        bubcom80 {
+            dimension "machine"
+            applicationIdSuffix ".bubcom80"
+            versionNameSuffix "-bubcom80"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_BUBCOM80=1"
+                }
+            }
+        }
+        bx1 {
+            dimension "machine"
+            applicationIdSuffix ".bx1"
+            versionNameSuffix "-bx1"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_BX1=1"
+                }
+            }
+        }
+        cefucom21 {
+            dimension "machine"
+            applicationIdSuffix ".cefucom21"
+            versionNameSuffix "-cefucom21"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_CEFUCOM21=1"
+                }
+            }
+        }
+        colecovision {
+            dimension "machine"
+            applicationIdSuffix ".colecovision"
+            versionNameSuffix "-colecovision"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_COLECOVISION=1"
+                }
+            }
+        }
         familybasic {
             dimension "machine"
             applicationIdSuffix ".familybasic"
@@ -68,6 +112,28 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments "-D_FM8=1"
+                }
+            }
+        }
+        fm16beta_i186 {
+            dimension "machine"
+            applicationIdSuffix ".fm16beta_i186"
+            versionNameSuffix "-fm16beta_i186"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM16BETA_I186=1"
+                }
+            }
+        }
+        fm16beta_i286 {
+            dimension "machine"
+            applicationIdSuffix ".fm16beta_i286"
+            versionNameSuffix "-fm16beta_i286"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM16BETA_I286=1"
                 }
             }
         }
@@ -126,6 +192,138 @@ android {
                 }
             }
         }
+        fmr30_i186 {
+            dimension "machine"
+            applicationIdSuffix ".fmr30_i186"
+            versionNameSuffix "-fmr30_i186"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR30_I186=1"
+                }
+            }
+        }
+        fmr30_i286 {
+            dimension "machine"
+            applicationIdSuffix ".fmr30_i286"
+            versionNameSuffix "-fmr30_i286"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR30_I286=1"
+                }
+            }
+        }
+        fmr50_i286 {
+            dimension "machine"
+            applicationIdSuffix ".fmr50_i286"
+            versionNameSuffix "-fmr50_i286"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR50_I286=1"
+                }
+            }
+        }
+        fmr50_i386 {
+            dimension "machine"
+            applicationIdSuffix ".fmr50_i386"
+            versionNameSuffix "-fmr50_i386"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR50_I386=1"
+                }
+            }
+        }
+        fmr50_i486 {
+            dimension "machine"
+            applicationIdSuffix ".fmr50_i486"
+            versionNameSuffix "-fmr50_i486"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR50_I486=1"
+                }
+            }
+        }
+        fmr60 {
+            dimension "machine"
+            applicationIdSuffix ".fmr60"
+            versionNameSuffix "-fmr60"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR60=1"
+                }
+            }
+        }
+        fmr70 {
+            dimension "machine"
+            applicationIdSuffix ".fmr70"
+            versionNameSuffix "-fmr70"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR70=1"
+                }
+            }
+        }
+        fmr80 {
+            dimension "machine"
+            applicationIdSuffix ".fmr80"
+            versionNameSuffix "-fmr80"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR80=1"
+                }
+            }
+        }
+        fp200 {
+            dimension "machine"
+            applicationIdSuffix ".fp200"
+            versionNameSuffix "-fp200"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FP200=1"
+                }
+            }
+        }
+        fp1100 {
+            dimension "machine"
+            applicationIdSuffix ".fp1100"
+            versionNameSuffix "-fp1100"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FP1100=1"
+                }
+            }
+        }
+        fsa1 {
+            dimension "machine"
+            applicationIdSuffix ".fsa1"
+            versionNameSuffix "-fsa1"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FSA1=1"
+                }
+            }
+        }
+        fx9000p {
+            dimension "machine"
+            applicationIdSuffix ".fx9000p"
+            versionNameSuffix "-fx9000p"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FX9000P=1"
+                }
+            }
+        }
         gamegear {
             dimension "machine"
             applicationIdSuffix ".gamegear"
@@ -134,6 +332,72 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments "-D_GAMEGEAR=1"
+                }
+            }
+        }
+        hc20 {
+            dimension "machine"
+            applicationIdSuffix ".hc20"
+            versionNameSuffix "-hc20"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_HC20=1"
+                }
+            }
+        }
+        hc40 {
+            dimension "machine"
+            applicationIdSuffix ".hc40"
+            versionNameSuffix "-hc40"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_HC40=1"
+                }
+            }
+        }
+        hc80 {
+            dimension "machine"
+            applicationIdSuffix ".hc80"
+            versionNameSuffix "-hc80"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_HC80=1"
+                }
+            }
+        }
+        hx20 {
+            dimension "machine"
+            applicationIdSuffix ".hx20"
+            versionNameSuffix "-hx20"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_HX20=1"
+                }
+            }
+        }
+        j3100gt {
+            dimension "machine"
+            applicationIdSuffix ".j3100gt"
+            versionNameSuffix "-j3100gt"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_J3100GT=1"
+                }
+            }
+        }
+        j3100sl {
+            dimension "machine"
+            applicationIdSuffix ".j3100sl"
+            versionNameSuffix "-j3100sl"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_J3100SL=1"
                 }
             }
         }
@@ -156,6 +420,17 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments "-D_JR800=1"
+                }
+            }
+        }
+        jx {
+            dimension "machine"
+            applicationIdSuffix ".jx"
+            versionNameSuffix "-jx"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_JX=1"
                 }
             }
         }
@@ -189,6 +464,17 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments "-D_M68=1"
+                }
+            }
+        }
+        map1010 {
+            dimension "machine"
+            applicationIdSuffix ".map1010"
+            versionNameSuffix "-map1010"
+            applicationId 'jp.matrix.shikarunochi.emulator'
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MAP1010=1"
                 }
             }
         }
