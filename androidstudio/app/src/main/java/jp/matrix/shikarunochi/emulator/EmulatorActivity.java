@@ -359,15 +359,12 @@ public class EmulatorActivity extends NativeActivity {
     }
 
     public int showExtendMenu(final String title, final String extendMenu) {
-        Log.i("EmulatorActivity", "showExtendMenu called");
         final AtomicInteger buttonId = new AtomicInteger();
         final String[] nodes;
         buttonId.set(-1);
         if (!extendMenu.isEmpty()) {
-            Log.i("EmulatorActivity", "extendMenu: " + extendMenu);
             nodes = extendMenu.split(",");
         } else {
-            Log.i("EmulatorActivity", "extendMenu is empty");
             return buttonId.get();
         }
 
@@ -376,11 +373,9 @@ public class EmulatorActivity extends NativeActivity {
                 final Dialog dialog = new Dialog(EmulatorActivity.this);
                 dialog.setTitle(title);
                 dialog.setContentView(R.layout.custom_dialog_layout); // 事前に定義したカスタムレイアウトを使用
-                Log.i("EmulatorActivity", "nodes: " + nodes.length);
 
                 LinearLayout layout = dialog.findViewById(R.id.custom_dialog_layout);
                 for (int i = 0; i < nodes.length; i++) {
-                    Log.i("EmulatorActivity", "node: " + nodes[i]);
                     String[] node = nodes[i].split(";");
                     Button button = new Button(EmulatorActivity.this);
                     button.setText(node[1]);
@@ -389,7 +384,6 @@ public class EmulatorActivity extends NativeActivity {
                     // 白に近い黄色の背景色を設定
                     // node 配列の数が足りない場合、可能なら配列の中の情報を logcat ダンプして continue する
                     if (node.length < 3) {
-                        Log.e("EmulatorActivity", "node array length is less than 3: " + node);
                         continue;
                     }
                     if (node[2].equals("0")) {
@@ -414,7 +408,6 @@ public class EmulatorActivity extends NativeActivity {
                     View margin = new View(EmulatorActivity.this);
                     margin.setMinimumHeight(10);
                     layout.addView(margin);
-                    Log.i("EmulatorActivity", "button added: " + node[1] + " (" + node[2] + ")");
                 }
 
                 Button cancelButton = dialog.findViewById(R.id.cancelButton);
