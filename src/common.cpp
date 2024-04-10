@@ -1162,6 +1162,14 @@ void DLL_PREFIX MySavePrivateProfile(const char* lpFileName) {
     configManager->SaveToFile(lpFileName);
 }
 
+void DLL_PREFIX MyLoadPrivateProfile(const char* lpFileName) {
+    // まだ configManager が new されてないなら new する
+    if (configManager == nullptr) {
+        configManager = new ConfigManager();
+    }
+    configManager->LoadFromFile(lpFileName);
+}
+
 #elif !defined(_WIN32)
 BOOL DLL_PREFIX MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
 {

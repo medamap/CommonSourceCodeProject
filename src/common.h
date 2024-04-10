@@ -963,6 +963,7 @@ BOOL DLL_PREFIX MyWritePrivateProfileString(const char* lpAppName, const char* l
 size_t DLL_PREFIX MyGetPrivateProfileString(const char* lpAppName, const char* lpKeyName, const char* lpDefault, char* lpReturnedString, size_t nSize, const char* lpFileName);
 unsigned int DLL_PREFIX MyGetPrivateProfileInt(const char* lpAppName, const char* lpKeyName, int nDefault, const char* lpFileName);
 void DLL_PREFIX MySavePrivateProfile(const char* lpFileName);
+void DLL_PREFIX MyLoadPrivateProfile(const char* lpFileName);
 #else
 #ifndef _WIN32
 	BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName);
