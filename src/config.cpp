@@ -181,7 +181,11 @@ void load_config(const _TCHAR* config_path)
 {
 	// initial settings
 	initialize_config();
-	
+
+#if defined(__ANDROID__) // Medamap
+    MyLoadPrivateProfile(config_path);
+#endif
+
 	// control
 	#ifdef USE_BOOT_MODE
 		config.boot_mode = MyGetPrivateProfileInt(_T("Control"), _T("BootMode"), config.boot_mode, config_path);
