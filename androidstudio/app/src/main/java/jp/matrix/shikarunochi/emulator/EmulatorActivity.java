@@ -1,4 +1,5 @@
 package jp.matrix.shikarunochi.emulator;
+import jp.matrix.shikarunochi.emulator.BuildConfig;
 
 import static android.content.ContentValues.TAG;
 
@@ -72,6 +73,11 @@ public class EmulatorActivity extends NativeActivity {
             initializeApp();
         }
         System.loadLibrary("native-activity");
+
+        // 他のデバッグ時のみの初期化コード
+        if (BuildConfig.LOG_DEBUG) {
+            System.loadLibrary("asan");
+        }
     }
 
     @Override

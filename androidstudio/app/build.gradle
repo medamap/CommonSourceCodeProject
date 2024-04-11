@@ -17,12 +17,30 @@ android {
         }
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
                     'proguard-rules.pro'
             signingConfig signingConfigs.debug
+            buildConfigField "boolean", "LOG_DEBUG", "true"
+        }
+        debug() {
+            buildConfigField "boolean", "LOG_DEBUG", "false"
+            // デバッグビルド設定
+            externalNativeBuild {
+                cmake {
+                    // CMake コマンドライン引数でリンカフラグを設定
+                    arguments "-DCMAKE_C_FLAGS=-fsanitize=address -fno-omit-frame-pointer",
+                            "-DCMAKE_CXX_FLAGS=-fsanitize=address -fno-omit-frame-pointer",
+                            "-DCMAKE_SHARED_LINKER_FLAGS=-fsanitize=address",
+                            "-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address"
+                }
+            }
         }
     }
     flavorDimensions "machine"
