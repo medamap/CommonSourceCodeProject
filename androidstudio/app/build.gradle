@@ -3,17 +3,23 @@ apply plugin: 'com.android.application'
 android {
 
     compileSdkVersion 28
-    ndkVersion '26.2.11394342'
+    ndkVersion "26.3.11579264"
     namespace 'jp.matrix.shikarunochi.emulator'
 
     defaultConfig {
         applicationId = 'jp.matrix.shikarunochi.emulator.native_activity'
         minSdkVersion 24
         targetSdkVersion 24
+        // Ensure your NDK version supports ASan
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_STL=c++_static'
             }
+        }
+        // Only for debug builds, not for release
+        ndk {
+            debugSymbolLevel 'FULL'
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64' // Specify your ABIs
         }
     }
 
@@ -24,8 +30,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'),
-                    'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
             buildConfigField "boolean", "LOG_DEBUG", "true"
         }
@@ -34,12 +39,14 @@ android {
             // デバッグビルド設定
             externalNativeBuild {
                 cmake {
-                    // CMake コマンドライン引数でリンカフラグを設定
-                    arguments "-DCMAKE_C_FLAGS=-fsanitize=address -fno-omit-frame-pointer",
-                            "-DCMAKE_CXX_FLAGS=-fsanitize=address -fno-omit-frame-pointer",
-                            "-DCMAKE_SHARED_LINKER_FLAGS=-fsanitize=address",
-                            "-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address"
+                    arguments "-DCMAKE_C_FLAGS=-fsanitize=address",
+                            "-DCMAKE_CXX_FLAGS=-fsanitize=address",
+                            "-DCMAKE_LD_FLAGS=-fsanitize=address"
                 }
+            }
+            ndk {
+                debugSymbolLevel 'FULL'
+                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
             }
         }
     }
