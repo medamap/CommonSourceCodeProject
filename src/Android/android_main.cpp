@@ -131,6 +131,12 @@ uint32_t ld_status = 0x80000000;
 _TCHAR tape_status[1024] = _T("uninitialized");
 int tape_position = 0;
 #endif
+#ifdef USE_BUBBLE
+uint32_t bc_status = 0x80000000;
+#endif
+#ifdef USE_BINARY_FILE
+uint32_t bf_status = 0x80000000;
+#endif
 
 #ifdef _WIN32
 void show_status_bar(HWND hWnd);
@@ -153,6 +159,9 @@ void selectQuickDisk(struct android_app *state, int driveNo, const char *recentF
 void selectHardDisk(struct android_app *state, int driveNo, const char *recentFiles);
 void selectCompactDisc(struct android_app *state, int driveNo, const char *recentFiles);
 void selectTape(struct android_app *state, int driveNe, const char *recentFiles);
+void selectBubbleCasette(struct android_app *state, int driveNo, const char *recentFiles);
+void selectBinary(struct android_app *state, int driveNo, const char *recentFiles);
+
 static void all_eject();
 
 char documentDir[_MAX_PATH];
@@ -213,7 +222,7 @@ void open_binary_dialog(struct android_app *app, int drv, bool flag);
 void open_recent_binary(int drv, int recent);
 #endif
 #ifdef USE_BUBBLE
-void open_bubble_casette_dialog(struct android_app *appp, int drv);
+void open_bubble_casette_dialog(struct android_app *app, int drv);
 void open_recent_bubble_casette(int drv, int recent);
 #endif
 #if defined(USE_CART) || defined(USE_FLOPPY_DISK) || defined(USE_HARD_DISK) || defined(USE_TAPE) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || defined(USE_BINARY_FILE) || defined(USE_BUBBLE)
@@ -299,10 +308,13 @@ void openRecentQuickDiskDialog(struct android_app *state, int drv);
 void openRecentHardDiskDialog(struct android_app *state, int drv);
 void openRecentCompactDiskDialog(struct android_app *state, int drv);
 void openRecentTapeDialog(struct android_app *state, int drv);
+void openRecentBubbleCasetteDialog(struct android_app *state, int drv);
+void openRecentBinaryDialog(struct android_app *state, int drv);
 
 std::string extendMenuString = "";
 auto extendMenuDisplay = false;
 auto extendMenuCmtPlay = true;
+auto extendMenuBinaryLoad = true;
 MenuNode notifyMenuNode = MenuNode::emptyNode();
 
 // thanks Marukun (64bit)
@@ -332,6 +344,8 @@ void draw_button(HDC hDC, UINT index, UINT pressed);
 static int get_unicode_character(struct android_app *app, int event_type, int key_code, int meta_state);
 bool caseInsensitiveCompare(const std::string &a, const std::string &b);
 void setFileSelectIcon();
+bool check_dir_exists(const char *path);
+bool create_dir(const char *path);
 
 #ifdef _WIN32
 bool win8_or_later = false;
@@ -1957,7 +1971,7 @@ void EventProc(engine* engine, MenuNode menuNode)
                 case ID_RECENT_BINARY + 0: case ID_RECENT_BINARY + 1: case ID_RECENT_BINARY + 2: case ID_RECENT_BINARY + 3: \
                 case ID_RECENT_BINARY + 4: case ID_RECENT_BINARY + 5: case ID_RECENT_BINARY + 6: case ID_RECENT_BINARY + 7: \
                     if(emu) { \
-                        open_recent_binary(drv, LOWORD(wParam) - ID_RECENT_BINARY); \
+                        openRecentBinaryDialog(app, drv); \
                     } \
                     break;
                 BINARY_MENU_ITEMS(0, ID_LOAD_BINARY1, ID_SAVE_BINARY1, ID_RECENT_BINARY1)
@@ -1982,7 +1996,7 @@ void EventProc(engine* engine, MenuNode menuNode)
                 case ID_RECENT_BUBBLE + 0: case ID_RECENT_BUBBLE + 1: case ID_RECENT_BUBBLE + 2: case ID_RECENT_BUBBLE + 3: \
                 case ID_RECENT_BUBBLE + 4: case ID_RECENT_BUBBLE + 5: case ID_RECENT_BUBBLE + 6: case ID_RECENT_BUBBLE + 7: \
                     if(emu) { \
-                        open_recent_bubble_casette(drv, LOWORD(wParam) - ID_RECENT_BUBBLE); \
+                        openRecentBubbleCasetteDialog(app,drv); \
                     } \
                     break;
                 BUBBLE_CASETTE_MENU_ITEMS(0, ID_OPEN_BUBBLE1, ID_CLOSE_BUBBLE1, ID_RECENT_BUBBLE1)
@@ -2168,7 +2182,7 @@ void selectMedia(struct android_app *state, int iconIndex) {
 #endif
 #ifdef USE_TAPE
         case CASETTE_TAPE:
-            selectTape(state, 0,nullptr);
+            selectTape(state, fileSelectIconData[selectingIconIndex].driveNo,nullptr);
             break;
 #endif
 #ifdef USE_CART
@@ -2182,8 +2196,18 @@ void selectMedia(struct android_app *state, int iconIndex) {
             break;
 #endif
 #ifdef USE_COMPACT_DISC
-        case COMPACT_DISK:
+        case COMPACT_DISC:
             selectCompactDisc(state, fileSelectIconData[selectingIconIndex].driveNo, nullptr);
+            break;
+#endif
+#ifdef USE_BUBBLE
+        case BUBBLE_CASETTE:
+            selectBubbleCasette(state, fileSelectIconData[selectingIconIndex].driveNo, nullptr);
+            break;
+#endif
+#ifdef USE_BINARY_FILE
+        case BINARY:
+            selectBinary(state, fileSelectIconData[selectingIconIndex].driveNo,nullptr);
             break;
 #endif
     }
@@ -2191,12 +2215,15 @@ void selectMedia(struct android_app *state, int iconIndex) {
     return;
 }
 
+#ifdef USE_CART
 void selectCart(struct android_app *state, int driveNo, const char *recentFiles) {
     char message[32];
     sprintf(message, "Select CARTRIDGE[%d]", driveNo);
     selectDialog(state, message, "CART", recentFiles);
 }
+#endif
 
+#ifdef USE_FLOPPY_DISK
 void selectFloppyDisk(struct android_app *state, int diskNo, const char *recentFiles) {
     char message[32];
     if (emu->d88_file[diskNo].bank_num > 0 && emu->d88_file[diskNo].cur_bank != -1) {
@@ -2206,30 +2233,55 @@ void selectFloppyDisk(struct android_app *state, int diskNo, const char *recentF
     }
     selectDialog(state, message, "DISK", recentFiles);
 }
+#endif
 
+#ifdef USE_HARD_DISK
 void selectHardDisk(struct android_app *state, int driveNo, const char *recentFiles) {
     char message[32];
     sprintf(message, "Select HDD[%d]", driveNo);
     selectDialog(state, message, "HDD", recentFiles);
 }
+#endif
 
+#ifdef USE_COMPACT_DISC
 void selectCompactDisc(struct android_app *state, int driveNo, const char *recentFiles) {
     char message[32];
     sprintf(message, "Select CD[%d]", driveNo);
     selectDialog(state, message, "CD", recentFiles);
 }
+#endif
 
+#ifdef USE_QUICK_DISK
 void selectQuickDisk(struct android_app *state, int driveNo, const char *recentFiles) {
     char message[32];
     sprintf(message, "Select QD[%d]", driveNo);
     selectDialog(state, message, "QD", recentFiles);
 }
+#endif
 
+#ifdef USE_TAPE
 void selectTape(struct android_app *state, int driveNo, const char *recentFiles) {
     char message[32];
     sprintf(message, "Select TAPE[%d] and Play", driveNo);
     selectDialog(state, message, "TAPE", recentFiles);
 }
+#endif
+
+#ifdef USE_BUBBLE
+void selectBubbleCasette(struct android_app *state, int driveNo, const char *recentFiles) {
+    char message[32];
+    sprintf(message, "Select Bubble[%d]", driveNo);
+    selectDialog(state, message, "BUBBLE", recentFiles);
+}
+#endif
+
+#ifdef USE_BINARY_FILE
+void selectBinary(struct android_app *state, int driveNo, const char *recentFiles) {
+    char message[32];
+    sprintf(message, "Select Binary[%d]", driveNo);
+    selectDialog(state, message, "BIN", recentFiles);
+}
+#endif
 
 static void all_eject() {
     // 各種メディアの排出処理
@@ -2249,7 +2301,7 @@ static void all_eject() {
                 break;
 #endif
 #ifdef USE_COMPACT_DISC
-            case COMPACT_DISK:
+            case COMPACT_DISC:
                 emu->close_compact_disc(fileSelectIconData[index].driveNo);
                 LOGI("Eject Compact Disk %d", fileSelectIconData[index].driveNo);
                 break;
@@ -2270,6 +2322,12 @@ static void all_eject() {
                 case CARTRIDGE:
                 emu->close_cart(fileSelectIconData[selectingIconIndex].driveNo);
                 LOGI("Eject Cartridge %d", fileSelectIconData[selectingIconIndex].driveNo);
+                break;
+#endif
+#ifdef USE_BUBBLE
+                case BUBBLE_CASETTE:
+                emu->close_bubble_casette(fileSelectIconData[index].driveNo);
+                LOGI("Eject Bubble Casette %d", fileSelectIconData[index].driveNo);
                 break;
 #endif
         }
@@ -2478,9 +2536,6 @@ void open_hard_disk_dialog(HWND hWnd, int drv)
 }
 #else
 void open_hard_disk_dialog(struct android_app *app, int drive) {
-    // ドライブ番号 drive は 0 オリジンになっているが、アイコンインデックスは .fileSelectType が QUICK_DISK になっているため、
-    // QUICK_DISK が設定されているインデックスをオフセットとして加算する
-    // オフセットの設定方法は、fileSelectIconData[?].fileSelectType を上から順に走査し、最初に QUICK_DISK が設定されているインデックスを探す
     int offset = 0;
     for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
         if (fileSelectIconData[i].fileSelectType == HARD_DISK) {
@@ -2488,7 +2543,6 @@ void open_hard_disk_dialog(struct android_app *app, int drive) {
             break;
         }
     }
-    // ドライブ番号（ここではアイコンインデックスにもなる）のタイプがクイックディスクば何もしない
     if (fileSelectIconData[drive + offset].fileSelectType != HARD_DISK) {
         return;
     }
@@ -2593,9 +2647,6 @@ void open_tape_dialog(HWND hWnd, int drv, bool play)
 }
 #else
 void open_tape_dialog(struct android_app *app, int drive, bool play) {
-    // ドライブ番号 drive は 0 オリジンになっているが、アイコンインデックスは .fileSelectType が CASETTE_TAPE になっているため、
-    // CASETTE_TAPE が設定されているインデックスをオフセットとして加算する
-    // オフセットの設定方法は、fileSelectIconData[?].fileSelectType を上から順に走査し、最初に CASETTE_TAPE が設定されているインデックスを探す
     int offset = 0;
     for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
         if (fileSelectIconData[i].fileSelectType == CASETTE_TAPE) {
@@ -2603,7 +2654,6 @@ void open_tape_dialog(struct android_app *app, int drive, bool play) {
             break;
         }
     }
-    // ドライブ番号（ここではアイコンインデックスにもなる）のタイプがカセットテープでなければ何もしない
     if (fileSelectIconData[drive + offset].fileSelectType != CASETTE_TAPE) {
         return;
     }
@@ -2649,18 +2699,14 @@ void open_compact_disc_dialog(HWND hWnd, int drv)
 }
 #else
 void open_compact_disc_dialog(struct android_app *app, int drive) {
-    // ドライブ番号 drive は 0 オリジンになっているが、アイコンインデックスは .fileSelectType が QUICK_DISK になっているため、
-    // QUICK_DISK が設定されているインデックスをオフセットとして加算する
-    // オフセットの設定方法は、fileSelectIconData[?].fileSelectType を上から順に走査し、最初に QUICK_DISK が設定されているインデックスを探す
     int offset = 0;
     for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
-        if (fileSelectIconData[i].fileSelectType == COMPACT_DISK) {
+        if (fileSelectIconData[i].fileSelectType == COMPACT_DISC) {
             offset = i;
             break;
         }
     }
-    // ドライブ番号（ここではアイコンインデックスにもなる）のタイプがクイックディスクば何もしない
-    if (fileSelectIconData[drive + offset].fileSelectType != COMPACT_DISK) {
+    if (fileSelectIconData[drive + offset].fileSelectType != COMPACT_DISC) {
         return;
     }
     selectMedia(app, drive + offset);
@@ -2709,6 +2755,7 @@ void open_recent_laser_disc(int drv, int index)
 #endif
 
 #ifdef USE_BINARY_FILE
+#if defined(_WIN32)
 void open_binary_dialog(HWND hWnd, int drv, bool load)
 {
 	_TCHAR* path = get_open_file_name(
@@ -2732,6 +2779,22 @@ void open_binary_dialog(HWND hWnd, int drv, bool load)
 		}
 	}
 }
+#else
+void open_binary_dialog(struct android_app *app, int drive, bool load) {
+    int offset = 0;
+    for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
+        if (fileSelectIconData[i].fileSelectType == BINARY) {
+            offset = i;
+            break;
+        }
+    }
+    if (fileSelectIconData[drive + offset].fileSelectType != BINARY) {
+        return;
+    }
+    extendMenuBinaryLoad = load;
+    selectMedia(app, drive + offset);
+}
+#endif
 
 void open_recent_binary(int drv, int index)
 {
@@ -2746,6 +2809,7 @@ void open_recent_binary(int drv, int index)
 #endif
 
 #ifdef USE_BUBBLE
+#if defined(_WIN32)
 void open_bubble_casette_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
@@ -2761,6 +2825,21 @@ void open_bubble_casette_dialog(HWND hWnd, int drv)
 		emu->open_bubble_casette(drv, path, 0);
 	}
 }
+#else
+void open_bubble_casette_dialog(struct android_app *app, int drive) {
+    int offset = 0;
+    for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
+        if (fileSelectIconData[i].fileSelectType == BUBBLE_CASETTE) {
+            offset = i;
+            break;
+        }
+    }
+    if (fileSelectIconData[drive + offset].fileSelectType != BUBBLE_CASETTE) {
+        return;
+    }
+    selectMedia(app, drive + offset);
+}
+#endif
 
 void open_recent_bubble_casette(int drv, int index)
 {
@@ -2997,7 +3076,7 @@ static void draw_icon(ANativeWindow_Buffer *buffer) {
             }
 #endif
 #ifdef USE_COMPACT_DISC
-            if (fileSelectType == COMPACT_DISK) {
+            if (fileSelectType == COMPACT_DISC) {
                 if (emu->is_compact_disc_inserted(fileSelectIconData[index].driveNo) == true) {
                     setFlag = true;
                 }
@@ -3037,11 +3116,22 @@ static void draw_icon(ANativeWindow_Buffer *buffer) {
                 }
             }
 #endif
+#ifdef USE_BUBBLE
+            if (fileSelectType == BUBBLE_CASETTE) {
+                if (emu->is_bubble_casette_inserted(fileSelectIconData[index].driveNo) == true) {
+                    setFlag = true;
+                }
+                int idx = (bc_status >> fileSelectIconData[index].driveNo) & 1;
+                if (idx != 0) {
+                    //アクセス中
+                    accessFlag = true;
+                }
+            }
+#endif
             if (iconHeightMax < mediaIconData[fileSelectType].height) {
                 iconHeightMax = mediaIconData[fileSelectType].height;
             }
             uint16_t *iconPixels = pixels + buffer->stride * offsetY + (index) * unitPixel;
-
 
             for (int y = 0; y < mediaIconData[fileSelectType].height; y++) {
 
@@ -3473,6 +3563,9 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                             LOGI("Tap File %d", index);
                             if (fileSelectIconData[index].fileSelectType == CASETTE_TAPE) {
                                 extendMenuCmtPlay = true;
+                            }
+                            if (fileSelectIconData[index].fileSelectType == BINARY) {
+                                extendMenuBinaryLoad = true;
                             }
                             selectMedia(app, index);
                             return 1;
@@ -4227,6 +4320,9 @@ void selectDialog(struct android_app *state, const char *message, const char *ad
         const char *aplicationPath = get_application_path();
         char dirPath[_MAX_PATH];
         sprintf(dirPath, "%s%s", aplicationPath, addPath);
+        if (!check_dir_exists(dirPath)) {
+            create_dir(dirPath);
+        }
         DIR *dir = opendir(dirPath);
         std::vector<std::string> tempFileList;
 
@@ -4257,8 +4353,7 @@ void selectDialog(struct android_app *state, const char *message, const char *ad
                 std::string filePath = std::string(dirPath) + "/" + filename;
                 fileList.push_back(filePath);
             }
-            sprintf(long_message, "%s\n%s", message, dirPath);
-            showAlert(state, long_message, filenameList.c_str(), true, MEDIA_SELECT);
+            showAlert(state, message, filenameList.c_str(), true, MEDIA_SELECT);
         }
     } else {
         // Process recent files
@@ -4545,6 +4640,42 @@ void openRecentTapeDialog(struct android_app *state, int drv) {
     selectTape(state, drv, concatenatedPaths.c_str());
 #endif
 }
+void openRecentBubbleCasetteDialog(struct android_app *state, int drv) {
+#ifdef USE_BUBBLE
+#ifdef UNICODE
+    std::wstring concatenatedPaths;  // Unicode 環境の場合
+#else
+    std::string concatenatedPaths;   // 非Unicode 環境の場合
+#endif
+    for (int history = 0; history < MAX_HISTORY; ++history) {
+        if (config.recent_bubble_casette_path[drv][history][0] != _T('\0')) {  // パスが存在するかをチェック
+            if (!concatenatedPaths.empty()) {
+                concatenatedPaths += _T(";");  // 既に文字列があればセミコロンを追加
+            }
+            concatenatedPaths += config.recent_bubble_casette_path[drv][history];  // パスを追加
+        }
+    }
+    selectBubbleCasette(state, drv, concatenatedPaths.c_str());
+#endif
+}
+void openRecentBinaryDialog(struct android_app *state, int drv) {
+#ifdef USE_BINARY_FILE
+#ifdef UNICODE
+    std::wstring concatenatedPaths;  // Unicode 環境の場合
+#else
+    std::string concatenatedPaths;   // 非Unicode 環境の場合
+#endif
+    for (int history = 0; history < MAX_HISTORY; ++history) {
+        if (config.recent_binary_path[drv][history][0] != _T('\0')) {  // パスが存在するかをチェック
+            if (!concatenatedPaths.empty()) {
+                concatenatedPaths += _T(";");  // 既に文字列があればセミコロンを追加
+            }
+            concatenatedPaths += config.recent_binary_path[drv][history];  // パスを追加
+        }
+    }
+    selectBinary(state, drv, concatenatedPaths.c_str());
+#endif
+}
 
 // ----------------------------------------------------------------------------
 // button
@@ -4754,7 +4885,7 @@ void setFileSelectIcon() {
     }
 #endif
 #ifdef USE_COMPACT_DISC
-    fileSelectIconData[index].fileSelectType = COMPACT_DISK;
+    fileSelectIconData[index].fileSelectType = COMPACT_DISC;
     fileSelectIconData[index].driveNo = 0;
     index++;
 #endif
@@ -4778,6 +4909,55 @@ void setFileSelectIcon() {
         index++;
     }
 #endif
+#ifdef USE_BUBBLE
+    fileSelectIconData[index].fileSelectType = BUBBLE_CASETTE;
+    fileSelectIconData[index].driveNo = 0;
+    index++;
+    if (USE_BUBBLE >= 2) {
+        fileSelectIconData[index].fileSelectType = BUBBLE_CASETTE;
+        fileSelectIconData[index].driveNo = 1;
+        index++;
+    }
+#endif
+#ifdef USE_BINARY_FILE
+    fileSelectIconData[index].fileSelectType = BINARY;
+    fileSelectIconData[index].driveNo = 0;
+    index++;
+#endif
+}
+
+// フォルダ存在チェック関数（実装は環境による）
+bool check_dir_exists(const char *path) {
+    struct stat info;
+    if (stat(path, &info) != 0) {
+        return false;  // パスが存在しない
+    }
+    return (info.st_mode & S_IFDIR);  // ディレクトリかどうかをチェック
+}
+
+bool create_dir(const char *path) {
+    size_t len = strlen(path);
+    char *local_path = new char[len + 1];
+    strcpy(local_path, path);
+
+    bool result = true;
+    for (char *p = local_path + 1; *p; p++) {  // ルートディレクトリをスキップ
+        if (*p == '/') {
+            *p = '\0';  // 一時的に null 文字に置き換える
+            if (!check_dir_exists(local_path) && mkdir(local_path, 0777) != 0) {
+                result = false;  // ディレクトリ作成に失敗
+                break;
+            }
+            *p = '/';  // null 文字を元に戻す
+        }
+    }
+
+    if (result && !check_dir_exists(local_path) && mkdir(local_path, 0777) != 0) {
+        result = false;  // 最終ディレクトリの作成
+    }
+
+    delete[] local_path;
+    return result;
 }
 
 // ----------------------------------------------------------------------------
@@ -5016,41 +5196,6 @@ const char *get_parent_path(const char *path) {
     return local_path;
 }
 
-// フォルダ存在チェック関数（実装は環境による）
-bool check_dir_exists(const char *path) {
-    struct stat info;
-    if (stat(path, &info) != 0) {
-        return false;  // パスが存在しない
-    }
-    return (info.st_mode & S_IFDIR);  // ディレクトリかどうかをチェック
-}
-
-bool create_dir(const char *path) {
-    size_t len = strlen(path);
-    char *local_path = new char[len + 1];
-    strcpy(local_path, path);
-
-    bool result = true;
-    for (char *p = local_path + 1; *p; p++) {  // ルートディレクトリをスキップ
-        if (*p == '/') {
-            *p = '\0';  // 一時的に null 文字に置き換える
-            if (!check_dir_exists(local_path) && mkdir(local_path, 0777) != 0) {
-                result = false;  // ディレクトリ作成に失敗
-                break;
-            }
-            *p = '/';  // null 文字を元に戻す
-        }
-    }
-
-    if (result && !check_dir_exists(local_path) && mkdir(local_path, 0777) != 0) {
-        result = false;  // 最終ディレクトリの作成
-    }
-
-    delete[] local_path;
-    return result;
-}
-
-
 JNIEXPORT void JNICALL
 Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_newFileCallback(JNIEnv *env, jobject obj, jstring filename, jstring mediaInfo, jstring addPath) {
     // GetStringUTFCharsを呼び出す前にnullチェックを行う
@@ -5234,7 +5379,7 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_fileSelectCallback(JNIEnv 
                 break;
 #endif
 #ifdef USE_COMPACT_DISC
-            case COMPACT_DISK:
+            case COMPACT_DISC:
                 emu->close_compact_disc(fileSelectIconData[selectingIconIndex].driveNo);
                 break;
 #endif
@@ -5251,6 +5396,11 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_fileSelectCallback(JNIEnv 
 #ifdef USE_CART
             case CARTRIDGE:
                 emu->close_cart(fileSelectIconData[selectingIconIndex].driveNo);
+                break;
+#endif
+#ifdef USE_BUBBLE
+            case BUBBLE_CASETTE:
+                emu->close_bubble_casette(fileSelectIconData[selectingIconIndex].driveNo);
                 break;
 #endif
         }
@@ -5284,7 +5434,7 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_fileSelectCallback(JNIEnv 
                 break;
 #endif
 #ifdef USE_COMPACT_DISC
-            case COMPACT_DISK:
+            case COMPACT_DISC:
                 LOGI("Set Compact disk %s", filePath.c_str());
                 UPDATE_HISTORY(filePath.c_str(), config.recent_compact_disc_path[fileSelectIconData[selectingIconIndex].driveNo]);
                 emu->open_compact_disc(
@@ -5320,7 +5470,28 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_fileSelectCallback(JNIEnv 
             case CARTRIDGE:
                 LOGI("Set Cartridge %s", filePath.c_str());
                 UPDATE_HISTORY(filePath.c_str(), config.recent_cart_path[fileSelectIconData[selectingIconIndex].driveNo]);
-                emu->open_cart(fileSelectIconData[selectingIconIndex].driveNo , filePath.c_str());
+                emu->open_cart(fileSelectIconData[selectingIconIndex].driveNo, filePath.c_str());
+                break;
+#endif
+#ifdef USE_BUBBLE
+                case BUBBLE_CASETTE:
+                LOGI("Set Bubble casette %s", filePath.c_str());
+                UPDATE_HISTORY(filePath.c_str(), config.recent_bubble_casette_path[fileSelectIconData[selectingIconIndex].driveNo]);
+                emu->open_bubble_casette(
+                    fileSelectIconData[selectingIconIndex].driveNo,
+                    filePath.c_str(),
+                    0);
+            break;
+#endif
+#ifdef USE_BINARY_FILE
+                case BINARY:
+                LOGI("Set Binary %s", filePath.c_str());
+                UPDATE_HISTORY(filePath.c_str(), config.recent_binary_path[0]);
+                if (extendMenuBinaryLoad) {
+                    emu->load_binary(fileSelectIconData[selectingIconIndex].driveNo, filePath.c_str());
+                } else {
+                    emu->save_binary(fileSelectIconData[selectingIconIndex].driveNo, filePath.c_str());
+                }
                 break;
 #endif
         }
