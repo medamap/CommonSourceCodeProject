@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- BEGIN_INCLUDE(manifest) -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="jp.matrix.shikarunochi.emulator"
-          android:versionCode="1"
-          android:versionName="1.0">
+    android:versionCode="1"
+    android:versionName="1.0">
 
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGET"/>
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <!-- Bluetooth接続状態の変更を監視するためのパーミッション -->
+  <uses-permission android:name="android.permission.BLUETOOTH" />
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-  <!-- This .apk has no Java code itself, so set hasCode to false. -->
   <application
       android:allowBackup="false"
       android:fullBackupContent="false"
@@ -19,12 +22,9 @@
       android:debuggable="true"
       tools:ignore="HardcodedDebugMode">
 
-    <!-- Our activity is the built-in NativeActivity framework class.
-         This will take care of integrating with our NDK code. -->
     <activity android:name=".EmulatorActivity"
         android:label="@string/app_name"
-        android:configChanges="screenSize|orientation|keyboardHidden">
-      <!-- Tell NativeActivity the name of or .so -->
+        android:configChanges="keyboard|orientation|screenSize|keyboardHidden|navigation|screenLayout">
       <meta-data android:name="android.app.lib_name"
           android:value="native-activity" />
       <intent-filter>
@@ -33,8 +33,14 @@
       </intent-filter>
     </activity>
 
+    <!-- Bluetooth接続/切断イベントを受け取るブロードキャストレシーバー -->
+    <receiver android:name=".BluetoothBroadcastReceiver">
+      <intent-filter>
+        <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
+        <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED" />
+      </intent-filter>
+    </receiver>
 
   </application>
 
 </manifest>
-<!-- END_INCLUDE(manifest) -->
