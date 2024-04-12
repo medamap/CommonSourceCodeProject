@@ -38,6 +38,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -329,65 +330,66 @@ public class EmulatorActivity extends NativeActivity {
     public int showAlert(final String message, final String itemList, boolean model, final int selectMode) {
         final AtomicInteger buttonId = new AtomicInteger();
         buttonId.set(-1);
+        final long[] lastClickTime = {0}; // Shared last click time for all buttons
+        final AlertDialog[] finalDialog = new AlertDialog[1]; // 配列のサイズを1に設定
 
-        this.runOnUiThread(new Runnable() {
+        runOnUiThread(new Runnable() {
+            @Override
             public void run() {
                 AlertDialog.Builder builder = new AlertDialog.Builder(EmulatorActivity.this);
-                // メッセージをタイトルと詳細に分割
-                String[] parts = message.split("\n", 2); // 2つに分割
-                String title = parts[0];
-                String detail = parts.length > 1 ? parts[1] : "";
-                builder.setTitle(title);
-                // 詳細テキストをメッセージとして設定
-                if (!detail.isEmpty()) {
-                    builder.setMessage(detail);
-                }
-                if(itemList.length() > 0) {
-                    String itemLabels[] = itemList.split(";");
-                    builder.setSingleChoiceItems(itemLabels, -1, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            buttonId.set(which);
-                        }
-                    });
-                }else{
-                    buttonId.set(0);//選択無しの場合。OKは 0で返す。
-                }
-                builder.setPositiveButton("OK",new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        if(selectMode == 0) {
-                            fileSelectCallback(buttonId.get());
-                        }else if(selectMode == 1){
-                            bankSelectCallback(buttonId.get());
-                        }else if(selectMode == 2){
-                            bootSelectCallback(buttonId.get());
-                        }else {
-                            exitSelectCallback(buttonId.get());
-                        }
-                        dialog.dismiss();
+                View dialogView = getLayoutInflater().inflate(R.layout.dialog_layout, null);
+                builder.setView(dialogView);
+
+                TextView title = dialogView.findViewById(R.id.dialog_title);
+                title.setText(message);
+
+                LinearLayout buttonLayout = dialogView.findViewById(R.id.button_layout);
+                if (!itemList.isEmpty()) {
+                    String[] items = itemList.split(";");
+                    for (int i = 0; i < items.length; i++) {
+                        Button button = new Button(EmulatorActivity.this);
+                        button.setText(items[i]);
+                        final int index = i;
+                        button.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                long clickTime = System.currentTimeMillis();
+                                if (clickTime - lastClickTime[0] < 500) { // Double click
+                                    buttonId.set(index);
+                                    fileSelectCallback(index, selectMode);
+                                    finalDialog[0].dismiss();
+                                }
+                                lastClickTime[0] = clickTime;
+                            }
+                        });
+                        buttonLayout.addView(button);
                     }
-                });
-                builder.setNegativeButton("CANCEL",new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        if(selectMode == 0) {
-                            fileSelectCallback(-1);
-                        }else if(selectMode == 1){
-                            bankSelectCallback(-1);
-                        }else if(selectMode == 2){
-                            bootSelectCallback(-1);
-                        }else{
-                            exitSelectCallback(-1);
-                        }
-                        dialog.dismiss();
+                }
+
+                Button cancelButton = dialogView.findViewById(R.id.cancel_button);
+                cancelButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        fileSelectCallback(-1, selectMode);
+                        finalDialog[0].dismiss();
                     }
                 });
 
-                builder.setCancelable(false);
                 AlertDialog dialog = builder.create();
+                finalDialog[0] = dialog;
                 dialog.show();
             }
         });
-        return buttonId.get();
+        return buttonId.get(); // 選択されたボタンのIDを返す
+    }
+
+    private void fileSelectCallback(int id, int selectMode) {
+        switch (selectMode) {
+            case 0: fileSelectCallback(id); break;
+            case 1: bankSelectCallback(id); break;
+            case 2: bootSelectCallback(id); break;
+            case 3: exitSelectCallback(id); break;
+        }
     }
 
     public int showExtendMenu(final String title, final String extendMenu) {
@@ -511,6 +513,8 @@ public class EmulatorActivity extends NativeActivity {
                         return R.drawable.qd;
                     case 4:
                         return R.drawable.hdd;
+                    case 5:
+                        return R.drawable.cd;
                 }
         }
         return R.drawable.floppy;
