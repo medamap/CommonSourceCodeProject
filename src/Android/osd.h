@@ -1481,7 +1481,9 @@ enum FileSelectType {
     CARTRIDGE,
     QUICK_DISK,
     HARD_DISK,
-    COMPACT_DISK,
+    COMPACT_DISC,
+    BUBBLE_CASETTE,
+    BINARY,
     FILE_SELECT_TYPE_MAX
 };
 enum SelectDialogMode {

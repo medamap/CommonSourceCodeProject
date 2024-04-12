@@ -224,12 +224,15 @@ public class EmulatorActivity extends NativeActivity {
                 if (clipboardManager.hasPrimaryClip() && clipboardManager.getPrimaryClip().getItemCount() > 0) {
                     CharSequence charSequence = clipboardManager.getPrimaryClip().getItemAt(0).getText();
                     if (charSequence != null) {
+                        String text = charSequence.toString();
+                        // 改行コードを CR に統一
+                        text = text.replaceAll("\r\n|\n", "\r");
                         try {
-                            result[0] = charSequence.toString().getBytes("Shift_JIS");
+                            result[0] = text.getBytes("Shift_JIS");
                         } catch (UnsupportedEncodingException e) {
                             try {
                                 // Shift_JIS に変換できない場合は UTF-8 でエンコードする
-                                result[0] = charSequence.toString().getBytes("UTF-8");
+                                result[0] = text.getBytes("UTF-8");
                             } catch (UnsupportedEncodingException ex) {
                                 // UTF-8 での変換にも失敗した場合の処理
                                 result[0] = null;
@@ -515,6 +518,10 @@ public class EmulatorActivity extends NativeActivity {
                         return R.drawable.hdd;
                     case 5:
                         return R.drawable.cd;
+                    case 6:
+                        return R.drawable.bubble;
+                    case 7:
+                        return R.drawable.binary;
                 }
         }
         return R.drawable.floppy;
