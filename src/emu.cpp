@@ -2524,7 +2524,6 @@ uint32_t EMU::is_quick_disk_accessed()
 #endif
 
 #ifdef USE_HARD_DISK
-#if !defined(__ANDROID__)
 bool EMU::create_blank_hard_disk(const _TCHAR* file_path, int sector_size, int sectors, int surfaces, int cylinders)
 {
 	if(check_file_extension(file_path, _T(".nhd"))) {
@@ -2610,7 +2609,6 @@ bool EMU::create_blank_hard_disk(const _TCHAR* file_path, int sector_size, int s
 	// unknown extension
 	return false;
 }
-#endif
 
 void EMU::open_hard_disk(int drv, const _TCHAR* file_path)
 {

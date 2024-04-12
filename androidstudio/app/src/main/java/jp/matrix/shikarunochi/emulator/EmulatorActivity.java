@@ -7,10 +7,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.NativeActivity;
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.content.pm.PackageManager;
@@ -53,8 +55,15 @@ public class EmulatorActivity extends NativeActivity {
     private volatile boolean permissionsGranted = false;
     private static final String[] PERMISSIONS_REQUIRED = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.BLUETOOTH,
+            Manifest.permission.BLUETOOTH_ADMIN,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            // APIレベル 31 以降で必要な Bluetooth 接続権限
+            "android.permission.BLUETOOTH_CONNECT"
     };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,14 +108,30 @@ public class EmulatorActivity extends NativeActivity {
     private native void nativeOnPermissionsDenied();
 
     private boolean hasPermissions() {
-        // 権限チェックの実装
-        for (String permission : PERMISSIONS_REQUIRED) {
-            if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
-                return false;
-            }
+        Log.i(TAG, "Checking permissions");
+        // 基本的なファイルアクセス権限をチェック
+        boolean hasFilePermissions = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+
+        // APIレベル 31 以降では、BLUETOOTH_CONNECT 権限もチェックする
+        if (Build.VERSION.SDK_INT >= 31) {
+            boolean bluetoothConnectGranted = checkSelfPermission("android.permission.BLUETOOTH_CONNECT") == PackageManager.PERMISSION_GRANTED;
+            Log.i(TAG, "Checking BLUETOOTH_CONNECT permission " + (bluetoothConnectGranted ? "granted" : "denied"));
+
+            return hasFilePermissions
+                    && bluetoothConnectGranted
+                    && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        } else {
+            // Android 12未満では、BLUETOOTH_CONNECT権限は不要であり、位置情報権限も必要に応じてチェック
+            return hasFilePermissions
+                    && checkSelfPermission(Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED
+                    && checkSelfPermission(Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_GRANTED
+                    && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
         }
-        return true;
     }
+
 
     private void onPermissionsGranted() {
         Log.i(TAG, "Permissions granted");
@@ -124,7 +149,9 @@ public class EmulatorActivity extends NativeActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Log.i(TAG, "checkPermissionsAsync called");
                 if (EmulatorActivity.this.hasPermissions()) {
+                    Log.i(TAG, "Permissions already granted");
                     EmulatorActivity.this.onPermissionsGranted();
                 } else {
                     EmulatorActivity.this.requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
@@ -149,11 +176,11 @@ public class EmulatorActivity extends NativeActivity {
     }
 
     // ネイティブメソッドの宣言
-    public native void newFileCallback(String filename, int driveNo, int type, String addPath);
+    public native void newFileCallback(String filename, String mediaInfo, String addPath);
 
     // コールバック用のインターフェースを定義
     interface NewFileCallback {
-        void onNewFileSelected(String filename, int driveNo, int type, String addPath);
+        void onNewFileSelected(String filename, String mediaInfo, String addPath);
     }
 
     // NDK から呼び出せるクリップボード取得メソッド
@@ -222,17 +249,17 @@ public class EmulatorActivity extends NativeActivity {
     }
 
     // NDKから呼び出すためのメソッド
-    public void showNewFileDialog(String message, String itemList, String extension, int driveNo, int type, String addPath) {
-        showNewFileDialogExecute(message, itemList, extension, driveNo, type, addPath, new NewFileCallback() {
+    public void showNewFileDialog(String message, String itemList, String extension, String mediaInfo, String addPath) {
+        showNewFileDialogExecute(message, itemList, extension, mediaInfo, addPath, new NewFileCallback() {
             @Override
-            public void onNewFileSelected(String filename, int driveNo, int type, String addPath) {
-                newFileCallback(filename, driveNo, type, addPath);
+            public void onNewFileSelected(String filename, String mediaInfo, String addPath) {
+                newFileCallback(filename, mediaInfo, addPath);
             }
         });
     }
 
     // ファイル選択ダイアログを表示する
-    public void showNewFileDialogExecute(final String message, final String itemList, final String extension, final int driveNo, final int type, final String addPath, final NewFileCallback callback) {
+    public void showNewFileDialogExecute(final String message, final String itemList, final String extension, final String mediaInfo, final String addPath, final NewFileCallback callback) {
         final Activity activity = this;
         activity.runOnUiThread(new Runnable() {
             final EditText input = new EditText(activity);
@@ -257,7 +284,7 @@ public class EmulatorActivity extends NativeActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
                         if (callback != null) {
-                            callback.onNewFileSelected("", 0, 0, "");
+                            callback.onNewFileSelected("", "", "");
                         }
                     }
                 });
@@ -290,7 +317,7 @@ public class EmulatorActivity extends NativeActivity {
                     } else {
                         dialog.dismiss();
                         if (callback != null) {
-                            callback.onNewFileSelected(fullFilename, driveNo, type, addPath);
+                            callback.onNewFileSelected(fullFilename, mediaInfo, addPath);
                         }
                     }
                 }
@@ -482,6 +509,8 @@ public class EmulatorActivity extends NativeActivity {
                         return R.drawable.cart;
                     case 3:
                         return R.drawable.qd;
+                    case 4:
+                        return R.drawable.hdd;
                 }
         }
         return R.drawable.floppy;
@@ -560,5 +589,4 @@ public class EmulatorActivity extends NativeActivity {
 
         return returnData;
     }
-
 }

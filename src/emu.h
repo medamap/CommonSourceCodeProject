@@ -490,9 +490,7 @@ public:
 	uint32_t is_quick_disk_accessed();
 #endif
 #ifdef USE_HARD_DISK
-#if !defined(__ANDROID__)
 	bool create_blank_hard_disk(const _TCHAR* file_path, int sector_size, int sectors, int surfaces, int cylinders);
-#endif
 	void open_hard_disk(int drv, const _TCHAR* file_path);
 	void close_hard_disk(int drv);
 	bool is_hard_disk_inserted(int drv);

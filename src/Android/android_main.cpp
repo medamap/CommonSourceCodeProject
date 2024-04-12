@@ -82,7 +82,6 @@ static void stats_startFrame(Stats *s);
 static void stats_endFrame(Stats *s);
 DWORD timeGetTime();
 static void engine_handle_cmd(struct android_app *app, int32_t cmd);
-static void init_palette(void);
 static void init_tables(void);
 void android_main(struct android_app *state);
 
@@ -148,7 +147,7 @@ bool get_status_bar_updated();
 
 void selectMedia(struct android_app *state, int iconIndex);
 void selectCart(struct android_app *state, int driveNo);
-void selectDisk(struct android_app *state, int diskNo);
+void selectFloppyDisk(struct android_app *state, int diskNo);
 void selectQuickDisk(struct android_app *state, int driveNo);
 void selectHardDisk(struct android_app *state, int driveNo);
 void selectTape(struct android_app *state);
@@ -165,6 +164,16 @@ FileSelectIconData fileSelectIconData[MAX_FILE_SELECT_ICON];
 int selectingIconIndex;
 bool needSelectDiskBank = false;
 int selectDiskDrive = 0;
+
+typedef struct {
+    int drive;
+    enum FileSelectType fileSelectType;
+    uint8_t floppy_type;
+    int hdd_sector_size;
+    int hdd_sectors;
+    int hdd_surfaces;
+    int hdd_cylinders;
+} MediaInfo;
 
 #ifdef USE_CART
 void open_cart_dialog(struct android_app *app, int drv) {}
@@ -272,7 +281,7 @@ void start_auto_key(struct android_app *app);
 Menu *menu;
 
 jint showAlert(struct android_app *state, const char *message, const char *filenames, bool model = false, int selectMode = 0, int selectIndex = 0);
-void showNewFileDialog(struct android_app *state, const char *message, const char *itemNames, const char *fileExtension, jint driveNo, jint type, const char *addPath);
+void showNewFileDialog(struct android_app *state, const char *message, const char *itemNames, const char *fileExtension, MediaInfo *mediaInfo, const char *addPath);
 jint showExtendMenu(struct android_app *state, const char *title, const char *extendMenuString);
 
 void EventProc(engine *engine, MenuNode menuNode);
@@ -280,7 +289,7 @@ void extendMenu(struct android_app *app);
 void selectDialog(struct android_app *state, const char *message, const char *addPath);
 void selectD88Bank(struct android_app *state, int driveNo);
 void selectBootMode(struct android_app *state);
-void createBlankDisk(struct android_app *state, int driveNo, uint8_t type, const char *addPath);
+void createBlankDisk(struct android_app *state, MediaInfo *mediaInfo);
 
 std::string extendMenuString = "";
 auto extendMenuDisplay = false;
@@ -472,6 +481,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
                 deviceInfo.height = ANativeWindow_getHeight(app->window);
                 clear_screen(engine);
                 engine->animating = 1;
+                LOGI("APP_CMD_INIT_WINDOW");
                 LOGI("Screen size (%d, %d)", deviceInfo.width, deviceInfo.height);
             }
             break;
@@ -489,6 +499,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
             deviceInfo.height = ANativeWindow_getHeight(app->window);
             clear_screen(engine);
             engine->animating = 1;
+            LOGI("APP_CMD_TERM_WINDOW");
             LOGI("Screen size (%d, %d)", deviceInfo.width, deviceInfo.height);
             break;
         }
@@ -515,13 +526,13 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
         case APP_CMD_DESTROY:
         {
             // 強制排出
+            LOGI("APP_CMD_DESTROY");
             all_eject();
             break;
         }
     }
 }
 
-static void init_palette(void) {}
 static void init_tables(void) {}
 
 void android_main(struct android_app *state) {
@@ -664,6 +675,7 @@ void android_main(struct android_app *state) {
         // Read all pending events.
         int ident;
         int events;
+        int fd;
         struct android_poll_source *source;
 
         if (emu->get_osd()->soundEnable != config.sound_on) {
@@ -679,8 +691,7 @@ void android_main(struct android_app *state) {
         // to draw the next frame of animation.
         //while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events,
         //                             (void**)&source)) >= 0) {
-        ident = ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events,
-                                (void **) &source);
+        ident = ALooper_pollAll(engine.animating ? 0 : -1, &fd, &events,(void **) &source);
 
         // Process this event.
         if (source != NULL) {
@@ -689,7 +700,7 @@ void android_main(struct android_app *state) {
 
         // Check if we are exiting.
         if (state->destroyRequested != 0) {
-            LOGI("Engine thread destroy requested!");
+            LOGI("Engine thread destroy requested! ident=%d / fd=%d / events=%d", ident, fd, events);
             all_eject();
             engine_term_display(&engine);
             return;
@@ -1223,6 +1234,7 @@ void EventProc(engine* engine, MenuNode menuNode)
                 case ID_EXIT:
                     //SendMessage(hWnd, WM_CLOSE, 0, 0L);
                     // 強制排出
+                    LOGI("ID_EXIT");
                     all_eject();
                     exit(0);
                     break;
@@ -2139,7 +2151,12 @@ void selectMedia(struct android_app *state, int iconIndex) {
     switch (fileSelectIconData[selectingIconIndex].fileSelectType) {
 #ifdef USE_FLOPPY_DISK
         case FLOPPY_DISK:
-            selectDisk(state, fileSelectIconData[selectingIconIndex].driveNo);
+            selectFloppyDisk(state, fileSelectIconData[selectingIconIndex].driveNo);
+            break;
+#endif
+#ifdef USE_HARD_DISK
+        case HARD_DISK:
+            selectHardDisk(state, fileSelectIconData[selectingIconIndex].driveNo);
             break;
 #endif
 #ifdef USE_TAPE
@@ -2148,17 +2165,13 @@ void selectMedia(struct android_app *state, int iconIndex) {
             break;
 #endif
 #ifdef USE_CART
-            case CARTRIDGE:
+        case CARTRIDGE:
             selectCart(state, fileSelectIconData[selectingIconIndex].driveNo);
             break;
 #endif
 #ifdef USE_QUICK_DISK
-            case QUICK_DISK:
+        case QUICK_DISK:
             selectQuickDisk(state, fileSelectIconData[selectingIconIndex].driveNo);
-            break;
-#endif
-#ifdef USE_HARD_DISK
-        case HARD_DISK:
             break;
 #endif
     }
@@ -2172,23 +2185,19 @@ void selectCart(struct android_app *state, int driveNo) {
     selectDialog(state, message, "CART");
 }
 
-void selectDisk(struct android_app *state, int driveNo) {
+void selectFloppyDisk(struct android_app *state, int diskNo) {
     char message[32];
-    if (emu->d88_file[driveNo].bank_num > 0 && emu->d88_file[driveNo].cur_bank != -1) {
-        sprintf(message, "DISK[%d] %s", driveNo, emu->d88_file[driveNo].disk_name[emu->d88_file[driveNo].cur_bank]);
+    if (emu->d88_file[diskNo].bank_num > 0 && emu->d88_file[diskNo].cur_bank != -1) {
+        sprintf(message, "DISK[%d] %s", diskNo, emu->d88_file[diskNo].disk_name[emu->d88_file[diskNo].cur_bank]);
     } else {
-        sprintf(message, "Select DISK[%d]", driveNo);
+        sprintf(message, "Select DISK[%d]", diskNo);
     }
     selectDialog(state, message, "DISK");
 }
 
 void selectHardDisk(struct android_app *state, int driveNo) {
     char message[32];
-    if (emu->d88_file[driveNo].bank_num > 0 && emu->d88_file[driveNo].cur_bank != -1) {
-        sprintf(message, "HDD[%d] %s", driveNo, emu->d88_file[driveNo].disk_name[emu->d88_file[driveNo].cur_bank]);
-    } else {
-        sprintf(message, "Select HDD[%d]", driveNo);
-    }
+    sprintf(message, "Select HDD[%d]", driveNo);
     selectDialog(state, message, "HDD");
 }
 
@@ -2213,6 +2222,12 @@ static void all_eject() {
             case FLOPPY_DISK:
                 emu->close_floppy_disk(fileSelectIconData[index].driveNo);
                 LOGI("Eject Floppy Disk %d", fileSelectIconData[index].driveNo);
+                break;
+#endif
+#ifdef USE_HARD_DISK
+        case HARD_DISK:
+                emu->close_hard_disk(fileSelectIconData[index].driveNo);
+                LOGI("Eject Hard Disk %d", fileSelectIconData[index].driveNo);
                 break;
 #endif
 #ifdef USE_QUICK_DISK
@@ -2342,7 +2357,8 @@ void open_blank_floppy_disk_dialog(HWND hWnd, int drv, uint8_t type)
 #else
 void open_blank_floppy_disk_dialog(struct android_app * app, int drv, uint8_t type)
 {
-    createBlankDisk(app, drv, type,"DISK");
+    MediaInfo mediaInfo = {drv, FLOPPY_DISK, type};
+    createBlankDisk(app, &mediaInfo);
 }
 #endif
 
@@ -2491,7 +2507,8 @@ void open_blank_hard_disk_dialog(HWND hWnd, int drv, int sector_size, int sector
 #else
 void open_blank_hard_disk_dialog(struct android_app * app, int drv, int sector_size, int sectors, int surfaces, int cylinders)
 {
-    createBlankDisk(app, drv, 0,"HDD");
+    MediaInfo mediaInfo = {drv, HARD_DISK, 0, sector_size, sectors, surfaces, cylinders};
+    createBlankDisk(app, &mediaInfo);
 }
 #endif
 #endif
@@ -2571,7 +2588,8 @@ void open_tape_dialog(struct android_app *app, int drive, bool play) {
     if (play) {
         selectMedia(app, drive + offset);
     } else {
-        createBlankDisk(app, drive, 0, "TAPE");
+        MediaInfo mediaInfo = {drive, CASETTE_TAPE};
+        createBlankDisk(app, &mediaInfo);
     }
 }
 #endif
@@ -2922,6 +2940,18 @@ static void draw_icon(ANativeWindow_Buffer *buffer) {
                 }
             }
 #endif
+#ifdef USE_HARD_DISK
+            if (fileSelectType == HARD_DISK) {
+                if (emu->is_hard_disk_inserted(fileSelectIconData[index].driveNo) == true) {
+                    setFlag = true;
+                }
+                int idx = (hd_status >> fileSelectIconData[index].driveNo) & 1;
+                if (idx != 0) {
+                    //アクセス中
+                    accessFlag = true;
+                }
+            }
+#endif
 #ifdef USE_QUICK_DISK
             if (fileSelectType == QUICK_DISK) {
                 if (emu->is_quick_disk_inserted(fileSelectIconData[index].driveNo) == true) {
@@ -2961,8 +2991,7 @@ static void draw_icon(ANativeWindow_Buffer *buffer) {
 
                 uint16_t *line = (uint16_t *) iconPixels;
                 for (int x = 0; x < mediaIconData[fileSelectType].width; x++) {
-                    uint16_t dotData = mediaIconData[fileSelectType].bmpImage[x + y *
-                                                                                  mediaIconData[fileSelectType].width];
+                    uint16_t dotData = mediaIconData[fileSelectType].bmpImage[x + y * mediaIconData[fileSelectType].width];
                     //データ縮小時に色が付いているので白黒で表示する。
                     if (dotData > 0) {
                         if (setFlag == true) {
@@ -4060,13 +4089,19 @@ jint showAlert(struct android_app *state, const char *message, const char *itemN
     return result;
 }
 
-void showNewFileDialog(struct android_app *state, const char *message, const char *itemNames, const char *fileExtension, jint driveNo, jint type, const char *addPath) {
+void showNewFileDialog(
+        struct android_app *state,
+        const char *message,
+        const char *itemNames,
+        const char *fileExtension,
+        MediaInfo *mediaInfo,
+        const char *addPath
+) {
     JNIEnv* env = nullptr;
     state->activity->vm->AttachCurrentThread(&env, nullptr);
 
     jclass clazz = env->GetObjectClass(state->activity->clazz);
-    // 更新されたメソッドシグネチャに注意
-    jmethodID mid = env->GetMethodID(clazz, "showNewFileDialog", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IILjava/lang/String;)V");
+    jmethodID mid = env->GetMethodID(clazz, "showNewFileDialog", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
 
     if (mid == nullptr) {
         // メソッドIDが取得できなかった場合のエラー処理
@@ -4078,15 +4113,27 @@ void showNewFileDialog(struct android_app *state, const char *message, const cha
     jstring jMessage = env->NewStringUTF(message);
     jstring jItemList = env->NewStringUTF(itemNames);
     jstring jExtension = env->NewStringUTF(fileExtension);
-    jstring jAddPath = env->NewStringUTF(addPath); // 追加パスのためのjstringを作成
 
-    env->CallVoidMethod(state->activity->clazz, mid, jMessage, jItemList, jExtension, driveNo, type, jAddPath);
+    std::string strMediaInfo =
+            std::to_string(mediaInfo->drive) + "," +
+            std::to_string(static_cast<int>(mediaInfo->fileSelectType)) + "," +
+            std::to_string(mediaInfo->floppy_type) + "," +
+            std::to_string(mediaInfo->hdd_sector_size) + "," +
+            std::to_string(mediaInfo->hdd_sectors) + "," +
+            std::to_string(mediaInfo->hdd_surfaces) + "," +
+            std::to_string(mediaInfo->hdd_cylinders);
+    jstring jMediaInfo = env->NewStringUTF(strMediaInfo.c_str());
+
+    jstring jAddPath = env->NewStringUTF(addPath);
+
+    env->CallVoidMethod(state->activity->clazz, mid, jMessage, jItemList, jExtension, jMediaInfo, jAddPath);
 
     // ローカル参照の解放
     env->DeleteLocalRef(jMessage);
     env->DeleteLocalRef(jItemList);
     env->DeleteLocalRef(jExtension);
-    env->DeleteLocalRef(jAddPath); // jAddPathのローカル参照を解放
+    env->DeleteLocalRef(jMediaInfo);
+    env->DeleteLocalRef(jAddPath);
     env->DeleteLocalRef(clazz);
 
     state->activity->vm->DetachCurrentThread();
@@ -4201,12 +4248,79 @@ void selectBootMode(struct android_app *state) {
 
 #if defined(USE_FLOPPY_DISK) || defined(USE_QUICK_DISK) || defined(USE_TAPE)
 
-void createBlankDisk(struct android_app *state, int driveNo, uint8_t type, const char *addPath) {
+void createBlankDisk(struct android_app *state, MediaInfo *mediaInfo) {
 
-    fileList.clear();
+    // addPath が "DISK" か "QD" か "TAPE" かで拡張子と保存パスを設定する
+    std::string fileExtension;
+    std::string addPath = "DISK";
+    std::string message = "Create Blank Disk";
+    switch(mediaInfo->fileSelectType)
+    {
+        case FLOPPY_DISK:
+            //_T("Supported Files (*.d88;*.d8e;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.nfd;*.fdi;*.hdm;*.hd5;*.hd4;*.hdb;
+            // *.dd9;*.dd6;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd)\0*.d88;*.d8e;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.nfd;
+            // *.fdi;*.hdm;*.hd5;*.hd4;*.hdb;*.dd9;*.dd6;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".d88";
+            addPath = "DISK";
+            message = "New Floppy";
+            break;
+        case QUICK_DISK:
+            //_T("Supported Files (*.mzt;*.q20;*.qdf)\0*.mzt;*.q20;*.qdf\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".qdf";
+            addPath = "QD";
+            message = "New Quick Disk";
+            break;
+        case HARD_DISK:
+            //_T("Supported Files (*.hdi;*.nhd)\0*.hdi;*.nhd\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".hdi";
+            addPath = "HDD";
+            message = "New Hard Disk";
+            break;
+        case CASETTE_TAPE:
+#if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
+            // : _T("Supported Files (*.wav;*.cas;*.p6;*.p6t)\0*.wav;*.cas;*.p6;*.p6t\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".cas";
+#elif defined(_PC8001) || defined(_PC8001MK2) || defined(_PC8001SR) || defined(_PC8801) || defined(_PC8801MK2) || defined(_PC8801MA) || defined(_PC98DO)
+            // : _T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".cmt";
+#elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
+            // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".cas";
+#elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
+            // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".cas";
+#elif defined(_MZ2500)
+            // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".cas";
+#elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
+            // : _T("Supported Files (*.wav;*.cas;*.tap)\0*.wav;*.cas;*.tap\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".tap";
+#elif defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+            // : _T("Supported Files (*.wav;*.cas;*.t77)\0*.wav;*.cas;*.t77\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".cas";
+#elif defined(_BMJR)
+            // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".cas";
+#elif defined(_TK80BS)
+            // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".cas";
+#elif !defined(TAPE_BINARY_ONLY)
+            // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".cas";
+#else
+    		//_T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
+            fileExtension = ".cas";
+#endif
+            message = "New Tape";
+            addPath = "TAPE";
+            break;
+        default:
+            break;
+    }
     const char *aplicationPath = get_application_path();
     char dirPath[_MAX_PATH];
-    sprintf(dirPath, "%s%s", aplicationPath, addPath);
+    sprintf(dirPath, "%s%s", aplicationPath, addPath.c_str());
+
     DIR *dir;
     struct dirent *dp;
     dir = opendir(dirPath);
@@ -4230,53 +4344,15 @@ void createBlankDisk(struct android_app *state, int driveNo, uint8_t type, const
             }
             filenameList += filename;
             std::string filePath = std::string(dirPath) + "/" + filename;
-            fileList.push_back(filePath);
         }
     }
-    // addPath が "DISK" か "QD" か "TAPE" かで拡張子を設定する
-    std::string fileExtension;
-    if (strcmp(addPath, "DISK") == 0) {
-        fileExtension = ".d88";
-    } else if (strcmp(addPath, "QD") == 0) {
-        fileExtension = ".d88";
-    } else if (strcmp(addPath, "TAPE") == 0) {
-#if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
-        // : _T("Supported Files (*.wav;*.cas;*.p6;*.p6t)\0*.wav;*.cas;*.p6;*.p6t\0All Files (*.*)\0*.*\0\0"),
-        fileExtension = ".cas";
-#elif defined(_PC8001) || defined(_PC8001MK2) || defined(_PC8001SR) || defined(_PC8801) || defined(_PC8801MK2) || defined(_PC8801MA) || defined(_PC98DO)
-        // : _T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
-        fileExtension = ".cmt";
-#elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
-        // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
-        fileExtension = ".cas";
-#elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
-        // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
-        fileExtension = ".cas";
-#elif defined(_MZ2500)
-        // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
-        fileExtension = ".cas";
-#elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
-        // : _T("Supported Files (*.wav;*.cas;*.tap)\0*.wav;*.cas;*.tap\0All Files (*.*)\0*.*\0\0"),
-        fileExtension = ".tap";
-#elif defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-        // : _T("Supported Files (*.wav;*.cas;*.t77)\0*.wav;*.cas;*.t77\0All Files (*.*)\0*.*\0\0"),
-        fileExtension = ".cas";
-#elif defined(_BMJR)
-        // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
-        fileExtension = ".cas";
-#elif defined(_TK80BS)
-        // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
-        fileExtension = ".cas";
-#elif !defined(TAPE_BINARY_ONLY)
-        // : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
-        fileExtension = ".cas";
-#else
-		//_T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
-        fileExtension = ".cas";
-#endif
-    }
-
-    showNewFileDialog(state, "Input new file.", filenameList.c_str(), fileExtension.c_str(), driveNo, type, addPath);
+    showNewFileDialog(
+            state,
+            message.c_str(),
+            filenameList.c_str(),
+            fileExtension.c_str(),
+            mediaInfo,
+            addPath.c_str());
 }
 
 #endif
@@ -4474,6 +4550,17 @@ void setFileSelectIcon() {
     index++;
     if (USE_FLOPPY_DISK >= 2) {
         fileSelectIconData[index].fileSelectType = FLOPPY_DISK;
+        fileSelectIconData[index].driveNo = 1;
+        index++;
+    }
+#endif
+
+#ifdef USE_HARD_DISK
+    fileSelectIconData[index].fileSelectType = HARD_DISK;
+    fileSelectIconData[index].driveNo = 0;
+    index++;
+    if (USE_HARD_DISK >= 2) {
+        fileSelectIconData[index].fileSelectType = HARD_DISK;
         fileSelectIconData[index].driveNo = 1;
         index++;
     }
@@ -4710,17 +4797,112 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_nativeOnPermissionsDenied(
     // 権限が拒否された場合の処理をここに実装
 }
 
+std::vector<std::string> split(const std::string &s, char delimiter) {
+    std::vector<std::string> tokens;
+    std::istringstream tokenStream(s);
+    std::string token;
+    while (std::getline(tokenStream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+#include <sys/stat.h>
+#include <cstring>
+
+// const char *path の親フォルダを取得し、const char * で返す
+const char *get_parent_path(const char *path) {
+    size_t len = strlen(path);
+    char *local_path = new char[len + 1];
+    strcpy(local_path, path);
+
+    for (char *p = local_path + len - 1; p >= local_path; p--) {
+        if (*p == '/') {
+            *p = '\0';
+            break;
+        }
+    }
+
+    return local_path;
+}
+
+// フォルダ存在チェック関数（実装は環境による）
+bool check_dir_exists(const char *path) {
+    struct stat info;
+    if (stat(path, &info) != 0) {
+        return false;  // パスが存在しない
+    }
+    return (info.st_mode & S_IFDIR);  // ディレクトリかどうかをチェック
+}
+
+bool create_dir(const char *path) {
+    size_t len = strlen(path);
+    char *local_path = new char[len + 1];
+    strcpy(local_path, path);
+
+    bool result = true;
+    for (char *p = local_path + 1; *p; p++) {  // ルートディレクトリをスキップ
+        if (*p == '/') {
+            *p = '\0';  // 一時的に null 文字に置き換える
+            if (!check_dir_exists(local_path) && mkdir(local_path, 0777) != 0) {
+                result = false;  // ディレクトリ作成に失敗
+                break;
+            }
+            *p = '/';  // null 文字を元に戻す
+        }
+    }
+
+    if (result && !check_dir_exists(local_path) && mkdir(local_path, 0777) != 0) {
+        result = false;  // 最終ディレクトリの作成
+    }
+
+    delete[] local_path;
+    return result;
+}
+
+
 JNIEXPORT void JNICALL
-Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_newFileCallback(JNIEnv *env, jobject obj, jstring filename, jint drv, jint type, jstring addPath) {
+Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_newFileCallback(JNIEnv *env, jobject obj, jstring filename, jstring mediaInfo, jstring addPath) {
     // GetStringUTFCharsを呼び出す前にnullチェックを行う
     if (filename == nullptr || addPath == nullptr) {
         LOGE("Filename or addPath is null");
         return;
     }
-
+    MediaInfo mediaInfoData;
     const char *fileStr = env->GetStringUTFChars(filename, nullptr);
     const char *addPathStr = env->GetStringUTFChars(addPath, nullptr);
-
+    // mediaInfo をカンマ区切りで分割し、各変数に格納、1番目 int drv, 2番目 FileSlectType fileSelectType, 3番目 int floppyType, 4番目 int hd1, 5番目 int hd2, 6番目 int hd3, 7番目 int hd4 値が存在しなければ 0
+    int drv = 0;
+    FileSelectType fileSelectType = FILE_SELECT_NONE;
+    int floppyType = 0;
+    int hd1 = 0;
+    int hd2 = 0;
+    int hd3 = 0;
+    int hd4 = 0;
+    if (mediaInfo != nullptr) {
+        const char *mediaInfoStr = env->GetStringUTFChars(mediaInfo, nullptr);
+        std::vector<std::string> mediaInfoList = split(mediaInfoStr, ',');
+        if (mediaInfoList.size() >= 2) {
+            drv = std::stoi(mediaInfoList[0]);
+            fileSelectType = static_cast<FileSelectType>(std::stoi(mediaInfoList[1]));
+            if (mediaInfoList.size() >= 3) {
+                floppyType = std::stoi(mediaInfoList[2]);
+            }
+            if (mediaInfoList.size() >= 4) {
+                hd1 = std::stoi(mediaInfoList[3]);
+            }
+            if (mediaInfoList.size() >= 5) {
+                hd2 = std::stoi(mediaInfoList[4]);
+            }
+            if (mediaInfoList.size() >= 6) {
+                hd3 = std::stoi(mediaInfoList[5]);
+            }
+            if (mediaInfoList.size() >= 7) {
+                hd4 = std::stoi(mediaInfoList[6]);
+            }
+        }
+        env->ReleaseStringUTFChars(mediaInfo, mediaInfoStr);
+    }
     // ファイル名を使った処理を行う
     // 例: ログ出力
     const char *applicationPath = get_application_path();
@@ -4729,13 +4911,35 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_newFileCallback(JNIEnv *en
     LOGI("Selected file: %s", path);
 
     if (path[0] != '\0') {
+        // pathはファイルの場所なので、path の親フォルダを取得する処理を行う
+        const char *parentPath = get_parent_path(path);
+        // pathのフォルダの存在をc++のファイル関数ででチェックし、無ければフォルダをc++の関数で作成する
+        if (!check_dir_exists(parentPath)) {
+            create_dir(parentPath);
+        }
 #ifdef USE_FLOPPY_DISK
         // ファイル拡張子が大文字小文字を区別せず ".d88" または ".d77" の時か確認する
         if (check_file_extension(path, ".d88") || check_file_extension(path, ".d77")) {
-            if (emu->create_blank_floppy_disk(path, type)) {
+            if (emu->create_blank_floppy_disk(path, floppyType)) {
                 // my_tcscpy_sは標準のC++関数ではないため、strcpyを使用
                 strcpy(config.initial_floppy_disk_dir, get_parent_dir(path));
                 emu->open_floppy_disk(drv, path, 0);
+            }
+        }
+#endif
+#ifdef USE_HARD_DISK
+        // ファイル拡張子が大文字小文字を区別せず ".hdi" の時か確認する
+        if (check_file_extension(path, ".hdi")) {
+            if (emu->create_blank_floppy_disk(path, fileSelectType)) {
+                // my_tcscpy_sは標準のC++関数ではないため、strcpyを使用
+                strcpy(config.initial_floppy_disk_dir, get_parent_dir(path));
+                emu->open_floppy_disk(drv, path, 0);
+            }
+            if(emu->create_blank_hard_disk(path, hd1, hd2, hd3, hd4)) {
+                // UPDATE_HISTORY(path, config.recent_hard_disk_path[drv]);
+                // strcpy で右のコードを置きかえる my_tcscpy_s(config.initial_hard_disk_dir, _MAX_PATH, get_parent_dir(path));
+                strcpy(config.initial_hard_disk_dir, get_parent_dir(path));
+                emu->open_hard_disk(drv, path);
             }
         }
 #endif
@@ -4829,6 +5033,11 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_fileSelectCallback(JNIEnv 
                 emu->close_floppy_disk(fileSelectIconData[selectingIconIndex].driveNo);
                 break;
 #endif
+#ifdef USE_HARD_DISK
+            case HARD_DISK:
+                emu->close_hard_disk(fileSelectIconData[selectingIconIndex].driveNo);
+                break;
+#endif
 #ifdef USE_TAPE
             case CASETTE_TAPE:
                 emu->close_tape(0);
@@ -4858,6 +5067,13 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_fileSelectCallback(JNIEnv 
                     selectDiskDrive = fileSelectIconData[selectingIconIndex].driveNo;
                     //selectD88Bank(selectDiskDrive); //メインループから呼び出す
                 }
+                break;
+#endif
+#ifdef USE_HARD_DISK
+            case HARD_DISK:
+                emu->open_hard_disk(
+                        fileSelectIconData[selectingIconIndex].driveNo,
+                        filePath.c_str());
                 break;
 #endif
 #ifdef USE_TAPE
@@ -4938,6 +5154,7 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_exitSelectCallback(JNIEnv 
         return;
     }
     // 強制排出
+    LOGI("exitSelectCallback");
     all_eject();
     //TODO:free?
     exit(0);
