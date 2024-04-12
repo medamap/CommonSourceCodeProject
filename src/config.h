@@ -34,7 +34,11 @@
 	};
 #endif
 
+#if defined(__ANDROID__)
+#define MAX_HISTORY	32
+#else
 #define MAX_HISTORY	8
+#endif
 
 #ifdef USE_SHARED_DLL
 	#define USE_CART_TMP		8
