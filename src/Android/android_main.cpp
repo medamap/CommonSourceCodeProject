@@ -187,7 +187,7 @@ typedef struct {
 } MediaInfo;
 
 #ifdef USE_CART
-void open_cart_dialog(struct android_app *app, int drv) {}
+void open_cart_dialog(struct android_app *app, int drv);
 void open_recent_cart(int drv, int index);
 #endif
 #ifdef USE_FLOPPY_DISK
@@ -2335,6 +2335,7 @@ static void all_eject() {
 }
 
 #ifdef USE_CART
+#if defined(_WIN32)
 void open_cart_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
@@ -2370,6 +2371,22 @@ void open_cart_dialog(HWND hWnd, int drv)
 		emu->open_cart(drv, path);
 	}
 }
+#else
+void open_cart_dialog(struct android_app *app, int drive) {
+    int offset = 0;
+    for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
+        if (fileSelectIconData[i].fileSelectType == CARTRIDGE) {
+            offset = i;
+            break;
+        }
+    }
+    // ドライブ番号（ここではアイコンインデックスにもなる）のタイプがクイックディスクば何もしない
+    if (fileSelectIconData[drive + offset].fileSelectType != CARTRIDGE) {
+        return;
+    }
+    selectMedia(app, drive + offset);
+}
+#endif
 
 void open_recent_cart(int drv, int index)
 {
@@ -2407,11 +2424,18 @@ void open_floppy_disk_dialog(HWND hWnd, int drv)
 }
 #else
 void open_floppy_disk_dialog(struct android_app *app, int drive) {
-    // ドライブ番号（ここではアイコンインデックスにもなる）のタイプがフロッピでなければ何もしない
-    if (fileSelectIconData[selectingIconIndex].fileSelectType != FLOPPY_DISK) {
+    int offset = 0;
+    for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
+        if (fileSelectIconData[i].fileSelectType == FLOPPY_DISK) {
+            offset = i;
+            break;
+        }
+    }
+    // ドライブ番号（ここではアイコンインデックスにもなる）のタイプがクイックディスクば何もしない
+    if (fileSelectIconData[drive + offset].fileSelectType != FLOPPY_DISK) {
         return;
     }
-    selectMedia(app, drive);
+    selectMedia(app, drive + offset);
 }
 #endif
 
