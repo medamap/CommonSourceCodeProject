@@ -808,7 +808,7 @@ void android_main(struct android_app *state) {
 
         }
 
-        if(softKeyDelayFlag == true){
+        if(softKeyDelayFlag){
             emu->get_osd()->key_down(softKeyCode, false, false);
             softKeyDelayFlag = false;
         }
@@ -2839,6 +2839,7 @@ void open_bubble_casette_dialog(HWND hWnd, int drv)
 	_TCHAR* path = get_open_file_name(
 		hWnd,
 		_T("Supported Files (*.b77;*.bbl)\0*.b77;*.bbl\0All Files (*.*)\0*.*\0\0"),
+
 		_T("Bubble Casette"),
 		NULL,
 		config.initial_bubble_casette_dir, _MAX_PATH
@@ -3181,7 +3182,7 @@ static void draw_icon(ANativeWindow_Buffer *buffer) {
             }
         }
     }
-    //右端に CONFIG / PCG / SOUND / SCREEN / RESET
+    //右端に CONFIG / PCG / SOUND / RESET / EXIT
     for (int index = 0; index < SYSTEM_ICON_MAX; index++) {
         int dotMask = 0xFFFF;
         if (index == SYSTEM_CONFIG) {
@@ -3204,10 +3205,11 @@ static void draw_icon(ANativeWindow_Buffer *buffer) {
                 dotMask = 0x8410;
             }
         }
+#if false
         if (index == SYSTEM_SCREEN) {
             continue;
         }
-
+#endif
         uint16_t *iconPixels = pixels + buffer->stride * offsetY + (11 - index) * unitPixel;
         for (int y = 0; y < systemIconData[index].height; y++) {
             uint16_t *line = (uint16_t *) iconPixels;
@@ -3600,10 +3602,15 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                 // 右端のアイコンチェックについても、オフセットを考慮する
                 int adjustedWidth = deviceInfo.width - sideOffset * 2;
                 if (x > adjustedWidth - unitPixel) {
+                    LOGI("Tap Exit");
+                    char message[128];
+                    sprintf(message, "Exit Emulator? [%s/%s]",__DATE__,__TIME__);
+                    showAlert(app, message, "Exit", true, EXIT_EMULATOR);
+                    return 1;
+                } else if (x > adjustedWidth - unitPixel * 2) {
                     LOGI("Tap Reset");
                     selectBootMode(app);
                     return 1;
-                } else if (x > adjustedWidth - unitPixel * 2) {
 #if false
                     int newScreenSize = (int) screenSize + 1;
                     if (newScreenSize > SCREEN_SIZE_SPECIAL) {
@@ -3662,12 +3669,16 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
 
         if (action == AKEY_EVENT_ACTION_DOWN) {
             if (AKEYCODE_BACK == AKeyEvent_getKeyCode(event)) {
+#if 0
                 char message[128];
                 sprintf(message, "Exit Emulator? [%s/%s]",__DATE__,__TIME__);
-                showAlert(app, message, "", true, EXIT_EMULATOR);
+                showAlert(app, message, "Exit", true, EXIT_EMULATOR);
+#endif
+                softKeyCode = 111;
+                softKeyDelayFlag = true;
+                softKeyboardCount = SOFT_KEYBOARD_KEEP_COUNT;
                 return 1;
             }
-
             if ((flags & AKEY_EVENT_FLAG_FROM_SYSTEM) == 0) { //ソフトウェアキーボード
                 LOGI("SoftwareKeyboard:count:%d", softKeyboardCount);
                 if (softKeyboardCount > 0) {
@@ -3717,7 +3728,9 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                 emu->get_osd()->key_down(code, false, false);
             }
         } else if (action == AKEY_EVENT_ACTION_UP) {
-            if ((flags & AKEY_EVENT_FLAG_FROM_SYSTEM) == 0) { //ソフトウェアキーボード
+            if (AKEYCODE_BACK == AKeyEvent_getKeyCode(event)) {
+                emu->get_osd()->key_up(111, false);
+            } else if ((flags & AKEY_EVENT_FLAG_FROM_SYSTEM) == 0) { //ソフトウェアキーボード
 
             } else {
                 emu->get_osd()->key_up(code, false);
@@ -4440,6 +4453,8 @@ void selectBootMode(struct android_app *state) {
 #endif
 #ifdef _X1TURBO_FEATURE
     itemList="High mode;Standard mode";
+#else
+    itemList="Reset";
 #endif
 
     showAlert(state, message, itemList.c_str(), true, BOOT_MODE_SELECT, 0);
@@ -5557,7 +5572,6 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_bootSelectCallback(JNIEnv 
         emu->update_config();
     }
 #endif
-
     resetFlag = true;
 }
 
@@ -5569,6 +5583,8 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_exitSelectCallback(JNIEnv 
     // 強制排出
     LOGI("exitSelectCallback");
     all_eject();
+    // リソース解放
+    delete emu;
     //TODO:free?
     exit(0);
 }

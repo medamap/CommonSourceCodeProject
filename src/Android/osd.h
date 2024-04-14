@@ -1465,13 +1465,11 @@ struct BitmapData{
 };
 
 enum systemIconType {
-    SYSTEM_RESET = 0 ,
-    SYSTEM_SCREEN ,
+    SYSTEM_EXIT = 0 ,
+    SYSTEM_RESET ,  // SYSTEM_SCREEN ,
     SYSTEM_SOUND,
     SYSTEM_PCG ,
-#if defined(_EXTEND_MENU)
     SYSTEM_CONFIG ,
-#endif
     SYSTEM_ICON_MAX
 };
 enum FileSelectType {
@@ -1519,6 +1517,11 @@ public:
 	{
 	}
 	~OBOESOUND() {
+        if (mStream) {
+            mStream->stop();
+            mStream->close();
+            mStream.reset(); // ストリームのポインタをリセットしてリソースを解放
+        }
 	}
 
 	#define SOUND_BUFFER_LENGTH 4800 * 100*2
