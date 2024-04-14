@@ -493,9 +493,11 @@ public class EmulatorActivity extends NativeActivity {
             case 0://systemIcon
                 switch(iconId) {
                     case 0:
-                        return R.drawable.reset;
+                        return R.drawable.exit;
                     case 1:
-                        return R.drawable.screen;
+                        return R.drawable.reset;
+//                  case 1:
+//                      return R.drawable.screen;
                     case 2:
                         return R.drawable.sound;
                     case 3:

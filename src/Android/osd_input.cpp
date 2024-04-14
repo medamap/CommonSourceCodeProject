@@ -389,10 +389,33 @@ void OSD::key_up(int code, bool extended)
 
 void OSD::key_down_native(int code, bool repeat)
 {
-	//LOGI("keyDown: %d", code);
-	key_status[code] = 0x80;
+#if false
+    bool keep_frames = false;
 
-	uint8_t prev_shift = key_status[VK_SHIFT];
+    if(code == 0xf0) {
+        code = VK_CAPITAL;
+        keep_frames = true;
+    } else if(code == 0xf1 || code == 0xf2) {
+        code = VK_KANA;
+        keep_frames = true;
+    } else if(code == 0xf3 || code == 0xf4) {
+        code = VK_KANJI;
+        keep_frames = true;
+    }
+//    if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+//        code = keycode_conv[code];
+//    }
+    if(key_status[code] == 0 || keep_frames) {
+        repeat = false;
+    }
+
+	//LOGI("keyDown: %d", code);
+    key_status[code] = keep_frames ? KEY_KEEP_FRAMES : 0x80;
+#else
+    key_status[code] = 0x80;
+#endif
+
+    uint8_t prev_shift = key_status[VK_SHIFT];
 	uint8_t prev_control = key_status[VK_CONTROL];
 	uint8_t prev_menu = key_status[VK_MENU];
 

@@ -178,7 +178,6 @@ oboe::Result OBOESOUND::createPlaybackStream(oboe::AudioStreamBuilder builder, i
             ->openManagedStream(mStream);
 }
 
-
 void OSD::initialize_sound(int rate, int samples){
 #ifdef ENABLE_SOUND
     oboeSound = new OBOESOUND();
@@ -199,6 +198,12 @@ void OSD::initialize_sound(int rate, int samples){
 #endif
 }
 void OSD::release_sound(){
+    LOGI("Release sound");
+    if (oboeSound) {
+        delete oboeSound; // OBOESOUND オブジェクトを削除してデストラクタを呼び出す
+        oboeSound = nullptr; // ポインタをnullに設定
+    }
+    sound_available = false;
 }
 
 #if defined(ANDROID_SOUND_LOG)
