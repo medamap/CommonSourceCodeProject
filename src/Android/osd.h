@@ -122,7 +122,9 @@ public:
 	}
 };
 #endif
+
 #include<string>
+#include <android/keycodes.h>
 
 /*
  * Window Messages Emulate
@@ -847,6 +849,51 @@ public:
 #define VK_INSERT 0x2D
 #define VK_DELETE 0x2E
 #define VK_HELP 0x2F
+
+/*
+ * VK_0 - VK_9 are the same as ASCII '0' - '9' (0x30 - 0x39)
+ * 0x3A - 0x40 : unassigned
+ * VK_A - VK_Z are the same as ASCII 'A' - 'Z' (0x41 - 0x5A)
+ */
+
+#define VK_0 0x30
+#define VK_1 0x31
+#define VK_2 0x32
+#define VK_3 0x33
+#define VK_4 0x34
+#define VK_5 0x35
+#define VK_6 0x36
+#define VK_7 0x37
+#define VK_8 0x38
+#define VK_9 0x39
+
+#define VK_A 0x41
+#define VK_B 0x42
+#define VK_C 0x43
+#define VK_D 0x44
+#define VK_E 0x45
+#define VK_F 0x46
+#define VK_G 0x47
+#define VK_H 0x48
+#define VK_I 0x49
+#define VK_J 0x4A
+#define VK_K 0x4B
+#define VK_L 0x4C
+#define VK_M 0x4D
+#define VK_N 0x4E
+#define VK_O 0x4F
+#define VK_P 0x50
+#define VK_Q 0x51
+#define VK_R 0x52
+#define VK_S 0x53
+#define VK_T 0x54
+#define VK_U 0x55
+#define VK_V 0x56
+#define VK_W 0x57
+#define VK_X 0x58
+#define VK_Y 0x59
+#define VK_Z 0x5A
+
 #define VK_LWIN 0x5B
 #define VK_RWIN 0x5C
 #define VK_APPS 0x5D
@@ -894,9 +941,7 @@ public:
 #define VK_SCROLL 0x91
 #define VK_LSHIFT 0xA0
 #define VK_RSHIFT 0xA1
-//0xA2 = 162
 #define VK_LCONTROL 0xA2
-//0xA3 = 163
 #define VK_RCONTROL 0xA3
 #define VK_LMENU 0xA4
 #define VK_RMENU 0xA5
@@ -911,551 +956,586 @@ public:
 #define VK_PA1 0xFD
 #define VK_OME_CLEAR 0xFE
 
-#define VK_OEM_EQU    0x92
-#define VK_OEM_1      0xBA
-#define VK_OEM_PLUS   0xBB
-#define VK_OEM_COMMA  0xBC
-#define VK_OEM_MINUS  0xBD
-#define VK_OEM_PERIOD 0xBE
-#define VK_OEM_2      0xBF
-#define VK_OEM_3      0xC0
-#define VK_OEM_4      0xDB
-#define VK_OEM_5      0xDC
-#define VK_OEM_6      0xDD
-#define VK_OEM_7      0xDE
-#define VK_OEM_8      0xD
-#define VK_OEM_102    0xE2
+#define VK_OEM_EQU        0x92
+#define VK_OEM_1          0xBA   // ';:' for US         ':*' for JP
+#define VK_OEM_PLUS       0xBB   // '+' any country
+#define VK_OEM_COMMA      0xBC   // ',' any country
+#define VK_OEM_MINUS      0xBD   // '-' any country
+#define VK_OEM_PERIOD     0xBE   // '.' any country
+#define VK_OEM_2          0xBF   // '/?' for US         '/?' for JP
+#define VK_OEM_3          0xC0   // '`~' for US         '@`' for JP
+#define VK_OEM_4          0xDB  //  '[{' for US         '[{' for JP
+#define VK_OEM_5          0xDC  //  '\|' for US         '\|' for JP
+#define VK_OEM_6          0xDD  //  ']}' for US         ']}' for JP
+#define VK_OEM_7          0xDE  //  ''"' for US         '^~' for JP
+#define VK_OEM_8          0xDF
+#define VK_OEM_102        0xE2  //  '<>' for US         '\_' for JP
 
-static const uint8_t usKeytoJISKey[][2] = {
-        {0,0},
-        {1,0},
-        {2,0},
-        {3,0},
-        {4,0},
-        {5,0},
-        {6,0},
-//テンキーがある機種の場合、数字キーはテンキー側を入力する。
-#if defined(_HAS_TENKEY)
-        {144,0}, //0
-        {145,0}, //1
-        {146,0}, //2
-        {147,0}, //3
-        {148,0}, //4
-        {149,0}, //5
-        {150,0}, //6
-        {151,0}, //7
-        {152,0},  //8
-        {153,0},  //9
-#else
-        {7,0}, //0
-        {8,0}, //1
-        {9,0}, //2
-        {10,0}, //3
-        {11,0}, //4
-        {12,0}, //5
-        {13,0}, //6
-        {14,0}, //7
-        {15,0},  //8
-        {16,0},  //9
-#endif
-        {17,0},
-        {18,0},
-        {19,0},
-        {20,0},
-        {21,0},
-        {22,0},
-        {23,0},
-        {24,0},
-        {25,0},
-        {26,0},
-        {27,0},
-        {28,0},
-        {29,0},
-        {30,0},
-        {31,0},
-        {32,0},
-        {33,0},
-        {34,0},
-        {35,0},
-        {36,0},
-        {37,0},
-        {38,0},
-        {39,0},
-        {40,0},
-        {41,0},
-        {42,0},
-        {43,0},
-        {44,0},
-        {45,0},
-        {46,0},
-        {47,0},
-        {48,0},
-        {49,0},
-        {50,0},
-        {51,0},
-        {52,0},
-        {53,0},
-        {54,0},
-        {55,0},
-        {56,0},
-        {57,0},
-        {58,0},
-        {59,0},
-        {60,0},
-        {61,0},
-        {62,0},
-        {63,0},
-        {64,0},
-        {65,0},
-        {66,0},
-        {67,0},
-        {68,0},
-        {69,0},
-		{69,1},//=
-        {72,0},//[
-        {73,0},//]
-        {216,0}, //￥
-        {74,0},
-        {14,1}, //'
-        {76,0},
-        {77,0},
-        {78,0},
-        {79,0},
-        {80,0},
-        {81,0},
-        {82,0},
-        {83,0},
-        {84,0},
-        {85,0},
-        {86,0},
-        {87,0},
-        {88,0},
-        {89,0},
-        {90,0},
-        {91,0},
-        {92,0},
-        {93,0},
-        {94,0},
-        {95,0},
-        {96,0},
-        {97,0},
-        {98,0},
-        {99,0},
-        {100,0},
-        {101,0},
-        {102,0},
-        {103,0},
-        {104,0},
-        {105,0},
-        {106,0},
-        {107,0},
-        {108,0},
-        {109,0},
-        {110,0},
-        {111,0},
-        {112,0},
-        {113,0},
-        {114,0},
-        {115,0},
-        {116,0},
-        {117,0},
-        {118,0},
-        {119,0},
-        {120,0},
-        {121,0},
-        {122,0},
-        {123,0},
-        {124,0},
-        {125,0},
-        {126,0},
-        {127,0},
-        {128,0},
-        {129,0},
-        {130,0},
-        {131,0},
-        {132,0},
-        {133,0},
-        {134,0},
-        {135,0},
-        {136,0},
-        {137,0},
-        {138,0},
-        {139,0},
-        {140,0},
-        {141,0},
-        {142,0},
-        {143,0},
-        {144,0},
-        {145,0},
-        {146,0},
-        {147,0},
-        {148,0},
-        {149,0},
-        {150,0},
-        {151,0},
-        {152,0},
-        {153,0},
-        {154,0},
-        {155,0},
-        {156,0},
-        {157,0},
-        {158,0},
-        {159,0},
-        {160,0},
-        {161,0},
-        {162,0},
-        {163,0},
-        {164,0},
-        {165,0},
-        {166,0},
-        {167,0},
-        {168,0},
-        {169,0},
-        {170,0},
-        {171,0},
-        {172,0},
-        {173,0},
-        {174,0},
-        {175,0},
-        {176,0},
-        {177,0},
-        {178,0},
-        {179,0},
-        {180,0},
-        {181,0},
-        {182,0},
-        {183,0},
-        {184,0},
-        {185,0},
-        {186,0},
-        {187,0},
-        {188,0},
-        {189,0},
-        {190,0},
-        {191,0},
-        {192,0},
-        {193,0},
-        {194,0},
-        {195,0},
-        {196,0},
-        {197,0},
-        {198,0},
-        {199,0},
-        {200,0},
-        {201,0},
-        {202,0},
-        {203,0},
-        {204,0},
-        {205,0},
-        {206,0},
-        {207,0},
-        {208,0},
-        {209,0},
-        {210,0},
-        {211,0},
-        {212,0},
-        {213,0},
-        {214,0},
-        {215,0},
-        {216,0},
-        {217,0},
-        {218,0},
-        {219,0},
-        {220,0},
-        {221,0},
-        {221,0},
-        {223,0},
-        {224,0},
-        {225,0},
-        {226,0},
-        {227,0},
-        {228,0},
-        {229,0},
-        {230,0},
-        {231,0},
-        {232,0},
-        {233,0},
-        {234,0},
-        {235,0},
-        {236,0},
-        {237,0},
-        {238,0},
-        {239,0},
-        {240,0},
-        {241,0},
-        {242,0},
-        {243,0},
-        {244,0},
-        {245,0},
-        {246,0},
-        {247,0},
-        {248,0},
-        {249,0},
-        {250,0},
-        {251,0},
-        {252,0},
-        {253,0},
-        {254,0},
-        {255,0}
+//Androidキーコード→Asciiコード
+//http://faq.creasus.net/04/0131/CharCode.html
+static const uint8_t AndroidToAsciiCode[][2] = {
+        { 0, 0 }, //  AKEYCODE_UNKNOWN 	0
+        { 0, 0 }, //  AKEYCODE_SOFT_LEFT 	1
+        { 0, 0 }, //  AKEYCODE_SOFT_RIGHT 	2
+        { 0, 0 }, //  AKEYCODE_HOME 	3
+        { 0, 0 }, //  AKEYCODE_BACK 	4
+        { 0, 0 }, //  AKEYCODE_CALL 	5
+        { 0, 0 }, //  AKEYCODE_ENDCALL 	6
+        { 0x30, 0x29 }, //  AKEYCODE_0 	7
+        { 0x31, 0x21 }, //  AKEYCODE_1 	8
+        { 0x32, 0x40 }, //  AKEYCODE_2 	9
+        { 0x33, 0x23 }, //  AKEYCODE_3 	10
+        { 0x34, 0x24 }, //  AKEYCODE_4 	11
+        { 0x35, 0x25 }, //  AKEYCODE_5 	12
+        { 0x36, 0x5e }, //  AKEYCODE_6 	13
+        { 0x37, 0x26 }, //  AKEYCODE_7 	14
+        { 0x38, 0x2a }, //  AKEYCODE_8 	15
+        { 0x39, 0x28 }, //  AKEYCODE_9 	16
+        { 0, 0 }, //  AKEYCODE_STAR 	17
+        { 0, 0 }, //  AKEYCODE_POUND 	18
+        { 0x1e, 0x1e }, //  AKEYCODE_DPAD_UP 	19
+        { 0x1f, 0x1f }, //  AKEYCODE_DPAD_DOWN 	20
+        { 0x1d, 0x1d }, //  AKEYCODE_DPAD_LEFT 	21
+        { 0x1c, 0x1d }, //  AKEYCODE_DPAD_RIGHT 	22
+        { 0, 0 }, //  AKEYCODE_DPAD_CENTER 	23
+        { 0, 0 }, //  AKEYCODE_VOLUME_UP 	24
+        { 0, 0 }, //  AKEYCODE_VOLUME_DOWN 	25
+        { 0, 0 }, //  AKEYCODE_POWER 	26
+        { 0, 0 }, //  AKEYCODE_CAMERA 	27
+        { 0, 0 }, //  AKEYCODE_CLEAR 	28
+        { 0x41, 0x61 }, //  AKEYCODE_A 	29
+        { 0x42, 0x62 }, //  AKEYCODE_B 	30
+        { 0x43, 0x63 }, //  AKEYCODE_C 	31
+        { 0x44, 0x64 }, //  AKEYCODE_D 	32
+        { 0x45, 0x65 }, //  AKEYCODE_E 	33
+        { 0x46, 0x66 }, //  AKEYCODE_F 	34
+        { 0x47, 0x67 }, //  AKEYCODE_G 	35
+        { 0x48, 0x68 }, //  AKEYCODE_H 	36
+        { 0x49, 0x69 }, //  AKEYCODE_I 	37
+        { 0x4a, 0x6a }, //  AKEYCODE_J 	38
+        { 0x4b, 0x6b }, //  AKEYCODE_K 	39
+        { 0x4c, 0x6c }, //  AKEYCODE_L 	40
+        { 0x4d, 0x6d }, //  AKEYCODE_M 	41
+        { 0x4e, 0x6e }, //  AKEYCODE_N 	42
+        { 0x4f, 0x6f }, //  AKEYCODE_O 	43
+        { 0x50, 0x70 }, //  AKEYCODE_P 	44
+        { 0x51, 0x71 }, //  AKEYCODE_Q 	45
+        { 0x52, 0x72 }, //  AKEYCODE_R 	46
+        { 0x53, 0x73 }, //  AKEYCODE_S 	47
+        { 0x54, 0x74 }, //  AKEYCODE_T 	48
+        { 0x55, 0x75 }, //  AKEYCODE_U 	49
+        { 0x56, 0x76 }, //  AKEYCODE_V 	50
+        { 0x57, 0x77 }, //  AKEYCODE_W 	51
+        { 0x58, 0x78 }, //  AKEYCODE_X 	52
+        { 0x59, 0x79 }, //  AKEYCODE_Y 	53
+        { 0x5a, 0x7a }, //  AKEYCODE_Z 	54
+        { 0x2c, 0x3c }, //  AKEYCODE_COMMA 	55
+        { 0x2e, 0x3e }, //  AKEYCODE_PERIOD 	56
+        { 0, 0 }, //  AKEYCODE_ALT_LEFT 	57
+        { 0, 0 }, //  AKEYCODE_ALT_RIGHT 	58
+        { 0, 0 }, //  AKEYCODE_SHIFT_LEFT 	59
+        { 0, 0 }, //  AKEYCODE_SHIFT_RIGHT 	60
+        { 0x09, 0x09 }, //  AKEYCODE_TAB 	61
+        { 0x20, 0x20 }, //  AKEYCODE_SPACE 	62
+        { 0, 0 }, //  AKEYCODE_SYM 	63
+        { 0, 0 }, //  AKEYCODE_EXPLORER 	64
+        { 0, 0 }, //  AKEYCODE_ENVELOPE 	65
+        { 0x0d, 0x0d }, //  AKEYCODE_ENTER 	66
+        { 0x08, 0x08 }, //  AKEYCODE_DEL 	67
+        { 0x60, 0x7e }, //  AKEYCODE_GRAVE 	68
+        { 0x2d, 0x5f }, //  AKEYCODE_MINUS 	69
+        { 0x3d, 0x2b }, //  AKEYCODE_EQUALS 	70
+        { 0x5b, 0x7b }, //  AKEYCODE_LEFT_BRACKET 	71
+        { 0x5d, 0x7d }, //  AKEYCODE_RIGHT_BRACKET 	72
+        { 0x5c, 0x7c }, //  AKEYCODE_BACKSLASH 	73
+        { 0x3b, 0x3a }, //  AKEYCODE_SEMICOLON 	74
+        { 0x27, 0x22 }, //  AKEYCODE_APOSTROPHE 	75
+        { 0x2f, 0x3f }, //  AKEYCODE_SLASH 	76
+        { 0x40, 0 }, //  AKEYCODE_AT 	77
+        { 0, 0 }, //  AKEYCODE_NUM 	78
+        { 0, 0 }, //  AKEYCODE_HEADSETHOOK 	79
+        { 0, 0 }, //  AKEYCODE_FOCUS 	80
+        { 0, 0 }, //  AKEYCODE_PLUS 	81
+        { 0, 0 }, //  AKEYCODE_MENU 	82
+        { 0, 0 }, //  AKEYCODE_NOTIFICATION 	83
+        { 0, 0 }, //  AKEYCODE_SEARCH 	84
+        { 0, 0 }, //  AKEYCODE_MEDIA_PLAY_PAUSE 	85
+        { 0, 0 }, //  AKEYCODE_MEDIA_STOP 	86
+        { 0, 0 }, //  AKEYCODE_MEDIA_NEXT 	87
+        { 0, 0 }, //  AKEYCODE_MEDIA_PREVIOUS 	88
+        { 0, 0 }, //  AKEYCODE_MEDIA_REWIND 	89
+        { 0, 0 }, //  AKEYCODE_MEDIA_FAST_FORWARD 	90
+        { 0, 0 }, //  AKEYCODE_MUTE 	91
+        { 0, 0 }, //  AKEYCODE_PAGE_UP 	92
+        { 0, 0 }, //  AKEYCODE_PAGE_DOWN 	93
+        { 0, 0 }, //  AKEYCODE_PICTSYMBOLS 	94
+        { 0, 0 }, //  AKEYCODE_SWITCH_CHARSET 	95
+        { 0, 0 }, //  AKEYCODE_BUTTON_A 	96
+        { 0, 0 }, //  AKEYCODE_BUTTON_B 	97
+        { 0, 0 }, //  AKEYCODE_BUTTON_C 	98
+        { 0, 0 }, //  AKEYCODE_BUTTON_X 	99
+        { 0, 0 }, //  AKEYCODE_BUTTON_Y 	100
+        { 0, 0 }, //  AKEYCODE_BUTTON_Z 	101
+        { 0, 0 }, //  AKEYCODE_BUTTON_L1 	102
+        { 0, 0 }, //  AKEYCODE_BUTTON_R1 	103
+        { 0, 0 }, //  AKEYCODE_BUTTON_L2 	104
+        { 0, 0 }, //  AKEYCODE_BUTTON_R2 	105
+        { 0, 0 }, //  AKEYCODE_BUTTON_THUMBL 	106
+        { 0, 0 }, //  AKEYCODE_BUTTON_THUMBR 	107
+        { 0, 0 }, //  AKEYCODE_BUTTON_START 	108
+        { 0, 0 }, //  AKEYCODE_BUTTON_SELECT 	109
+        { 0, 0 }, //  AKEYCODE_BUTTON_MODE 	110
+        { 0x1b, 0x1b }, //  AKEYCODE_ESCAPE 	111
+        { 0, 0 }, //  AKEYCODE_FORWARD_DEL 	112
+        { 0, 0 }, //  AKEYCODE_CTRL_LEFT 	113
+        { 0, 0 }, //  AKEYCODE_CTRL_RIGHT 	114
+        { 0, 0 }, //  AKEYCODE_CAPS_LOCK 	115
+        { 0, 0 }, //  AKEYCODE_SCROLL_LOCK 	116
+        { 0, 0 }, //  AKEYCODE_META_LEFT 	117
+        { 0, 0 }, //  AKEYCODE_META_RIGHT 	118
+        { 0, 0 }, //  AKEYCODE_FUNCTION 	119
+        { 0, 0 }, //  AKEYCODE_SYSRQ 	120
+        { 0, 0 }, //  AKEYCODE_BREAK 	121
+        { 0, 0 }, //  AKEYCODE_MOVE_HOME 	122
+        { 0, 0 }, //  AKEYCODE_MOVE_END 	123
+        { 0, 0 }, //  AKEYCODE_INSERT 	124
+        { 0, 0 }, //  AKEYCODE_FORWARD 	125
+        { 0, 0 }, //  AKEYCODE_MEDIA_PLAY 	126
+        { 0, 0 }, //  AKEYCODE_MEDIA_PAUSE 	127
+        { 0, 0 }, //  AKEYCODE_MEDIA_CLOSE 	128
+        { 0, 0 }, //  AKEYCODE_MEDIA_EJECT 	129
+        { 0, 0 }, //  AKEYCODE_MEDIA_RECORD 	130
+        { 0, 0 }, //  AKEYCODE_F1 	131
+        { 0, 0 }, //  AKEYCODE_F2 	132
+        { 0, 0 }, //  AKEYCODE_F3 	133
+        { 0, 0 }, //  AKEYCODE_F4 	134
+        { 0, 0 }, //  AKEYCODE_F5 	135
+        { 0, 0 }, //  AKEYCODE_F6 	136
+        { 0, 0 }, //  AKEYCODE_F7 	137
+        { 0, 0 }, //  AKEYCODE_F8 	138
+        { 0, 0 }, //  AKEYCODE_F9 	139
+        { 0, 0 }, //  AKEYCODE_F10 	140
+        { 0, 0 }, //  AKEYCODE_F11 	141
+        { 0, 0 }, //  AKEYCODE_F12 	142
+        { 0, 0 }, //  AKEYCODE_NUM_LOCK 	143
+        { 0x30, 0x30 }, //  AKEYCODE_NUMPAD_0 	144
+        { 0x31, 0x31 }, //  AKEYCODE_NUMPAD_1 	145
+        { 0x32, 0x32 }, //  AKEYCODE_NUMPAD_2 	146
+        { 0x33, 0x33 }, //  AKEYCODE_NUMPAD_3 	147
+        { 0x34, 0x34 }, //  AKEYCODE_NUMPAD_4 	148
+        { 0x35, 0x35 }, //  AKEYCODE_NUMPAD_5 	149
+        { 0x36, 0x36 }, //  AKEYCODE_NUMPAD_6 	150
+        { 0x37, 0x37 }, //  AKEYCODE_NUMPAD_7 	151
+        { 0x38, 0x38 }, //  AKEYCODE_NUMPAD_8 	152
+        { 0x39, 0x39 }, //  AKEYCODE_NUMPAD_9 	153
+        { 0x2f, 0x2f }, //  AKEYCODE_NUMPAD_DIVIDE 	154
+        { 0x2a, 0x2a }, //  AKEYCODE_NUMPAD_MULTIPLY 	155
+        { 0x2d, 0x2d }, //  AKEYCODE_NUMPAD_SUBTRACT 	156
+        { 0x2b, 0x2b }, //  AKEYCODE_NUMPAD_ADD 	157
+        { 0x2e, 0x2e }, //  AKEYCODE_NUMPAD_DOT 	158
+        { 0x2c, 0x2c }, //  AKEYCODE_NUMPAD_COMMA 	159
+        { 0x0d, 0x0d }, //  AKEYCODE_NUMPAD_ENTER 	160
+        { 0x3d, 0x3d }, //  AKEYCODE_NUMPAD_EQUALS 	161
+        { 0, 0 }, //  AKEYCODE_NUMPAD_LEFT_PAREN 	162
+        { 0, 0 }, //  AKEYCODE_NUMPAD_RIGHT_PAREN 	163
+        { 0, 0 }, //  AKEYCODE_VOLUME_MUTE 	164
+        { 0, 0 }, //  AKEYCODE_INFO 	165
+        { 0, 0 }, //  AKEYCODE_CHANNEL_UP 	166
+        { 0, 0 }, //  AKEYCODE_CHANNEL_DOWN 	167
+        { 0, 0 }, //  AKEYCODE_ZOOM_IN 	168
+        { 0, 0 }, //  AKEYCODE_ZOOM_OUT 	169
+        { 0, 0 }, //  AKEYCODE_TV 	170
+        { 0, 0 }, //  AKEYCODE_WINDOW 	171
+        { 0, 0 }, //  AKEYCODE_GUIDE 	172
+        { 0, 0 }, //  AKEYCODE_DVR 	173
+        { 0, 0 }, //  AKEYCODE_BOOKMARK 	174
+        { 0, 0 }, //  AKEYCODE_CAPTIONS 	175
+        { 0, 0 }, //  AKEYCODE_SETTINGS 	176
+        { 0, 0 }, //  AKEYCODE_TV_POWER 	177
+        { 0, 0 }, //  AKEYCODE_TV_INPUT 	178
+        { 0, 0 }, //  AKEYCODE_STB_POWER 	179
+        { 0, 0 }, //  AKEYCODE_STB_INPUT 	180
+        { 0, 0 }, //  AKEYCODE_AVR_POWER 	181
+        { 0, 0 }, //  AKEYCODE_AVR_INPUT 	182
+        { 0, 0 }, //  AKEYCODE_PROG_RED 	183
+        { 0, 0 }, //  AKEYCODE_PROG_GREEN 	184
+        { 0, 0 }, //  AKEYCODE_PROG_YELLOW 	185
+        { 0, 0 }, //  AKEYCODE_PROG_BLUE 	186
+        { 0, 0 }, //  AKEYCODE_APP_SWITCH 	187
+        { 0, 0 }, //  AKEYCODE_BUTTON_1 	188
+        { 0, 0 }, //  AKEYCODE_BUTTON_2 	189
+        { 0, 0 }, //  AKEYCODE_BUTTON_3 	190
+        { 0, 0 }, //  AKEYCODE_BUTTON_4 	191
+        { 0, 0 }, //  AKEYCODE_BUTTON_5 	192
+        { 0, 0 }, //  AKEYCODE_BUTTON_6 	193
+        { 0, 0 }, //  AKEYCODE_BUTTON_7 	194
+        { 0, 0 }, //  AKEYCODE_BUTTON_8 	195
+        { 0, 0 }, //  AKEYCODE_BUTTON_9 	196
+        { 0, 0 }, //  AKEYCODE_BUTTON_10 	197
+        { 0, 0 }, //  AKEYCODE_BUTTON_11 	198
+        { 0, 0 }, //  AKEYCODE_BUTTON_12 	199
+        { 0, 0 }, //  AKEYCODE_BUTTON_13 	200
+        { 0, 0 }, //  AKEYCODE_BUTTON_14 	201
+        { 0, 0 }, //  AKEYCODE_BUTTON_15 	202
+        { 0, 0 }, //  AKEYCODE_BUTTON_16 	203
+        { 0, 0 }, //  AKEYCODE_LANGUAGE_SWITCH 	204
+        { 0, 0 }, //  AKEYCODE_MANNER_MODE 	205
+        { 0, 0 }, //  AKEYCODE_3D_MODE 	206
+        { 0, 0 }, //  AKEYCODE_CONTACTS 	207
+        { 0, 0 }, //  AKEYCODE_CALENDAR 	208
+        { 0, 0 }, //  AKEYCODE_MUSIC 	209
+        { 0, 0 }, //  AKEYCODE_CALCULATOR 	210
+        { 0, 0 }, //  AKEYCODE_ZENKAKU_HANKAKU 	211
+        { 0, 0 }, //  AKEYCODE_EISU 	212
+        { 0, 0 }, //  AKEYCODE_MUHENKAN 	213
+        { 0, 0 }, //  AKEYCODE_HENKAN 	214
+        { 0, 0 }, //  AKEYCODE_KATAKANA_HIRAGANA 	215
+        { 0x7c, 0x7c }, //  AKEYCODE_YEN 	216    -> \ + |
+        { 0x5f, 0x7c }, //  AKEYCODE_RO 	217       -> \ + _
+        { 0, 0 }, //  AKEYCODE_KANA 	218
+        { 0, 0 }, //  AKEYCODE_ASSIST 	219
+        { 0, 0 }, //  AKEYCODE_BRIGHTNESS_DOWN 	220
+        { 0, 0 }, //  AKEYCODE_BRIGHTNESS_UP 	221
+        { 0, 0 }, //  AKEYCODE_MEDIA_AUDIO_TRACK 	222
+        { 0, 0 }, //  AKEYCODE_SLEEP 	223
+        { 0, 0 }, //  AKEYCODE_WAKEUP 	224
+        { 0, 0 }, //  AKEYCODE_PAIRING 	225
+        { 0, 0 }, //  AKEYCODE_MEDIA_TOP_MENU 	226
+        { 0, 0 }, //  AKEYCODE_11 	227
+        { 0, 0 }, //  AKEYCODE_12 	228
+        { 0, 0 }, //  AKEYCODE_LAST_CHANNEL 	229
+        { 0, 0 }, //  AKEYCODE_TV_DATA_SERVICE 	230
+        { 0, 0 }, //  AKEYCODE_VOICE_ASSIST 	231
+        { 0, 0 }, //  AKEYCODE_TV_RADIO_SERVICE 	232
+        { 0, 0 }, //  AKEYCODE_TV_TELETEXT 	233
+        { 0, 0 }, //  AKEYCODE_TV_NUMBER_ENTRY 	234
+        { 0, 0 }, //  AKEYCODE_TV_TERRESTRIAL_ANALOG 	235
+        { 0, 0 }, //  AKEYCODE_TV_TERRESTRIAL_DIGITAL 	236
+        { 0, 0 }, //  AKEYCODE_TV_SATELLITE 	237
+        { 0, 0 }, //  AKEYCODE_TV_SATELLITE_BS 	238
+        { 0, 0 }, //  AKEYCODE_TV_SATELLITE_CS 	239
+        { 0, 0 }, //  AKEYCODE_TV_SATELLITE_SERVICE 	240
+        { 0, 0 }, //  AKEYCODE_TV_NETWORK 	241
+        { 0, 0 }, //  AKEYCODE_TV_ANTENNA_CABLE 	242
+        { 0, 0 }, //  AKEYCODE_TV_INPUT_HDMI_1 	243
+        { 0, 0 }, //  AKEYCODE_TV_INPUT_HDMI_2 	244
+        { 0, 0 }, //  AKEYCODE_TV_INPUT_HDMI_3 	245
+        { 0, 0 }, //  AKEYCODE_TV_INPUT_HDMI_4 	246
+        { 0, 0 }, //  AKEYCODE_TV_INPUT_COMPOSITE_1 	247
+        { 0, 0 }, //  AKEYCODE_TV_INPUT_COMPOSITE_2 	248
+        { 0, 0 }, //  AKEYCODE_TV_INPUT_COMPONENT_1 	249
+        { 0, 0 }, //  AKEYCODE_TV_INPUT_COMPONENT_2 	250
+        { 0, 0 }, //  AKEYCODE_TV_INPUT_VGA_1 	251
+        { 0, 0 }, //  AKEYCODE_TV_AUDIO_DESCRIPTION 	252
+        { 0, 0 }, //  AKEYCODE_TV_AUDIO_DESCRIPTION_MIX_UP 	253
+        { 0, 0 }, //  AKEYCODE_TV_AUDIO_DESCRIPTION_MIX_DOWN 	254
+        { 0, 0 }, //  AKEYCODE_TV_ZOOM_MODE 	255
+        { 0, 0 }, //  AKEYCODE_TV_CONTENTS_MENU 	256
+        { 0, 0 }, //  AKEYCODE_TV_MEDIA_CONTEXT_MENU 	257
+        { 0, 0 }, //  AKEYCODE_TV_TIMER_PROGRAMMING 	258
+        { 0, 0 }, //  AKEYCODE_HELP 	259
+        { 0, 0 }, //  AKEYCODE_NAVIGATE_PREVIOUS 	260
+        { 0, 0 }, //  AKEYCODE_NAVIGATE_NEXT 	261
+        { 0, 0 }, //  AKEYCODE_NAVIGATE_IN 	262
+        { 0, 0 }, //  AKEYCODE_NAVIGATE_OUT 	263
+        { 0, 0 }, //  AKEYCODE_STEM_PRIMARY 	264
+        { 0, 0 }, //  AKEYCODE_STEM_1 	265
+        { 0, 0 }, //  AKEYCODE_STEM_2 	266
+        { 0, 0 }, //  AKEYCODE_STEM_3 	267
+        { 0, 0 }, //  AKEYCODE_DPAD_UP_LEFT 	268
+        { 0, 0 }, //  AKEYCODE_DPAD_DOWN_LEFT 	269
+        { 0, 0 }, //  AKEYCODE_DPAD_UP_RIGHT 	270
+        { 0, 0 }, //  AKEYCODE_DPAD_DOWN_RIGHT 	271
+        { 0, 0 }, //  AKEYCODE_MEDIA_SKIP_FORWARD 	272
+        { 0, 0 }, //  AKEYCODE_MEDIA_SKIP_BACKWARD 	273
+        { 0, 0 }, //  AKEYCODE_MEDIA_STEP_FORWARD 	274
+        { 0, 0 }, //  AKEYCODE_MEDIA_STEP_BACKWARD 	275
+        { 0, 0 }, //  AKEYCODE_SOFT_SLEEP 	276
+        { 0, 0 }, //  AKEYCODE_CUT 	277
+        { 0, 0 }, //  AKEYCODE_COPY 	278
+        { 0, 0 }, //  AKEYCODE_PASTE 	279
+        { 0, 0 }, //  AKEYCODE_SYSTEM_NAVIGATION_UP 	280
+        { 0, 0 }, //  AKEYCODE_SYSTEM_NAVIGATION_DOWN 	281
+        { 0, 0 }, //  AKEYCODE_SYSTEM_NAVIGATION_LEFT 	282
+        { 0, 0 }, //  AKEYCODE_SYSTEM_NAVIGATION_RIGHT 	283
+        { 0, 0 }, //  AKEYCODE_ALL_APPS 	284
+        { 0, 0 }, //  AKEYCODE_REFRESH 	285
+        { 0, 0 }, //  AKEYCODE_THUMBS_UP 	286
+        { 0, 0 }, //  AKEYCODE_THUMBS_DOWN 	287
+        { 0, 0 }, //  AKEYCODE_PROFILE_SWITCH 	288
 };
 
-static const uint8_t usKeytoJISKeyShift[][2] = {
-        {0,1},
-        {1,1},
-        {2,1},
-        {3,1},
-        {4,1},
-        {5,1},
-        {6,1},
-        {16,1},//)
-        {8,1},
-        {71,0},// @
-        {10,1},
-        {11,1},
-        {12,1},
-        {70,0}, //^
-        {13,1}, //&
-        {75,1}, //*
-        {15,1},//(
-        {17,1},
-        {18,1},
-        {19,1},
-        {20,1},
-        {21,1},
-        {22,1},
-        {23,1},
-        {24,1},
-        {25,1},
-        {26,1},
-        {27,1},
-        {28,1},
-        {29,1},
-        {30,1},
-        {31,1},
-        {32,1},
-        {33,1},
-        {34,1},
-        {35,1},
-        {36,1},
-        {37,1},
-        {38,1},
-        {39,1},
-        {40,1},
-        {41,1},
-        {42,1},
-        {43,1},
-        {44,1},
-        {45,1},
-        {46,1},
-        {47,1},
-        {48,1},
-        {49,1},
-        {50,1},
-        {51,1},
-        {52,1},
-        {53,1},
-        {54,1},
-        {55,1},
-        {56,1},
-        {57,1},
-        {58,1},
-        {59,1},
-        {60,1},
-        {61,1},
-        {62,1},
-        {63,1},
-        {64,1},
-        {65,1},
-        {66,1},
-        {67,1},
-        {70,1}, //~
-        {217,1}, //_
-        {74,1}, //+
-        {71,1},
-        {72,1},
-        {216,1}, // ￥
-        {75,0}, //:
-		{9,1}, //"
-        {76,1},
-        {77,1},
-        {78,1},
-        {79,1},
-        {80,1},
-        {81,1},
-        {82,1},
-        {83,1},
-        {84,1},
-        {85,1},
-        {86,1},
-        {87,1},
-        {88,1},
-        {89,1},
-        {90,1},
-        {91,1},
-        {92,1},
-        {93,1},
-        {94,1},
-        {95,1},
-        {96,1},
-        {97,1},
-        {98,1},
-        {99,1},
-        {100,1},
-        {101,1},
-        {102,1},
-        {103,1},
-        {104,1},
-        {105,1},
-        {106,1},
-        {107,1},
-        {108,1},
-        {109,1},
-        {110,1},
-        {111,1},
-        {112,1},
-        {113,1},
-        {114,1},
-        {115,1},
-        {116,1},
-        {117,1},
-        {118,1},
-        {119,1},
-        {120,1},
-        {121,1},
-        {122,1},
-        {123,1},
-        {124,1},
-        {125,1},
-        {126,1},
-        {127,1},
-        {128,1},
-        {129,1},
-        {130,1},
-        {131,1},
-        {132,1},
-        {133,1},
-        {134,1},
-        {135,1},
-        {136,1},
-        {137,1},
-        {138,1},
-        {139,1},
-        {140,1},
-        {141,1},
-        {142,1},
-        {143,1},
-        {144,1},
-        {145,1},
-        {146,1},
-        {147,1},
-        {148,1},
-        {149,1},
-        {150,1},
-        {151,1},
-        {152,1},
-        {153,1},
-        {154,1},
-        {155,1},
-        {156,1},
-        {157,1},
-        {158,1},
-        {159,1},
-        {160,1},
-        {161,1},
-        {162,1},
-        {163,1},
-        {164,1},
-        {165,1},
-        {166,1},
-        {167,1},
-        {168,1},
-        {169,1},
-        {170,1},
-        {171,1},
-        {172,1},
-        {173,1},
-        {174,1},
-        {175,1},
-        {176,1},
-        {177,1},
-        {178,1},
-        {179,1},
-        {180,1},
-        {181,1},
-        {182,1},
-        {183,1},
-        {184,1},
-        {185,1},
-        {186,1},
-        {187,1},
-        {188,1},
-        {189,1},
-        {190,1},
-        {191,1},
-        {192,1},
-        {193,1},
-        {194,1},
-        {195,1},
-        {196,1},
-        {197,1},
-        {198,1},
-        {199,1},
-        {200,1},
-        {201,1},
-        {202,1},
-        {203,1},
-        {204,1},
-        {205,1},
-        {206,1},
-        {207,1},
-        {208,1},
-        {209,1},
-        {210,1},
-        {211,1},
-        {212,1},
-        {213,1},
-        {214,1},
-        {215,1},
-        {216,1},
-        {217,1},
-        {218,1},
-        {219,1},
-        {220,1},
-        {221,1},
-        {222,1},
-        {223,1},
-        {224,1},
-        {225,1},
-        {226,1},
-        {227,1},
-        {228,1},
-        {229,1},
-        {230,1},
-        {231,1},
-        {232,1},
-        {233,1},
-        {234,1},
-        {235,1},
-        {236,1},
-        {237,1},
-        {238,1},
-        {239,1},
-        {240,1},
-        {241,1},
-        {242,1},
-        {243,1},
-        {244,1},
-        {245,1},
-        {246,1},
-        {247,1},
-        {248,1},
-        {249,1},
-        {250,1},
-        {251,1},
-        {252,1},
-        {253,1},
-        {254,1},
-        {255,1}
+static uint8_t androidToAndroidToVk[][5] = {
+        {0,             AKEYCODE_UNKNOWN,              0,  AKEYCODE_UNKNOWN,               1}, //   0 AKEYCODE_UNKNOWN
+        {0,             AKEYCODE_SOFT_LEFT,            0,  AKEYCODE_SOFT_LEFT,             1}, //   1 AKEYCODE_SOFT_LEFT
+        {0,             AKEYCODE_SOFT_RIGHT,           0,  AKEYCODE_SOFT_RIGHT,            1}, //   2 AKEYCODE_SOFT_RIGHT
+        {0,             AKEYCODE_HOME,                 0,  AKEYCODE_HOME,                  1}, //   3 AKEYCODE_HOME
+        {0,             AKEYCODE_BACK,                 0,  AKEYCODE_BACK,                  1}, //   4 AKEYCODE_BACK
+        {0,             AKEYCODE_CALL,                 0,  AKEYCODE_CALL,                  1}, //   5 AKEYCODE_CALL
+        {0,             AKEYCODE_ENDCALL,              0,  AKEYCODE_ENDCALL,               1}, //   6 AKEYCODE_ENDCALL
+//テンキーがある機種の場合、数字キーはテンキー側を入力する。
+#if !defined(_HAS_TENKEY)
+        {VK_0,          AKEYCODE_NUMPAD_0,             0,  AKEYCODE_0,                     1}, //   7 AKEYCODE_0
+        {VK_1,          AKEYCODE_NUMPAD_1,             0,  AKEYCODE_1,                     1}, //   8 AKEYCODE_1
+        {VK_2,          AKEYCODE_NUMPAD_2,             0,  AKEYCODE_2,                     1}, //   9 AKEYCODE_2
+        {VK_3,          AKEYCODE_NUMPAD_3,             0,  AKEYCODE_3,                     1}, //  10 AKEYCODE_3
+        {VK_4,          AKEYCODE_NUMPAD_4,             0,  AKEYCODE_4,                     1}, //  11 AKEYCODE_4
+        {VK_5,          AKEYCODE_NUMPAD_5,             0,  AKEYCODE_5,                     1}, //  12 AKEYCODE_5
+        {VK_6,          AKEYCODE_NUMPAD_6,             0,  AKEYCODE_BUTTON_7,              0}, //  13 AKEYCODE_6
+        {VK_7,          AKEYCODE_NUMPAD_7,             0,  AKEYCODE_7,                     1}, //  14 AKEYCODE_7
+        {VK_8,          AKEYCODE_NUMPAD_8,             0,  AKEYCODE_8,                     1}, //  15 AKEYCODE_8
+        {VK_9,          AKEYCODE_NUMPAD_9,             0,  AKEYCODE_9,                     1}, //  16 AKEYCODE_9
+#else
+        {VK_0,          AKEYCODE_0,                    0,  AKEYCODE_9,                     1}, //   7 AKEYCODE_0
+        {VK_1,          AKEYCODE_1,                    0,  AKEYCODE_1,                     1}, //   8 AKEYCODE_1
+        {VK_2,          AKEYCODE_2,                    0,  AKEYCODE_2,                     1}, //   9 AKEYCODE_2
+        {VK_3,          AKEYCODE_3,                    0,  AKEYCODE_3,                     1}, //  10 AKEYCODE_3
+        {VK_4,          AKEYCODE_4,                    0,  AKEYCODE_4,                     1}, //  11 AKEYCODE_4
+        {VK_5,          AKEYCODE_5,                    0,  AKEYCODE_5,                     1}, //  12 AKEYCODE_5
+        {VK_6,          AKEYCODE_6,                    0,  AKEYCODE_BUTTON_7,              0}, //  13 AKEYCODE_6
+        {VK_7,          AKEYCODE_7,                    0,  AKEYCODE_6,                     1}, //  14 AKEYCODE_7
+        {VK_8,          AKEYCODE_8,                    0,  AKEYCODE_BUTTON_1,              1}, //  15 AKEYCODE_8
+        {VK_9,          AKEYCODE_9,                    0,  AKEYCODE_8,                     1}, //  16 AKEYCODE_9
+#endif
+        {VK_OEM_1,      AKEYCODE_STAR,                 1,  AKEYCODE_STAR,                  1}, //  17 AKEYCODE_STAR
+        {VK_3,          AKEYCODE_POUND,                1,  AKEYCODE_POUND,                 1}, //  18 AKEYCODE_POUND
+        {VK_UP,         AKEYCODE_DPAD_UP,              0,  AKEYCODE_DPAD_UP,               1}, //  19 AKEYCODE_DPAD_UP
+        {VK_DOWN,       AKEYCODE_DPAD_DOWN,            0,  AKEYCODE_DPAD_DOWN,             1}, //  20 AKEYCODE_DPAD_DOWN
+        {VK_LEFT,       AKEYCODE_DPAD_LEFT,            0,  AKEYCODE_DPAD_LEFT,             1}, //  21 AKEYCODE_DPAD_LEFT
+        {VK_RIGHT,      AKEYCODE_DPAD_RIGHT,           0,  AKEYCODE_DPAD_RIGHT,            1}, //  22 AKEYCODE_DPAD_RIGHT
+        {0,             AKEYCODE_DPAD_CENTER,          0,  AKEYCODE_DPAD_CENTER,           1}, //  23 AKEYCODE_DPAD_CENTER
+        {0,             AKEYCODE_VOLUME_UP,            0,  AKEYCODE_VOLUME_UP,             1}, //  24 AKEYCODE_VOLUME_UP
+        {0,             AKEYCODE_VOLUME_DOWN,          0,  AKEYCODE_VOLUME_DOWN,           1}, //  25 AKEYCODE_VOLUME_DOWN
+        {0,             AKEYCODE_POWER,                0,  AKEYCODE_POWER,                 1}, //  26 AKEYCODE_POWER
+        {0,             AKEYCODE_CAMERA,               0,  AKEYCODE_CAMERA,                1}, //  27 AKEYCODE_CAMERA
+        {VK_HOME,       AKEYCODE_CLEAR,                0,  AKEYCODE_CLEAR,                 1}, //  28 AKEYCODE_CLEAR
+        {VK_A,          AKEYCODE_A,                    0,  AKEYCODE_A,                     1}, //  29 AKEYCODE_A
+        {VK_B,          AKEYCODE_B,                    0,  AKEYCODE_B,                     1}, //  30 AKEYCODE_B
+        {VK_C,          AKEYCODE_C,                    0,  AKEYCODE_C,                     1}, //  31 AKEYCODE_C
+        {VK_D,          AKEYCODE_D,                    0,  AKEYCODE_D,                     1}, //  32 AKEYCODE_D
+        {VK_E,          AKEYCODE_E,                    0,  AKEYCODE_E,                     1}, //  33 AKEYCODE_E
+        {VK_F,          AKEYCODE_F,                    0,  AKEYCODE_F,                     1}, //  34 AKEYCODE_F
+        {VK_G,          AKEYCODE_G,                    0,  AKEYCODE_G,                     1}, //  35 AKEYCODE_G
+        {VK_H,          AKEYCODE_H,                    0,  AKEYCODE_H,                     1}, //  36 AKEYCODE_H
+        {VK_I,          AKEYCODE_I,                    0,  AKEYCODE_I,                     1}, //  37 AKEYCODE_I
+        {VK_J,          AKEYCODE_J,                    0,  AKEYCODE_J,                     1}, //  38 AKEYCODE_J
+        {VK_K,          AKEYCODE_K,                    0,  AKEYCODE_K,                     1}, //  39 AKEYCODE_K
+        {VK_L,          AKEYCODE_L,                    0,  AKEYCODE_L,                     1}, //  40 AKEYCODE_L
+        {VK_M,          AKEYCODE_M,                    0,  AKEYCODE_M,                     1}, //  41 AKEYCODE_M
+        {VK_N,          AKEYCODE_N,                    0,  AKEYCODE_N,                     1}, //  42 AKEYCODE_N
+        {VK_O,          AKEYCODE_O,                    0,  AKEYCODE_O,                     1}, //  43 AKEYCODE_O
+        {VK_P,          AKEYCODE_P,                    0,  AKEYCODE_P,                     1}, //  44 AKEYCODE_P
+        {VK_Q,          AKEYCODE_Q,                    0,  AKEYCODE_Q,                     1}, //  45 AKEYCODE_Q
+        {VK_R,          AKEYCODE_R,                    0,  AKEYCODE_R,                     1}, //  46 AKEYCODE_R
+        {VK_S,          AKEYCODE_S,                    0,  AKEYCODE_S,                     1}, //  47 AKEYCODE_S
+        {VK_T,          AKEYCODE_T,                    0,  AKEYCODE_T,                     1}, //  48 AKEYCODE_T
+        {VK_U,          AKEYCODE_U,                    0,  AKEYCODE_U,                     1}, //  49 AKEYCODE_U
+        {VK_V,          AKEYCODE_V,                    0,  AKEYCODE_V,                     1}, //  50 AKEYCODE_V
+        {VK_W,          AKEYCODE_W,                    0,  AKEYCODE_W,                     1}, //  51 AKEYCODE_W
+        {VK_X,          AKEYCODE_X,                    0,  AKEYCODE_X,                     1}, //  52 AKEYCODE_X
+        {VK_Y,          AKEYCODE_Y,                    0,  AKEYCODE_Y,                     1}, //  53 AKEYCODE_Y
+        {VK_Z,          AKEYCODE_Z,                    0,  AKEYCODE_Z,                     1}, //  54 AKEYCODE_Z
+        {VK_OEM_COMMA,  AKEYCODE_COMMA,                0,  AKEYCODE_COMMA,                 1}, //  55 AKEYCODE_COMMA
+        {VK_OEM_PERIOD, AKEYCODE_PERIOD,               0,  AKEYCODE_PERIOD,                1}, //  56 AKEYCODE_PERIOD
+        {VK_MENU,       AKEYCODE_ALT_LEFT,             0,  AKEYCODE_ALT_LEFT,              1}, //  57 AKEYCODE_ALT_LEFT
+        {VK_MENU,       AKEYCODE_ALT_RIGHT,            0,  AKEYCODE_ALT_RIGHT,             1}, //  58 AKEYCODE_ALT_RIGHT
+        {VK_LSHIFT,     AKEYCODE_SHIFT_LEFT,           0,  AKEYCODE_SHIFT_LEFT,            1}, //  59 AKEYCODE_SHIFT_LEFT
+        {VK_RSHIFT,     AKEYCODE_SHIFT_RIGHT,          0,  AKEYCODE_SHIFT_RIGHT,           1}, //  60 AKEYCODE_SHIFT_RIGHT
+        {VK_TAB,        AKEYCODE_TAB,                  0,  AKEYCODE_TAB,                   1}, //  61 AKEYCODE_TAB
+        {VK_SPACE,      AKEYCODE_SPACE,                0,  AKEYCODE_SPACE,                 1}, //  62 AKEYCODE_SPACE
+        {0,             AKEYCODE_SYM,                  0,  AKEYCODE_SYM,                   1}, //  63 AKEYCODE_SYM
+        {0,             AKEYCODE_EXPLORER,             0,  AKEYCODE_EXPLORER,              1}, //  64 AKEYCODE_EXPLORER
+        {0,             AKEYCODE_ENVELOPE,             0,  AKEYCODE_ENVELOPE,              1}, //  65 AKEYCODE_ENVELOPE
+        {VK_RETURN,     AKEYCODE_ENTER,                0,  AKEYCODE_ENTER,                 1}, //  66 AKEYCODE_ENTER
+        {VK_DELETE,     AKEYCODE_DEL,                  0,  AKEYCODE_DEL,                   1}, //  67 AKEYCODE_DEL
+        {VK_OEM_7,      AKEYCODE_GRAVE,                1,  AKEYCODE_BUTTON_3,              1}, //  68 AKEYCODE_GRAVE -> 「`@」
+        {VK_OEM_MINUS,  AKEYCODE_MINUS,                0,  AKEYCODE_BUTTON_12,             1}, //  69 AKEYCODE_MINUS -> 「-_」
+		{VK_OEM_EQU,    AKEYCODE_EQUALS,               0,  AKEYCODE_EQUALS,                1}, //  70 AKEYCODE_EQUALS
+        {VK_OEM_4,      AKEYCODE_LEFT_BRACKET,         0,  AKEYCODE_LEFT_BRACKET,          1}, //  71 AKEYCODE_LEFT_BRACKET
+        {VK_OEM_6,      AKEYCODE_RIGHT_BRACKET,        0,  AKEYCODE_RIGHT_BRACKET,         1}, //  72 AKEYCODE_RIGHT_BRACKET
+        {VK_OEM_5  ,    AKEYCODE_BACKSLASH,            0,  AKEYCODE_BACKSLASH,             1}, //  73 AKEYCODE_BACKSLASH
+        {VK_OEM_PLUS,   AKEYCODE_SEMICOLON,            0,  AKEYCODE_BUTTON_1,              0}, //  74 AKEYCODE_SEMICOLON
+        {VK_OEM_1,      AKEYCODE_7,                    1,  AKEYCODE_2,                     1}, //  75 AKEYCODE_APOSTROPHE
+        {VK_OEM_2,      AKEYCODE_SLASH,                0,  AKEYCODE_SLASH,                 1}, //  76 AKEYCODE_SLASH
+        {VK_OEM_3,      AKEYCODE_AT,                   0,  AKEYCODE_AT,                    1}, //  77 AKEYCODE_AT
+        {0,             AKEYCODE_NUM,                  0,  AKEYCODE_NUM,                   1}, //  78 AKEYCODE_NUM
+        {0,             AKEYCODE_HEADSETHOOK,          0,  AKEYCODE_HEADSETHOOK,           1}, //  79 AKEYCODE_HEADSETHOOK
+        {0,             AKEYCODE_FOCUS,                0,  AKEYCODE_FOCUS,                 1}, //  80 AKEYCODE_FOCUS
+        {VK_OEM_PLUS,   AKEYCODE_PLUS,                 1,  AKEYCODE_PLUS,                  1}, //  81 AKEYCODE_PLUS
+        {0,             AKEYCODE_MENU,                 0,  AKEYCODE_MENU,                  1}, //  82 AKEYCODE_MENU
+        {0,             AKEYCODE_NOTIFICATION,         0,  AKEYCODE_NOTIFICATION,          1}, //  83 AKEYCODE_NOTIFICATION
+        {0,             AKEYCODE_SEARCH,               0,  AKEYCODE_SEARCH,                1}, //  84 AKEYCODE_SEARCH
+        {0,             AKEYCODE_MEDIA_PLAY_PAUSE,     0,  AKEYCODE_MEDIA_PLAY_PAUSE,      1}, //  85 AKEYCODE_MEDIA_PLAY_PAUSE
+        {0,             AKEYCODE_MEDIA_STOP,           0,  AKEYCODE_MEDIA_STOP,            1}, //  86 AKEYCODE_MEDIA_STOP
+        {0,             AKEYCODE_MEDIA_NEXT,           0,  AKEYCODE_MEDIA_NEXT,            1}, //  87 AKEYCODE_MEDIA_NEXT
+        {0,             AKEYCODE_MEDIA_PREVIOUS,       0,  AKEYCODE_MEDIA_PREVIOUS,        1}, //  88 AKEYCODE_MEDIA_PREVIOUS
+        {0,             AKEYCODE_MEDIA_REWIND,         0,  AKEYCODE_MEDIA_REWIND,          1}, //  89 AKEYCODE_MEDIA_REWIND
+        {0,             AKEYCODE_MEDIA_FAST_FORWARD,   0,  AKEYCODE_MEDIA_FAST_FORWARD,    1}, //  90 AKEYCODE_MEDIA_FAST_FORWARD
+        {0,             AKEYCODE_MUTE,                 0,  AKEYCODE_MUTE,                  1}, //  91 AKEYCODE_MUTE
+        {VK_PRIOR,      AKEYCODE_PAGE_UP,              0,  AKEYCODE_PAGE_UP,               1}, //  92 AKEYCODE_PAGE_UP
+        {VK_NEXT,       AKEYCODE_PAGE_DOWN,            0,  AKEYCODE_PAGE_DOWN,             1}, //  93 AKEYCODE_PAGE_DOWN
+        {0,             AKEYCODE_PICTSYMBOLS,          0,  AKEYCODE_PICTSYMBOLS,           1}, //  94 AKEYCODE_PICTSYMBOLS
+        {0,             AKEYCODE_SWITCH_CHARSET,       0,  AKEYCODE_SWITCH_CHARSET,        1}, //  95 AKEYCODE_SWITCH_CHARSET
+        {0,             AKEYCODE_BUTTON_A,             0,  AKEYCODE_BUTTON_A,              1}, //  96 AKEYCODE_BUTTON_A
+        {0,             AKEYCODE_BUTTON_B,             0,  AKEYCODE_BUTTON_B,              1}, //  97 AKEYCODE_BUTTON_B
+        {0,             AKEYCODE_BUTTON_C,             0,  AKEYCODE_BUTTON_C,              1}, //  98 AKEYCODE_BUTTON_C
+        {0,             AKEYCODE_BUTTON_X,             0,  AKEYCODE_BUTTON_X,              1}, //  99 AKEYCODE_BUTTON_X
+        {0,             AKEYCODE_BUTTON_Y,             0,  AKEYCODE_BUTTON_Y,              1}, // 100 AKEYCODE_BUTTON_Y
+        {0,             AKEYCODE_BUTTON_Z,             0,  AKEYCODE_BUTTON_Z,              1}, // 101 AKEYCODE_BUTTON_Z
+        {0,             AKEYCODE_BUTTON_L1,            0,  AKEYCODE_BUTTON_L1,             1}, // 102 AKEYCODE_BUTTON_L1
+        {0,             AKEYCODE_BUTTON_R1,            0,  AKEYCODE_BUTTON_R1,             1}, // 103 AKEYCODE_BUTTON_R1
+        {0,             AKEYCODE_BUTTON_L2,            0,  AKEYCODE_BUTTON_L2,             1}, // 104 AKEYCODE_BUTTON_L2
+        {0,             AKEYCODE_BUTTON_R2,            0,  AKEYCODE_BUTTON_R2,             1}, // 105 AKEYCODE_BUTTON_R2
+        {0,             AKEYCODE_BUTTON_THUMBL,        0,  AKEYCODE_BUTTON_THUMBL,         1}, // 106 AKEYCODE_BUTTON_THUMBL
+        {0,             AKEYCODE_BUTTON_THUMBR,        0,  AKEYCODE_BUTTON_THUMBR,         1}, // 107 AKEYCODE_BUTTON_THUMBR
+        {0,             AKEYCODE_BUTTON_START,         0,  AKEYCODE_BUTTON_START,          1}, // 108 AKEYCODE_BUTTON_START
+        {0,             AKEYCODE_BUTTON_SELECT,        0,  AKEYCODE_BUTTON_SELECT,         1}, // 109 AKEYCODE_BUTTON_SELECT
+        {0,             AKEYCODE_BUTTON_MODE,          0,  AKEYCODE_BUTTON_MODE,           1}, // 110 AKEYCODE_BUTTON_MODE
+        {VK_ESCAPE,     AKEYCODE_ESCAPE,               0,  AKEYCODE_ESCAPE,                1}, // 111 AKEYCODE_ESCAPE
+        {VK_DELETE,     AKEYCODE_FORWARD_DEL,          0,  AKEYCODE_FORWARD_DEL,           1}, // 112 AKEYCODE_FORWARD_DEL
+        {VK_LCONTROL,   AKEYCODE_CTRL_LEFT,            0,  AKEYCODE_CTRL_LEFT,             1}, // 113 AKEYCODE_CTRL_LEFT
+        {VK_LCONTROL,   AKEYCODE_CTRL_RIGHT,           0,  AKEYCODE_CTRL_RIGHT,            1}, // 114 AKEYCODE_CTRL_RIGHT
+        {VK_CAPITAL,    AKEYCODE_CAPS_LOCK,            0,  AKEYCODE_CAPS_LOCK,             1}, // 115 AKEYCODE_CAPS_LOCK
+        {VK_SCROLL,     AKEYCODE_SCROLL_LOCK,          0,  AKEYCODE_SCROLL_LOCK,           1}, // 116 AKEYCODE_SCROLL_LOCK
+        {0,             AKEYCODE_META_LEFT,            0,  AKEYCODE_META_LEFT,             1}, // 117 AKEYCODE_META_LEFT
+        {0,             AKEYCODE_META_RIGHT,           0,  AKEYCODE_META_RIGHT,            1}, // 118 AKEYCODE_META_RIGHT
+        {0,             AKEYCODE_FUNCTION,             0,  AKEYCODE_FUNCTION,              1}, // 119 AKEYCODE_FUNCTION
+        {0,             AKEYCODE_SYSRQ,                0,  AKEYCODE_SYSRQ,                 1}, // 120 AKEYCODE_SYSRQ
+        {VK_PAUSE,      AKEYCODE_BREAK,                0,  AKEYCODE_BREAK,                 1}, // 121 AKEYCODE_BREAK
+        {VK_HOME,       AKEYCODE_MOVE_HOME,            0,  AKEYCODE_MOVE_HOME,             1}, // 122 AKEYCODE_MOVE_HOME
+        {VK_END,        AKEYCODE_MOVE_END,             0,  AKEYCODE_MOVE_END,              1}, // 123 AKEYCODE_MOVE_END
+        {VK_INSERT,     AKEYCODE_INSERT,               0,  AKEYCODE_INSERT,                1}, // 124 AKEYCODE_INSERT
+        {0,             AKEYCODE_FORWARD,              0,  AKEYCODE_FORWARD,               1}, // 125 AKEYCODE_FORWARD
+        {0,             AKEYCODE_MEDIA_PLAY,           0,  AKEYCODE_MEDIA_PLAY,            1}, // 126 AKEYCODE_MEDIA_PLAY
+        {0,             AKEYCODE_MEDIA_PAUSE,          0,  AKEYCODE_MEDIA_PAUSE,           1}, // 127 AKEYCODE_MEDIA_PAUSE
+        {0,             AKEYCODE_MEDIA_CLOSE,          0,  AKEYCODE_MEDIA_CLOSE,           1}, // 128 AKEYCODE_MEDIA_CLOSE
+        {0,             AKEYCODE_MEDIA_EJECT,          0,  AKEYCODE_MEDIA_EJECT,           1}, // 129 AKEYCODE_MEDIA_EJECT
+        {0,             AKEYCODE_MEDIA_RECORD,         0,  AKEYCODE_MEDIA_RECORD,          1}, // 130 AKEYCODE_MEDIA_RECORD
+        {VK_F1,         AKEYCODE_F1,                   0,  AKEYCODE_F1,                    1}, // 131 AKEYCODE_F1
+        {VK_F2,         AKEYCODE_F2,                   0,  AKEYCODE_F2,                    1}, // 132 AKEYCODE_F2
+        {VK_F3,         AKEYCODE_F3,                   0,  AKEYCODE_F3,                    1}, // 133 AKEYCODE_F3
+        {VK_F4,         AKEYCODE_F4,                   0,  AKEYCODE_F4,                    1}, // 134 AKEYCODE_F4
+        {VK_F5,         AKEYCODE_F5,                   0,  AKEYCODE_F5,                    1}, // 135 AKEYCODE_F5
+        {VK_F6,         AKEYCODE_F6,                   0,  AKEYCODE_F6,                    1}, // 136 AKEYCODE_F6
+        {VK_F7,         AKEYCODE_F7,                   0,  AKEYCODE_F7,                    1}, // 137 AKEYCODE_F7
+        {VK_F8,         AKEYCODE_F8,                   0,  AKEYCODE_F8,                    1}, // 138 AKEYCODE_F8
+        {VK_F9,         AKEYCODE_F9,                   0,  AKEYCODE_F9,                    1}, // 139 AKEYCODE_F9
+        {VK_F10,        AKEYCODE_F10,                  0,  AKEYCODE_F10,                   1}, // 140 AKEYCODE_F10
+        {VK_F11,        AKEYCODE_F11,                  0,  AKEYCODE_F11,                   1}, // 141 AKEYCODE_F11
+        {VK_F12,        AKEYCODE_F12,                  0,  AKEYCODE_F12,                   1}, // 142 AKEYCODE_F12
+        {VK_NUMLOCK,    AKEYCODE_NUM_LOCK,             0,  AKEYCODE_NUM_LOCK,              1}, // 143 AKEYCODE_NUM_LOCK
+        {VK_NUMPAD0,    AKEYCODE_NUMPAD_0,             0,  AKEYCODE_NUMPAD_0,              1}, // 144 AKEYCODE_NUMPAD_0
+        {VK_NUMPAD1,    AKEYCODE_NUMPAD_1,             0,  AKEYCODE_NUMPAD_1,              1}, // 145 AKEYCODE_NUMPAD_1
+        {VK_NUMPAD2,    AKEYCODE_NUMPAD_2,             0,  AKEYCODE_NUMPAD_2,              1}, // 146 AKEYCODE_NUMPAD_2
+        {VK_NUMPAD3,    AKEYCODE_NUMPAD_3,             0,  AKEYCODE_NUMPAD_3,              1}, // 147 AKEYCODE_NUMPAD_3
+        {VK_NUMPAD4,    AKEYCODE_NUMPAD_4,             0,  AKEYCODE_NUMPAD_4,              1}, // 148 AKEYCODE_NUMPAD_4
+        {VK_NUMPAD5,    AKEYCODE_NUMPAD_5,             0,  AKEYCODE_NUMPAD_5,              1}, // 149 AKEYCODE_NUMPAD_5
+        {VK_NUMPAD6,    AKEYCODE_NUMPAD_6,             0,  AKEYCODE_NUMPAD_6,              1}, // 150 AKEYCODE_NUMPAD_6
+        {VK_NUMPAD7,    AKEYCODE_NUMPAD_7,             0,  AKEYCODE_NUMPAD_7,              1}, // 151 AKEYCODE_NUMPAD_7
+        {VK_NUMPAD8,    AKEYCODE_NUMPAD_8,             0,  AKEYCODE_NUMPAD_8,              1}, // 152 AKEYCODE_NUMPAD_8
+        {VK_NUMPAD9,    AKEYCODE_NUMPAD_9,             0,  AKEYCODE_NUMPAD_9,              1}, // 153 AKEYCODE_NUMPAD_9
+        {VK_DIVIDE,     AKEYCODE_NUMPAD_DIVIDE,        0,  AKEYCODE_NUMPAD_DIVIDE,         1}, // 154 AKEYCODE_NUMPAD_DIVIDE
+        {VK_MULTIPLY,   AKEYCODE_NUMPAD_MULTIPLY,      0,  AKEYCODE_NUMPAD_MULTIPLY,       1}, // 155 AKEYCODE_NUMPAD_MULTIPLY
+        {VK_SUBTRACT,   AKEYCODE_NUMPAD_SUBTRACT,      0,  AKEYCODE_NUMPAD_SUBTRACT,       1}, // 156 AKEYCODE_NUMPAD_SUBTRACT
+        {VK_ADD,        AKEYCODE_NUMPAD_ADD,           0,  AKEYCODE_NUMPAD_ADD,            1}, // 157 AKEYCODE_NUMPAD_ADD
+        {VK_DECIMAL,    AKEYCODE_NUMPAD_DOT,           0,  AKEYCODE_NUMPAD_DOT,            1}, // 158 AKEYCODE_NUMPAD_DOT
+        {VK_OEM_COMMA,  AKEYCODE_NUMPAD_COMMA,         0,  AKEYCODE_NUMPAD_COMMA,          1}, // 159 AKEYCODE_NUMPAD_COMMA
+        {VK_RETURN,     AKEYCODE_NUMPAD_ENTER,         0,  AKEYCODE_NUMPAD_ENTER,          1}, // 160 AKEYCODE_NUMPAD_ENTER
+        {0,             AKEYCODE_NUMPAD_EQUALS,        0,  AKEYCODE_NUMPAD_EQUALS,         1}, // 161 AKEYCODE_NUMPAD_EQUALS
+        {0,             AKEYCODE_NUMPAD_LEFT_PAREN,    0,  AKEYCODE_NUMPAD_LEFT_PAREN,     1}, // 162 AKEYCODE_NUMPAD_LEFT_PAREN
+        {0,             AKEYCODE_NUMPAD_RIGHT_PAREN,   0,  AKEYCODE_NUMPAD_RIGHT_PAREN,    1}, // 163 AKEYCODE_NUMPAD_RIGHT_PAREN
+        {0,             AKEYCODE_VOLUME_MUTE,          0,  AKEYCODE_VOLUME_MUTE,           1}, // 164 AKEYCODE_VOLUME_MUTE
+        {0,             AKEYCODE_INFO,                 0,  AKEYCODE_INFO,                  1}, // 165 AKEYCODE_INFO
+        {0,             AKEYCODE_CHANNEL_UP,           0,  AKEYCODE_CHANNEL_UP,            1}, // 166 AKEYCODE_CHANNEL_UP
+        {0,             AKEYCODE_CHANNEL_DOWN,         0,  AKEYCODE_CHANNEL_DOWN,          1}, // 167 AKEYCODE_CHANNEL_DOWN
+        {0,             AKEYCODE_ZOOM_IN,              0,  AKEYCODE_ZOOM_IN,               1}, // 168 AKEYCODE_ZOOM_IN
+        {0,             AKEYCODE_ZOOM_OUT,             0,  AKEYCODE_ZOOM_OUT,              1}, // 169 AKEYCODE_ZOOM_OUT
+        {0,             AKEYCODE_TV,                   0,  AKEYCODE_TV,                    1}, // 170 AKEYCODE_TV
+        {0,             AKEYCODE_WINDOW,               0,  AKEYCODE_WINDOW,                1}, // 171 AKEYCODE_WINDOW
+        {0,             AKEYCODE_GUIDE,                0,  AKEYCODE_GUIDE,                 1}, // 172 AKEYCODE_GUIDE
+        {0,             AKEYCODE_DVR,                  0,  AKEYCODE_DVR,                   1}, // 173 AKEYCODE_DVR
+        {0,             AKEYCODE_BOOKMARK,             0,  AKEYCODE_BOOKMARK,              1}, // 174 AKEYCODE_BOOKMARK
+        {0,             AKEYCODE_CAPTIONS,             0,  AKEYCODE_CAPTIONS,              1}, // 175 AKEYCODE_CAPTIONS
+        {0,             AKEYCODE_SETTINGS,             0,  AKEYCODE_SETTINGS,              1}, // 176 AKEYCODE_SETTINGS
+        {0,             AKEYCODE_TV_POWER,             0,  AKEYCODE_TV_POWER,              1}, // 177 AKEYCODE_TV_POWER
+        {0,             AKEYCODE_TV_INPUT,             0,  AKEYCODE_TV_INPUT,              1}, // 178 AKEYCODE_TV_INPUT
+        {0,             AKEYCODE_STB_POWER,            0,  AKEYCODE_STB_POWER,             1}, // 179 AKEYCODE_STB_POWER
+        {0,             AKEYCODE_STB_INPUT,            0,  AKEYCODE_STB_INPUT,             1}, // 180 AKEYCODE_STB_INPUT
+        {0,             AKEYCODE_AVR_POWER,            0,  AKEYCODE_AVR_POWER,             1}, // 181 AKEYCODE_AVR_POWER
+        {0,             AKEYCODE_AVR_INPUT,            0,  AKEYCODE_AVR_INPUT,             1}, // 182 AKEYCODE_AVR_INPUT
+        {0,             AKEYCODE_PROG_RED,             0,  AKEYCODE_PROG_RED,              1}, // 183 AKEYCODE_PROG_RED
+        {0,             AKEYCODE_PROG_GREEN,           0,  AKEYCODE_PROG_GREEN,            1}, // 184 AKEYCODE_PROG_GREEN
+        {0,             AKEYCODE_PROG_YELLOW,          0,  AKEYCODE_PROG_YELLOW,           1}, // 185 AKEYCODE_PROG_YELLOW
+        {0,             AKEYCODE_PROG_BLUE,            0,  AKEYCODE_PROG_BLUE,             1}, // 186 AKEYCODE_PROG_BLUE
+        {0,             AKEYCODE_APP_SWITCH,           0,  AKEYCODE_APP_SWITCH,            1}, // 187 AKEYCODE_APP_SWITCH
+        {VK_OEM_1,      AKEYCODE_BUTTON_1,             0,  AKEYCODE_BUTTON_1,              1}, // 188 AKEYCODE_BUTTON_1
+        {VK_OEM_2,      AKEYCODE_BUTTON_2,             0,  AKEYCODE_BUTTON_2,              1}, // 189 AKEYCODE_BUTTON_2
+        {VK_OEM_3,      AKEYCODE_BUTTON_3,             0,  AKEYCODE_BUTTON_3,              1}, // 190 AKEYCODE_BUTTON_3
+        {VK_OEM_4,      AKEYCODE_BUTTON_4,             0,  AKEYCODE_BUTTON_4,              1}, // 191 AKEYCODE_BUTTON_4
+        {VK_OEM_5,      AKEYCODE_BUTTON_5,             0,  AKEYCODE_BUTTON_5,              1}, // 192 AKEYCODE_BUTTON_5
+        {VK_OEM_6,      AKEYCODE_BUTTON_6,             0,  AKEYCODE_BUTTON_6,              1}, // 193 AKEYCODE_BUTTON_6
+        {VK_OEM_7,      AKEYCODE_BUTTON_7,             0,  AKEYCODE_BUTTON_7,              1}, // 194 AKEYCODE_BUTTON_7
+        {VK_OEM_8,      AKEYCODE_BUTTON_8,             0,  AKEYCODE_BUTTON_8,              1}, // 195 AKEYCODE_BUTTON_8
+        {0,             AKEYCODE_BUTTON_9,             0,  AKEYCODE_BUTTON_9,              1}, // 196 AKEYCODE_BUTTON_9
+        {0,             AKEYCODE_BUTTON_10,            0,  AKEYCODE_BUTTON_10,             1}, // 197 AKEYCODE_BUTTON_10
+        {0,             AKEYCODE_BUTTON_11,            0,  AKEYCODE_BUTTON_11,             1}, // 198 AKEYCODE_BUTTON_11
+        {VK_OEM_102,    AKEYCODE_BUTTON_12,            0,  AKEYCODE_BUTTON_12,             1}, // 199 AKEYCODE_BUTTON_12
+        {0,             AKEYCODE_BUTTON_13,            0,  AKEYCODE_BUTTON_13,             1}, // 200 AKEYCODE_BUTTON_13
+        {0,             AKEYCODE_BUTTON_14,            0,  AKEYCODE_BUTTON_14,             1}, // 201 AKEYCODE_BUTTON_14
+        {0,             AKEYCODE_BUTTON_15,            0,  AKEYCODE_BUTTON_15,             1}, // 202 AKEYCODE_BUTTON_15
+        {0,             AKEYCODE_BUTTON_16,            0,  AKEYCODE_BUTTON_16,             1}, // 203 AKEYCODE_BUTTON_16
+        {0,             AKEYCODE_LANGUAGE_SWITCH,      0,  AKEYCODE_LANGUAGE_SWITCH,       1}, // 204 AKEYCODE_LANGUAGE_SWITCH
+        {0,             AKEYCODE_MANNER_MODE,          0,  AKEYCODE_MANNER_MODE,           1}, // 205 AKEYCODE_MANNER_MODE
+        {0,             AKEYCODE_3D_MODE,              0,  AKEYCODE_3D_MODE,               1}, // 206 AKEYCODE_3D_MODE
+        {0,             AKEYCODE_CONTACTS,             0,  AKEYCODE_CONTACTS,              1}, // 207 AKEYCODE_CONTACTS
+        {0,             AKEYCODE_CALENDAR,             0,  AKEYCODE_CALENDAR,              1}, // 208 AKEYCODE_CALENDAR
+        {0,             AKEYCODE_MUSIC,                0,  AKEYCODE_MUSIC,                 1}, // 209 AKEYCODE_MUSIC
+        {0,             AKEYCODE_CALCULATOR,           0,  AKEYCODE_CALCULATOR,            1}, // 210 AKEYCODE_CALCULATOR
+        {VK_KANJI,      AKEYCODE_ZENKAKU_HANKAKU,      0,  AKEYCODE_ZENKAKU_HANKAKU,       1}, // 211 AKEYCODE_ZENKAKU_HANKAKU
+        {0,             AKEYCODE_EISU,                 0,  AKEYCODE_EISU,                  1}, // 212 AKEYCODE_EISU
+        {VK_NONCONVERT, AKEYCODE_MUHENKAN,             0,  AKEYCODE_MUHENKAN,              1}, // 213 AKEYCODE_MUHENKAN
+        {VK_CONVERT,    AKEYCODE_HENKAN,               0,  AKEYCODE_HENKAN,                1}, // 214 AKEYCODE_HENKAN
+        {0,             AKEYCODE_KATAKANA_HIRAGANA,    0,  AKEYCODE_KATAKANA_HIRAGANA,     1}, // 215 AKEYCODE_KATAKANA_HIRAGANA
+        {VK_OEM_5,      AKEYCODE_YEN,                  0,  AKEYCODE_YEN,                   1}, // 216 AKEYCODE_YEN
+        {VK_OEM_102,    AKEYCODE_RO,                   0,  AKEYCODE_RO,                    1}, // 217 AKEYCODE_RO
+        {VK_KANA,       AKEYCODE_KANA,                 0,  AKEYCODE_KANA,                  1}, // 218 AKEYCODE_KANA
+        {0,             AKEYCODE_ASSIST,               0,  AKEYCODE_ASSIST,                1}, // 219 AKEYCODE_ASSIST
+        {0,             AKEYCODE_BRIGHTNESS_DOWN,      0,  AKEYCODE_BRIGHTNESS_DOWN,       1}, // 220 AKEYCODE_BRIGHTNESS_DOWN
+        {0,             AKEYCODE_BRIGHTNESS_UP,        0,  AKEYCODE_BRIGHTNESS_UP,         1}, // 221 AKEYCODE_BRIGHTNESS_UP
+        {0,             AKEYCODE_MEDIA_AUDIO_TRACK,    0,  AKEYCODE_MEDIA_AUDIO_TRACK,     1}, // 222 AKEYCODE_MEDIA_AUDIO_TRACK
+        {0,             AKEYCODE_SLEEP,                0,  AKEYCODE_SLEEP,                 1}, // 223 AKEYCODE_SLEEP
+        {0,             AKEYCODE_WAKEUP,               0,  AKEYCODE_WAKEUP,                1}, // 224 AKEYCODE_WAKEUP
+        {0,             AKEYCODE_PAIRING,              0,  AKEYCODE_PAIRING,               1}, // 225 AKEYCODE_PAIRING
+        {0,             AKEYCODE_MEDIA_TOP_MENU,       0,  AKEYCODE_MEDIA_TOP_MENU,        1}, // 226 AKEYCODE_MEDIA_TOP_MENU
+        {0,             AKEYCODE_11,                   0,  AKEYCODE_11,                    1}, // 227 AKEYCODE_11
+        {0,             AKEYCODE_12,                   0,  AKEYCODE_12,                    1}, // 228 AKEYCODE_12
+        {0,             AKEYCODE_LAST_CHANNEL,         0,  AKEYCODE_LAST_CHANNEL,          1}, // 229 AKEYCODE_LAST_CHANNEL
+        {0,             AKEYCODE_TV_DATA_SERVICE,      0,  AKEYCODE_TV_DATA_SERVICE,       1}, // 230 AKEYCODE_TV_DATA_SERVICE
+        {0,             AKEYCODE_VOICE_ASSIST,         0,  AKEYCODE_VOICE_ASSIST,          1}, // 231 AKEYCODE_VOICE_ASSIST
+        {0,             AKEYCODE_TV_RADIO_SERVICE,     0,  AKEYCODE_TV_RADIO_SERVICE,      1}, // 232 AKEYCODE_TV_RADIO_SERVICE
+        {0,             AKEYCODE_TV_TELETEXT,          0,  AKEYCODE_TV_TELETEXT,           1}, // 233 AKEYCODE_TV_TELETEXT
+        {0,             AKEYCODE_TV_NUMBER_ENTRY,      0,  AKEYCODE_TV_NUMBER_ENTRY,       1}, // 234 AKEYCODE_TV_NUMBER_ENTRY
+        {0,             AKEYCODE_TV_TERRESTRIAL_ANALOG,    0,  AKEYCODE_TV_TERRESTRIAL_ANALOG,1}, // 235 AKEYCODE_TV_TERRESTRIAL_ANALOG
+        {0,             AKEYCODE_TV_TERRESTRIAL_DIGITAL,   0,  AKEYCODE_TV_TERRESTRIAL_DIGITAL,1}, // 236 AKEYCODE_TV_TERRESTRIAL_DIGITAL
+        {0,             AKEYCODE_TV_SATELLITE,         0,  AKEYCODE_TV_SATELLITE,          1}, // 237 AKEYCODE_TV_SATELLITE
+        {0,             AKEYCODE_TV_SATELLITE_BS,      0,  AKEYCODE_TV_SATELLITE_BS,       1}, // 238 AKEYCODE_TV_SATELLITE_BS
+        {0,             AKEYCODE_TV_SATELLITE_CS,      0,  AKEYCODE_TV_SATELLITE_CS,       1}, // 239 AKEYCODE_TV_SATELLITE_CS
+        {0,             AKEYCODE_TV_SATELLITE_SERVICE, 0,  AKEYCODE_TV_SATELLITE_SERVICE,  1}, // 240 AKEYCODE_TV_SATELLITE_SERVICE
+        {0,             AKEYCODE_TV_NETWORK,           0,  AKEYCODE_TV_NETWORK,            1}, // 241 AKEYCODE_TV_NETWORK
+        {0,             AKEYCODE_TV_ANTENNA_CABLE,     0,  AKEYCODE_TV_ANTENNA_CABLE,      1}, // 242 AKEYCODE_TV_ANTENNA_CABLE
+        {0,             AKEYCODE_TV_INPUT_HDMI_1,      0,  AKEYCODE_TV_INPUT_HDMI_1,       1}, // 243 AKEYCODE_TV_INPUT_HDMI_1
+        {0,             AKEYCODE_TV_INPUT_HDMI_2,      0,  AKEYCODE_TV_INPUT_HDMI_2,       1}, // 244 AKEYCODE_TV_INPUT_HDMI_2
+        {0,             AKEYCODE_TV_INPUT_HDMI_3,      0,  AKEYCODE_TV_INPUT_HDMI_3,       1}, // 245 AKEYCODE_TV_INPUT_HDMI_3
+        {0,             AKEYCODE_TV_INPUT_HDMI_4,      0,  AKEYCODE_TV_INPUT_HDMI_4,       1}, // 246 AKEYCODE_TV_INPUT_HDMI_4
+        {0,             AKEYCODE_TV_INPUT_COMPOSITE_1, 0,  AKEYCODE_TV_INPUT_COMPOSITE_1,  1}, // 247 AKEYCODE_TV_INPUT_COMPOSITE_1
+        {0,             AKEYCODE_TV_INPUT_COMPOSITE_2, 0,  AKEYCODE_TV_INPUT_COMPOSITE_2,  1}, // 248 AKEYCODE_TV_INPUT_COMPOSITE_2
+        {0,             AKEYCODE_TV_INPUT_COMPONENT_1, 0,  AKEYCODE_TV_INPUT_COMPONENT_1,  1}, // 249 AKEYCODE_TV_INPUT_COMPONENT_1
+        {0,             AKEYCODE_TV_INPUT_COMPONENT_2, 0,  AKEYCODE_TV_INPUT_COMPONENT_2,  1}, // 250 AKEYCODE_TV_INPUT_COMPONENT_2
+        {0,             AKEYCODE_TV_INPUT_VGA_1,       0,  AKEYCODE_TV_INPUT_VGA_1,        1}, // 251 AKEYCODE_TV_INPUT_VGA_1
+        {0,             AKEYCODE_TV_AUDIO_DESCRIPTION, 0,  AKEYCODE_TV_AUDIO_DESCRIPTION,  1}, // 252 AKEYCODE_TV_AUDIO_DESCRIPTION
+        {0,             AKEYCODE_TV_AUDIO_DESCRIPTION_MIX_UP,  0,  AKEYCODE_TV_AUDIO_DESCRIPTION_MIX_UP,       1}, // 253 AKEYCODE_TV_AUDIO_DESCRIPTION_MIX_UP
+        {0,             AKEYCODE_TV_AUDIO_DESCRIPTION_MIX_DOWN,0,  AKEYCODE_TV_AUDIO_DESCRIPTION_MIX_DOWN,     1}, // 254 AKEYCODE_TV_AUDIO_DESCRIPTION_MIX_DOWN
+        {0,             AKEYCODE_TV_ZOOM_MODE,         0,  AKEYCODE_TV_ZOOM_MODE,          1} // 255 AKEYCODE_TV_ZOOM_MODE
 };
 
 struct BitmapData{

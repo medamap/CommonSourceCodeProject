@@ -365,6 +365,8 @@ std::vector<uint8_t> getClipboardText(struct android_app *app);
 int softKeyboardCount = 0;
 bool softKeyShift = false;
 bool softKeyCtrl = false;
+bool romajiKeyShift = false;
+bool romajiKeyCtrl = false;
 
 int softKeyCode = 0;
 bool softKeyDelayFlag = false;
@@ -809,7 +811,30 @@ void android_main(struct android_app *state) {
         }
 
         if(softKeyDelayFlag){
-            emu->get_osd()->key_down(softKeyCode, false, false);
+            if(config.romaji_to_kana){
+                if (softKeyCode == AKEYCODE_DPAD_UP || softKeyCode == AKEYCODE_DPAD_DOWN || softKeyCode == AKEYCODE_DPAD_LEFT || softKeyCode == AKEYCODE_DPAD_RIGHT) {
+                    config.romaji_to_kana = !config.romaji_to_kana;
+                    emu->get_osd()->key_down(softKeyCode, false, false);
+                    config.romaji_to_kana = !config.romaji_to_kana;
+                } else if (softKeyCode == AKEYCODE_SHIFT_LEFT || softKeyCode == AKEYCODE_SHIFT_RIGHT) {
+                    romajiKeyShift = true;
+                } else if (softKeyCode == AKEYCODE_CTRL_LEFT || softKeyCode == AKEYCODE_CTRL_RIGHT) {
+                    romajiKeyCtrl = true;
+                } else {
+                    if (romajiKeyCtrl == true) {
+                        romajiKeyCtrl = false;
+                    }
+                    if (romajiKeyShift == true) {
+                        romajiKeyShift = false;
+                        softKeyCode = AndroidToAsciiCode[softKeyCode][1];
+                    } else {
+                        softKeyCode = AndroidToAsciiCode[softKeyCode][0];
+                    }
+                    emu->key_char(softKeyCode);
+                }
+            } else {
+                emu->get_osd()->key_down(softKeyCode, false, false);
+            }
             softKeyDelayFlag = false;
         }
 
@@ -3601,16 +3626,15 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                 }
                 // 右端のアイコンチェックについても、オフセットを考慮する
                 int adjustedWidth = deviceInfo.width - sideOffset * 2;
-                if (x > adjustedWidth - unitPixel) {
+                if (x > adjustedWidth - unitPixel * (SYSTEM_EXIT+1) ) {
                     LOGI("Tap Exit");
                     char message[128];
                     sprintf(message, "Exit Emulator? [%s/%s]",__DATE__,__TIME__);
                     showAlert(app, message, "Exit", true, EXIT_EMULATOR);
                     return 1;
-                } else if (x > adjustedWidth - unitPixel * 2) {
+                } else if (x > adjustedWidth - unitPixel * (SYSTEM_RESET+1)) {
                     LOGI("Tap Reset");
                     selectBootMode(app);
-                    return 1;
 #if false
                     int newScreenSize = (int) screenSize + 1;
                     if (newScreenSize > SCREEN_SIZE_SPECIAL) {
@@ -3620,15 +3644,16 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                     }
                     clear_screen(engine);
 #endif
-                } else if (x > adjustedWidth - unitPixel * 3) {
+                    return 1;
+                } else if (x > adjustedWidth - unitPixel * (SYSTEM_SOUND+1)) {
                     LOGI("Tap switch Sound");
                     switchSound();
                     return 1;
-                } else if (x > adjustedWidth - unitPixel * 4) {
+                } else if (x > adjustedWidth - unitPixel * (SYSTEM_PCG+1)) {
                     LOGI("Tap switch PCG");
                     switchPCG();
                     return 1;
-                } else if (x > adjustedWidth - unitPixel * 5) {
+                } else if (x > adjustedWidth - unitPixel * (SYSTEM_CONFIG+1)) {
                     LOGI("Tap Config ******");
                     extendMenu(app);
                     return 1;
@@ -3668,15 +3693,7 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
         int source = AInputEvent_getSource(event);
 
         if (action == AKEY_EVENT_ACTION_DOWN) {
-            if (AKEYCODE_BACK == AKeyEvent_getKeyCode(event)) {
-#if 0
-                char message[128];
-                sprintf(message, "Exit Emulator? [%s/%s]",__DATE__,__TIME__);
-                showAlert(app, message, "Exit", true, EXIT_EMULATOR);
-#endif
-                softKeyCode = 111;
-                softKeyDelayFlag = true;
-                softKeyboardCount = SOFT_KEYBOARD_KEEP_COUNT;
+            if (code == AKEYCODE_BACK) {
                 return 1;
             }
             if ((flags & AKEY_EVENT_FLAG_FROM_SYSTEM) == 0) { //ソフトウェアキーボード
@@ -3685,23 +3702,23 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                     return 1;
                 } else {
                     //SHIFTキー
-                    if (code == 59) {
+                    if (code == AKEYCODE_SHIFT_LEFT || code == AKEYCODE_SHIFT_RIGHT) {
                         softKeyShift = true;
-                    } else if (code == 113) {
+                    } else if (code == AKEYCODE_CTRL_LEFT || code == AKEYCODE_CTRL_RIGHT) {
                         softKeyCtrl = true;
                     } else {
                         //ここでは shift / ctrl 押下のみ行い、キー入力自体はメインループ内で行っています。
                         //同時処理だと、 shift / ctrl を拾えない機種があったので。
                         if (softKeyCtrl == true) {
-                            emu->get_osd()->key_down(113, false, false);
+                            emu->get_osd()->key_down(AKEYCODE_CTRL_LEFT, false, false);
                             softKeyDelayFlag = true;
                             //emu->get_osd()->key_down(softKeyCode, false, false);
                             softKeyboardCount = SOFT_KEYBOARD_KEEP_COUNT;
                         }
                         if (softKeyShift == true) {
-                            softKeyCode = usKeytoJISKeyShift[code][0];
-                            if (usKeytoJISKeyShift[code][1] == 1) {
-                                emu->get_osd()->key_down(59, false, false);
+                            softKeyCode = androidToAndroidToVk[code][3];
+                            if (androidToAndroidToVk[code][4] == 1) {
+                                emu->get_osd()->key_down(AKEYCODE_SHIFT_LEFT, false, false);
                                 softKeyShift = true;
                             } else {
                                 softKeyShift = false;
@@ -3710,9 +3727,9 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                             //emu->get_osd()->key_down(softKeyCode, false, false);
                             softKeyboardCount = SOFT_KEYBOARD_KEEP_COUNT;
                         } else {
-                            softKeyCode = usKeytoJISKey[code][0];
-                            if (usKeytoJISKey[code][1] == 1) {
-                                emu->get_osd()->key_down(59, false, false);
+                            softKeyCode = androidToAndroidToVk[code][1];
+                            if (androidToAndroidToVk[code][2] == 1) {
+                                emu->get_osd()->key_down(AKEYCODE_SHIFT_LEFT, false, false);
                                 softKeyShift = true;
                             } else {
                                 softKeyShift = false;
@@ -3725,11 +3742,34 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                 }
 
             } else {
-                emu->get_osd()->key_down(code, false, false);
+                if(config.romaji_to_kana){
+                    if (code == AKEYCODE_DPAD_UP || code == AKEYCODE_DPAD_DOWN || code == AKEYCODE_DPAD_LEFT || code == AKEYCODE_DPAD_RIGHT) {
+                        config.romaji_to_kana = !config.romaji_to_kana;
+                        emu->get_osd()->key_down(code, false, false);
+                        config.romaji_to_kana = !config.romaji_to_kana;
+                    } else if (code == AKEYCODE_SHIFT_LEFT || code == AKEYCODE_SHIFT_RIGHT) {
+                        romajiKeyShift = true;
+                    } else if (code == AKEYCODE_CTRL_LEFT || code == AKEYCODE_CTRL_RIGHT) {
+                        romajiKeyCtrl = true;
+                    } else {
+                        if (romajiKeyCtrl == true) {
+                            romajiKeyCtrl = false;
+                        }
+                        if (romajiKeyShift == true) {
+                            romajiKeyShift = false;
+                            code = AndroidToAsciiCode[code][1];
+                        } else {
+                            code = AndroidToAsciiCode[code][0];
+                        }
+                        emu->key_char(code);
+                    }
+                } else {
+                    emu->get_osd()->key_down(code, false, false);
+                }
             }
         } else if (action == AKEY_EVENT_ACTION_UP) {
             if (AKEYCODE_BACK == AKeyEvent_getKeyCode(event)) {
-                emu->get_osd()->key_up(111, false);
+                //emu->get_osd()->key_up(111, false);
             } else if ((flags & AKEY_EVENT_FLAG_FROM_SYSTEM) == 0) { //ソフトウェアキーボード
 
             } else {
