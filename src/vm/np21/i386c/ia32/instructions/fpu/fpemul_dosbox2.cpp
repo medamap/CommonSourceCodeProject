@@ -61,6 +61,10 @@
 #include "../sse/sse.h"
 #endif
 
+#if defined(__ANDROID__) // Medamap
+#include <cmath>
+#endif
+
 #if 1
 #undef	TRACEOUT
 #define	TRACEOUT(s)	(void)(s)
@@ -545,7 +549,11 @@ static void FPU_FBST(UINT32 addr)
 	fpu_memorywrite_b(addr+9,p);
 }
 
+#if defined(__ANDROID__) // Medamap
+#define isinf(x) (!(finite(x) || std::isnan(x)))
+#else
 #define isinf(x) (!(_finite(x) || _isnan(x)))
+#endif
 #define isdenormal(x) (_fpclass(x) == _FPCLASS_ND || _fpclass(x) == _FPCLASS_PD)
 
 static void FPU_FADD(UINT op1, UINT op2){
@@ -730,8 +738,12 @@ static void FPU_FST(UINT st, UINT other){
 
 static void FPU_FCOM(UINT st, UINT other){
 	if(((FPU_STAT.tag[st] != TAG_Valid) && (FPU_STAT.tag[st] != TAG_Zero)) || 
-		((FPU_STAT.tag[other] != TAG_Valid) && (FPU_STAT.tag[other] != TAG_Zero)) || 
-		(_isnan(FPU_STAT.reg[st].d64) || _isnan(FPU_STAT.reg[other].d64))){
+		((FPU_STAT.tag[other] != TAG_Valid) && (FPU_STAT.tag[other] != TAG_Zero)) ||
+#if defined(__ANDROID__) // Medamap
+        (std::isnan(FPU_STAT.reg[st].d64) || std::isnan(FPU_STAT.reg[other].d64))){
+#else
+        (_isnan(FPU_STAT.reg[st].d64) || _isnan(FPU_STAT.reg[other].d64))){
+#endif
 		FPU_SET_C3(1);
 		FPU_SET_C2(1);
 		FPU_SET_C0(1);
@@ -758,8 +770,12 @@ static void FPU_FCOM(UINT st, UINT other){
 }
 static void FPU_FCOMI(UINT st, UINT other){
 	if(((FPU_STAT.tag[st] != TAG_Valid) && (FPU_STAT.tag[st] != TAG_Zero)) || 
-		((FPU_STAT.tag[other] != TAG_Valid) && (FPU_STAT.tag[other] != TAG_Zero)) || 
-		(_isnan(FPU_STAT.reg[st].d64) || _isnan(FPU_STAT.reg[other].d64))){
+		((FPU_STAT.tag[other] != TAG_Valid) && (FPU_STAT.tag[other] != TAG_Zero)) ||
+#if defined(__ANDROID__) // Medamap
+        (std::isnan(FPU_STAT.reg[st].d64) || std::isnan(FPU_STAT.reg[other].d64))){
+#else
+        (_isnan(FPU_STAT.reg[st].d64) || _isnan(FPU_STAT.reg[other].d64))){
+#endif
 		CPU_FLAGL = (CPU_FLAGL & ~Z_FLAG) | Z_FLAG;
 		CPU_FLAGL = (CPU_FLAGL & ~P_FLAG) | P_FLAG;
 		CPU_FLAGL = (CPU_FLAGL & ~C_FLAG) | C_FLAG;
@@ -928,12 +944,20 @@ static void FPU_FXAM(void){
 		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(1);
 		return;
 	}
-	if(_isnan(FPU_STAT.reg[FPU_STAT_TOP].d64))
+#if defined(__ANDROID__) // Medamap
+    if(std::isnan(FPU_STAT.reg[FPU_STAT_TOP].d64))
+#else
+    if(_isnan(FPU_STAT.reg[FPU_STAT_TOP].d64))
+#endif
 	{
 		FPU_SET_C3(0);FPU_SET_C2(0);FPU_SET_C0(1);
 		return;
 	}
-	if(!_finite(FPU_STAT.reg[FPU_STAT_TOP].d64))
+#if defined(__ANDROID__) // Medamap
+    if(!finite(FPU_STAT.reg[FPU_STAT_TOP].d64))
+#else
+    if(!_finite(FPU_STAT.reg[FPU_STAT_TOP].d64))
+#endif
 	{
 		FPU_SET_C3(0);FPU_SET_C2(1);FPU_SET_C0(1);
 		return;
