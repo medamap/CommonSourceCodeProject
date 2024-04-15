@@ -18,9 +18,11 @@
 
 // Medamap
 #if defined(__ANDROID__)
-#include <algorithm>
-typedef signed long __int64;
-typedef __int64 LONG_PTR;
+#include <algorithm>  // For standard algorithms like std::min, std::max, etc.
+#include <cstdint>    // For fixed-width integer types
+
+// Use standard fixed-width integer types instead of platform-specific types.
+typedef int64_t LONG_PTR;
 #endif
 
 // crc table

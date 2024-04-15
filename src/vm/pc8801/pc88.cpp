@@ -263,9 +263,21 @@ static const int key_conv_table[][3] = {
 	{0x1d, 0x20, 0}, // Œˆ’è-> SPACE
 };
 
+#if defined(_Win32) // Medamap
 static const uint8_t intr_mask2_table[8] = {
 	~7, ~3, ~5, ~1, ~6, ~2, ~4, ~0
 };
+#elif defined(_POSIX_VERSION)
+static const uint8_t intr_mask2_table[8] = {
+        static_cast<uint8_t>(~7), static_cast<uint8_t>(~3), static_cast<uint8_t>(~5),
+        static_cast<uint8_t>(~1), static_cast<uint8_t>(~6), static_cast<uint8_t>(~2),
+        static_cast<uint8_t>(~4), static_cast<uint8_t>(~0)
+};
+#else
+static const uint8_t intr_mask2_table[8] = {
+	~7, ~3, ~5, ~1, ~6, ~2, ~4, ~0
+};
+#endif
 
 void PC88::initialize()
 {

@@ -34,7 +34,11 @@
 	};
 #endif
 
+#if defined(__ANDROID__)
+#define MAX_HISTORY	32
+#else
 #define MAX_HISTORY	8
+#endif
 
 #ifdef USE_SHARED_DLL
 	#define USE_CART_TMP		8
@@ -174,11 +178,14 @@ typedef struct {
 		int filter_type;
     #endif
 
-    #if defined(__ANDROID__)
+    #if defined(__ANDROID__) // Medamap
         int screen_bottom_margin;
     #endif
 	
 	// sound
+    #if defined(__ANDROID__) // Medamap
+        bool sound_on;
+    #endif
 	int sound_frequency;
 	int sound_latency;
 	bool sound_strict_rendering;

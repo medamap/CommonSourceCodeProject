@@ -6,6 +6,7 @@ set "csvFile=models\\models.csv"
 set "buildType=subBatch\\rbuild.bat"
 set "hasInputFile=false"
 set "hasBuildType=false"
+set "directModelName="
 
 :parseArgs
 if "%~1"=="" goto :executeOrShowHelp
@@ -35,6 +36,13 @@ if "%~1"=="-m" (
     goto :parseArgs
 )
 
+if "%~1"=="-d" (
+    set "directModelName=%~2"
+    set "hasInputFile=true"
+    shift & shift
+    goto :parseArgs
+)
+
 shift
 goto :parseArgs
 
@@ -48,9 +56,16 @@ echo   -i csvFile     モデル情報が記載されたCSVファイルのパス (デフォルト: model
 echo   -m buildType   実行するビルドの種類 (デフォルト: ReleaseBuild)
 echo                  ReleaseBuild, ReleaseInstall, ReleaseBuildExecute,
 echo                  DebugBuild, DebugInstall, DebugBuildExecute, UnInstall
+echo   -d modelName   ダイレクトにビルドバッチに渡す機種名
 exit /b 0
 
 :execute
+if not "%directModelName%"=="" (
+    echo *********** Direct Model [%directModelName%] [!buildType!] ***********
+    call !buildType! %directModelName%
+    goto :endExecution
+)
+
 if not exist "%csvFile%" (
     echo 指定されたファイルが見つかりません: %csvFile%
     exit /b 1
@@ -61,6 +76,7 @@ for /f "tokens=1,2 delims=," %%a in (%csvFile%) do (
     call !buildType! %%b
 )
 
+:endExecution
 echo ビルドプロセスが完了しました。
 
 endlocal

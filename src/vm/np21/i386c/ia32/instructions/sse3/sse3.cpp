@@ -25,10 +25,16 @@
 
 //#include "compiler.h"
 
+#if defined(__ANDROID__) // Medamap
+#include <cmath>
+#endif
+
 #include <math.h>
 #include <float.h>
 
+#if !defined(__ANDROID__) // Medamap
 #define isnan(x) (_isnan(x))
+#endif
 
 #include "../../cpu.h"
 #include "../../ia32.mcr"
@@ -43,15 +49,15 @@
 
 static INLINE void
 SSE3_check_NM_EXCEPTION(){
-	// SSE3‚È‚µ‚È‚çUD(–³ŒøƒIƒyƒR[ƒh—áŠO)‚ð”­¶‚³‚¹‚é
+	// SSE3ï¿½È‚ï¿½ï¿½È‚ï¿½UD(ï¿½ï¿½ï¿½ï¿½ï¿½Iï¿½yï¿½Rï¿½[ï¿½hï¿½ï¿½O)ï¿½ð”­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if(!(i386cpuid.cpu_feature_ecx & CPU_FEATURE_ECX_SSE3)){
 		EXCEPTION(UD_EXCEPTION, 0);
 	}
-	// ƒGƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“‚È‚çUD(–³ŒøƒIƒyƒR[ƒh—áŠO)‚ð”­¶‚³‚¹‚é
+	// ï¿½Gï¿½~ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½UD(ï¿½ï¿½ï¿½ï¿½ï¿½Iï¿½yï¿½Rï¿½[ï¿½hï¿½ï¿½O)ï¿½ð”­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if(CPU_CR0 & CPU_CR0_EM){
 		EXCEPTION(UD_EXCEPTION, 0);
 	}
-	// ƒ^ƒXƒNƒXƒCƒbƒ`Žž‚ÉNM(ƒfƒoƒCƒXŽg—p•s‰Â—áŠO)‚ð”­¶‚³‚¹‚é
+	// ï¿½^ï¿½Xï¿½Nï¿½Xï¿½Cï¿½bï¿½`ï¿½ï¿½ï¿½ï¿½NM(ï¿½fï¿½oï¿½Cï¿½Xï¿½gï¿½pï¿½sï¿½Â—ï¿½O)ï¿½ð”­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if (CPU_CR0 & CPU_CR0_TS) {
 		EXCEPTION(NM_EXCEPTION, 0);
 	}
@@ -62,7 +68,7 @@ SSE3_setTag(void)
 {
 }
 
-// mmx.c‚Ì‚à‚Ì‚Æ“¯‚¶
+// mmx.cï¿½Ì‚ï¿½ï¿½Ì‚Æ“ï¿½ï¿½ï¿½
 static INLINE void
 MMX_setTag(void)
 {
@@ -88,7 +94,7 @@ MMX_setTag(void)
  * SSE3 interface
  */
 
-// ƒR[ƒh‚ª’·‚­‚È‚é‚Ì‚Å‚â‚â‹­ˆø‚É‹¤’Ê‰»
+// ï¿½Rï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½Ì‚Å‚ï¿½â‹­ï¿½ï¿½ï¿½É‹ï¿½ï¿½Ê‰ï¿½
 // xmm/m128 -> xmm
 static INLINE void SSE_PART_GETDATA1DATA2_PD(double **data1, double **data2, double *data2buf){
 	UINT32 op;
@@ -175,11 +181,11 @@ void SSE3_HSUBPS(void)
 
 void SSE3_MONITOR(void)
 {
-	EXCEPTION(UD_EXCEPTION, 0); // –¢ŽÀ‘•
+	EXCEPTION(UD_EXCEPTION, 0); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 }
 void SSE3_MWAIT(void)
 {
-	EXCEPTION(UD_EXCEPTION, 0); // –¢ŽÀ‘•
+	EXCEPTION(UD_EXCEPTION, 0); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 }
 
 //void SSE3_FISTTP(void)
@@ -188,7 +194,7 @@ void SSE3_MWAIT(void)
 //}
 void SSE3_LDDQU(void)
 {
-	SSE2_MOVDQAmem2xmm(); // ”÷–­‚Éˆá‚¤‚¯‚Ç‚¢‚¢‚©‚ÈEEE
+	SSE2_MOVDQAmem2xmm(); // ï¿½ï¿½ï¿½ï¿½ï¿½Éˆá‚¤ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÈEï¿½Eï¿½E
 }
 void SSE3_MOVDDUP(void)
 {

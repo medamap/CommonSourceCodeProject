@@ -11,13 +11,17 @@
 	[ common ]
 */
 #if defined(__ANDROID__)
-	#include <string.h>
-	#include <fcntl.h>
-	#include <sys/types.h>
-	#include <sys/stat.h>
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <algorithm>
+    #include <cctype>
+    #include <fcntl.h>
+    #include <fstream>
+    #include <iostream>
+    #include <map>
+    #include <stdio.h>
 	#include <string>
-	#include <algorithm>
-	#include <cctype>
+    #include <string.h>
     #include "Android/osd.h"
 #endif
 #if defined(_USE_QT)
@@ -814,13 +818,137 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 #endif
 
 #if defined (_Android)
+
+class ConfigManager {
+private:
+    std::map<std::string, std::map<std::string, std::string>> configData;
+
+public:
+    void SetConfig(const std::string& section, const std::string& key, const std::string& value) {
+        configData[section][key] = value;
+    }
+
+    std::string GetConfig(const std::string& section, const std::string& key, const std::string& defaultValue = "") {
+        if (configData.find(section) != configData.end() && configData[section].find(key) != configData[section].end()) {
+            return configData[section][key];
+        }
+        return defaultValue;
+    }
+
+    bool SaveToFile(const std::string& filePath) {
+        std::ofstream file(filePath);
+        if (!file.is_open()) {
+            return false;
+        }
+
+        for (const auto& sectionPair : configData) {
+            file << "[" << sectionPair.first << "]\n";
+            for (const auto& keyPair : sectionPair.second) {
+                file << keyPair.first << "=" << keyPair.second << "\n";
+            }
+            file << "\n";
+        }
+
+        file.close();
+        return true;
+    }
+
+    bool LoadFromFile(const std::string& filePath) {
+        std::ifstream file(filePath);
+        if (!file.is_open()) {
+            return false;
+        }
+
+        std::string line, currentSection;
+        while (std::getline(file, line)) {
+            if (line.empty() || line[0] == ';' || line[0] == '#') {
+                continue; // Skip comments and empty lines
+            }
+
+            if (line[0] == '[') {
+                // New section
+                size_t endPos = line.find(']');
+                if (endPos == std::string::npos) {
+                    continue; // Malformed line, skip
+                }
+
+                currentSection = line.substr(1, endPos - 1);
+            } else {
+                size_t equalPos = line.find('=');
+                if (equalPos == std::string::npos) {
+                    continue; // Malformed line, skip
+                }
+
+                std::string key = line.substr(0, equalPos);
+                std::string value = line.substr(equalPos + 1);
+                SetConfig(currentSection, key, value);
+            }
+        }
+
+        file.close();
+        return true;
+    }
+};
+
+ConfigManager* configManager = nullptr;
+
+//#define SUPER_DEBUG_LOG
+
+#if false
+void replaceFilename(const char* lpFileName, char* tmp_path, size_t tmp_size, const char* newBaseName) {
+    const char *baseName = "config.ini";
+    const char *pos;
+
+    // lpFileName から baseName (config.ini) の位置を検索
+    pos = strstr(lpFileName, baseName);
+    //LOGI("pos: %s", pos);
+    if (pos != NULL) {
+        // baseName が見つかった位置の前までのパスをコピー
+        size_t index = pos - lpFileName;
+        strncpy(tmp_path, lpFileName, index);
+        tmp_path[index] = '\0';  // strncpy は NULL 終端しないので、手動で終端する
+        //LOGI("tmp_path: %s", tmp_path);
+
+        // 新しいファイル名を追加
+        snprintf(tmp_path + index, tmp_size - index, "%s%s", newBaseName, pos + strlen(baseName));
+        //LOGI("tmp_path2: %s", tmp_path);
+    } else {
+        // config.ini が見つからなかった場合、元のパスに .tmp を追加
+        snprintf(tmp_path, tmp_size, "%s.tmp", lpFileName);
+        //LOGI("tmp_path3: %s", tmp_path);
+    }
+}
+#endif
+
 BOOL DLL_PREFIX MyWritePrivateProfileString(const char* lpAppName, const char* lpKeyName, const char* lpString, const char* lpFileName) {
+
     bool result = false;
+    // まだ configManager が new されてないなら new する
+    if (configManager == nullptr) {
+        configManager = new ConfigManager();
+    }
+    configManager->SetConfig(lpAppName, lpKeyName, lpString);
+    result = true;
+
+#if false
+#ifdef SUPER_DEBUG_LOG
+    LOGI("Read Open Start %s", lpFileName);
+#endif
     FILE* fio_i = fopen(lpFileName, "r");
+#ifdef SUPER_DEBUG_LOG
+    LOGI("Read Open End %s", lpFileName);
+#endif
     if (fio_i) {
         char tmp_path[1024];
-        snprintf(tmp_path, sizeof(tmp_path), "%s.$$$", lpFileName);
+        replaceFilename(lpFileName, tmp_path, sizeof(tmp_path), "tempconfig.txt");
+        //printf("New Path: %s\n", tmp_path);
+#ifdef SUPER_DEBUG_LOG
+        LOGI("Write Open Start %s", tmp_path);
+#endif
         FILE* fio_o = fopen(tmp_path, "w");
+#ifdef SUPER_DEBUG_LOG
+        LOGI("Write Open End %s", tmp_path);
+#endif
         if (fio_o) {
             bool in_section = false;
             char section[1024], line[1024];
@@ -857,26 +985,102 @@ BOOL DLL_PREFIX MyWritePrivateProfileString(const char* lpAppName, const char* l
                 fprintf(fio_o, "%s=%s\n", lpKeyName, lpString);
                 result = true;
             }
+#ifdef SUPER_DEBUG_LOG
+            LOGI("Write Close Start %s", tmp_path);
+#endif
+            int fd = fileno(fio_o);
+            fsync(fd);
             fclose(fio_o);
+#ifdef SUPER_DEBUG_LOG
+            LOGI("Write Close End %s", tmp_path);
+#endif
         }
+#ifdef SUPER_DEBUG_LOG
+        LOGI("Read Close Start %s", lpFileName);
+#endif
         fclose(fio_i);
+#ifdef SUPER_DEBUG_LOG
+        LOGI("Read Close End %s", lpFileName);
+#endif
         if (result) {
-            if (!(remove(lpFileName) == 0 && rename(tmp_path, lpFileName) == 0)) {
+#ifdef SUPER_DEBUG_LOG
+            LOGI("Remove Start %s", lpFileName);
+#endif
+            if (remove(lpFileName) == 0) {
+#ifdef SUPER_DEBUG_LOG
+                LOGI("Remove Succeeded %s", lpFileName);
+#endif
+
+#ifdef SUPER_DEBUG_LOG
+                LOGI("Rename Start from %s to %s", tmp_path, lpFileName);
+#endif
+                if (rename(tmp_path, lpFileName) == 0) {
+#ifdef SUPER_DEBUG_LOG
+                    LOGI("Rename Succeeded from %s to %s", tmp_path, lpFileName);
+#endif
+                } else {
+#ifdef SUPER_DEBUG_LOG
+                    LOGI("Rename Failed from %s to %s", tmp_path, lpFileName);
+#endif
+                    result = false;
+                }
+            } else {
+#ifdef SUPER_DEBUG_LOG
+                LOGI("Remove Failed %s", lpFileName);
+#endif
                 result = false;
             }
+
+#ifdef SUPER_DEBUG_LOG
+            if (result) {
+                LOGI("Remove and Rename End %s", lpFileName);
+            } else {
+                LOGI("Remove and Rename Failed %s", lpFileName);
+            }
+#endif
         }
     } else {
+#ifdef SUPER_DEBUG_LOG
+        LOGI("Write Open Start %s", lpFileName);
+#endif
         FILE* fio_o = fopen(lpFileName, "w");
+#ifdef SUPER_DEBUG_LOG
+        LOGI("Write Open End %s", lpFileName);
+#endif
         if (fio_o) {
             fprintf(fio_o, "[%s]\n", lpAppName);
             fprintf(fio_o, "%s=%s\n", lpKeyName, lpString);
+#ifdef SUPER_DEBUG_LOG
+            LOGI("Write Close Start %s", lpFileName);
+#endif
             fclose(fio_o);
+#ifdef SUPER_DEBUG_LOG
+            LOGI("Write Close End %s", lpFileName);
+#endif
         }
     }
+#endif
     return result;
 }
 
 size_t DLL_PREFIX MyGetPrivateProfileString(const char* lpAppName, const char* lpKeyName, const char* lpDefault, char* lpReturnedString, size_t nSize, const char* lpFileName) {
+
+    // まだ configManager が new されてないなら new する
+    if (configManager == nullptr) {
+        configManager = new ConfigManager();
+    }
+
+    // コンフィグマネージャーから値を取得
+    std::string value = configManager->GetConfig(lpAppName, lpKeyName, lpDefault ? lpDefault : "");
+
+    // バッファサイズを超えないように値をコピー
+    strncpy(lpReturnedString, value.c_str(), nSize - 1);
+    // value をコピーした末尾に NULL 終端を追加
+    lpReturnedString[nSize - 1] = '\0';
+
+    return strlen(lpReturnedString);
+
+#if false
     if (lpDefault != NULL) {
         strncpy(lpReturnedString, lpDefault, nSize);
         lpReturnedString[nSize - 1] = '\0';
@@ -914,9 +1118,23 @@ size_t DLL_PREFIX MyGetPrivateProfileString(const char* lpAppName, const char* l
         fclose(fio);
     }
     return strlen(lpReturnedString);
+#endif
 }
 
 unsigned int DLL_PREFIX MyGetPrivateProfileInt(const char* lpAppName, const char* lpKeyName, int nDefault, const char* lpFileName) {
+    // まだ configManager が new されてないなら new する
+    if (configManager == nullptr) {
+        configManager = new ConfigManager();
+    }
+
+    std::string defaultValue = std::to_string(nDefault);
+    std::string value = configManager->GetConfig(lpAppName, lpKeyName, defaultValue);
+
+    // 文字列を整数に変換
+    int intValue = std::stoi(value, nullptr, 10);
+
+    return static_cast<unsigned int>(intValue);
+#if false
     char sstr[128];
     char sval[128];
     std::string s;
@@ -933,6 +1151,23 @@ unsigned int DLL_PREFIX MyGetPrivateProfileInt(const char* lpAppName, const char
         i = static_cast<int>(strtol(s.c_str(), nullptr, 10));
     }
     return static_cast<unsigned int>(i);
+#endif
+}
+
+void DLL_PREFIX MySavePrivateProfile(const char* lpFileName) {
+    // まだ configManager が new されてないなら new する
+    if (configManager == nullptr) {
+        configManager = new ConfigManager();
+    }
+    configManager->SaveToFile(lpFileName);
+}
+
+void DLL_PREFIX MyLoadPrivateProfile(const char* lpFileName) {
+    // まだ configManager が new されてないなら new する
+    if (configManager == nullptr) {
+        configManager = new ConfigManager();
+    }
+    configManager->LoadFromFile(lpFileName);
 }
 
 #elif !defined(_WIN32)

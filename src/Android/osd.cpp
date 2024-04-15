@@ -24,7 +24,7 @@ void OSD::release()
 {
 	release_input();
 	//release_screen();
-	//release_sound();
+	release_sound();
 }
 
 void OSD::power_off()
