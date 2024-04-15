@@ -1274,17 +1274,17 @@ static uint8_t androidToAndroidToVk[][5] = {
         {0,             AKEYCODE_CALL,                 0,  AKEYCODE_CALL,                  1}, //   5 AKEYCODE_CALL
         {0,             AKEYCODE_ENDCALL,              0,  AKEYCODE_ENDCALL,               1}, //   6 AKEYCODE_ENDCALL
 //テンキーがある機種の場合、数字キーはテンキー側を入力する。
-#if !defined(_HAS_TENKEY)
-        {VK_0,          AKEYCODE_NUMPAD_0,             0,  AKEYCODE_0,                     1}, //   7 AKEYCODE_0
+#if defined(_HAS_TENKEY)
+        {VK_0,          AKEYCODE_NUMPAD_0,             0,  AKEYCODE_9,                     1}, //   7 AKEYCODE_0
         {VK_1,          AKEYCODE_NUMPAD_1,             0,  AKEYCODE_1,                     1}, //   8 AKEYCODE_1
         {VK_2,          AKEYCODE_NUMPAD_2,             0,  AKEYCODE_2,                     1}, //   9 AKEYCODE_2
         {VK_3,          AKEYCODE_NUMPAD_3,             0,  AKEYCODE_3,                     1}, //  10 AKEYCODE_3
         {VK_4,          AKEYCODE_NUMPAD_4,             0,  AKEYCODE_4,                     1}, //  11 AKEYCODE_4
         {VK_5,          AKEYCODE_NUMPAD_5,             0,  AKEYCODE_5,                     1}, //  12 AKEYCODE_5
         {VK_6,          AKEYCODE_NUMPAD_6,             0,  AKEYCODE_BUTTON_7,              0}, //  13 AKEYCODE_6
-        {VK_7,          AKEYCODE_NUMPAD_7,             0,  AKEYCODE_7,                     1}, //  14 AKEYCODE_7
-        {VK_8,          AKEYCODE_NUMPAD_8,             0,  AKEYCODE_8,                     1}, //  15 AKEYCODE_8
-        {VK_9,          AKEYCODE_NUMPAD_9,             0,  AKEYCODE_9,                     1}, //  16 AKEYCODE_9
+        {VK_7,          AKEYCODE_NUMPAD_7,             0,  AKEYCODE_6,                     1}, //  14 AKEYCODE_7
+        {VK_8,          AKEYCODE_NUMPAD_8,             0,  AKEYCODE_BUTTON_1,              1}, //  15 AKEYCODE_8
+        {VK_9,          AKEYCODE_NUMPAD_9,             0,  AKEYCODE_8,                     1}, //  16 AKEYCODE_9
 #else
         {VK_0,          AKEYCODE_0,                    0,  AKEYCODE_9,                     1}, //   7 AKEYCODE_0
         {VK_1,          AKEYCODE_1,                    0,  AKEYCODE_1,                     1}, //   8 AKEYCODE_1
