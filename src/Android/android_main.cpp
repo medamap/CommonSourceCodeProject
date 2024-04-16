@@ -83,7 +83,6 @@ static void stats_startFrame(Stats *s);
 static void stats_endFrame(Stats *s);
 DWORD timeGetTime();
 static void engine_handle_cmd(struct android_app *app, int32_t cmd);
-static void init_tables(void);
 void android_main(struct android_app *state);
 
 bool resetFlag;
@@ -558,13 +557,10 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
     }
 }
 
-static void init_tables(void) {}
-
 void android_main(struct android_app *state) {
 
     ANativeActivity_setWindowFlags(state->activity,AWINDOW_FLAG_KEEP_SCREEN_ON , 0);    //Sleepさせない
 
-    static int init;
     struct engine engine;
 
     memset(&engine, 0, sizeof(engine));
@@ -671,11 +667,6 @@ void android_main(struct android_app *state) {
 
     emu = new EMU(state);
     engine.emu_initialized = true;
-
-    if (!init) {
-        init_tables();
-        init = 1;
-    }
 
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
@@ -811,6 +802,7 @@ void android_main(struct android_app *state) {
         }
 
         if(softKeyDelayFlag){
+#if defined(USE_AUTO_KEY)
             if(config.romaji_to_kana){
                 if (softKeyCode == AKEYCODE_DPAD_UP || softKeyCode == AKEYCODE_DPAD_DOWN || softKeyCode == AKEYCODE_DPAD_LEFT || softKeyCode == AKEYCODE_DPAD_RIGHT) {
                     config.romaji_to_kana = !config.romaji_to_kana;
@@ -821,10 +813,10 @@ void android_main(struct android_app *state) {
                 } else if (softKeyCode == AKEYCODE_CTRL_LEFT || softKeyCode == AKEYCODE_CTRL_RIGHT) {
                     romajiKeyCtrl = true;
                 } else {
-                    if (romajiKeyCtrl == true) {
+                    if (romajiKeyCtrl) {
                         romajiKeyCtrl = false;
                     }
-                    if (romajiKeyShift == true) {
+                    if (romajiKeyShift) {
                         romajiKeyShift = false;
                         softKeyCode = AndroidToAsciiCode[softKeyCode][1];
                     } else {
@@ -835,6 +827,9 @@ void android_main(struct android_app *state) {
             } else {
                 emu->get_osd()->key_down(softKeyCode, false, false);
             }
+#else
+            emu->get_osd()->key_down(softKeyCode, false, false);
+#endif
             softKeyDelayFlag = false;
         }
 
@@ -3742,6 +3737,7 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                 }
 
             } else {
+#if defined(USE_AUTO_KEY)
                 if(config.romaji_to_kana){
                     if (code == AKEYCODE_DPAD_UP || code == AKEYCODE_DPAD_DOWN || code == AKEYCODE_DPAD_LEFT || code == AKEYCODE_DPAD_RIGHT) {
                         config.romaji_to_kana = !config.romaji_to_kana;
@@ -3752,10 +3748,10 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                     } else if (code == AKEYCODE_CTRL_LEFT || code == AKEYCODE_CTRL_RIGHT) {
                         romajiKeyCtrl = true;
                     } else {
-                        if (romajiKeyCtrl == true) {
+                        if (romajiKeyCtrl) {
                             romajiKeyCtrl = false;
                         }
-                        if (romajiKeyShift == true) {
+                        if (romajiKeyShift) {
                             romajiKeyShift = false;
                             code = AndroidToAsciiCode[code][1];
                         } else {
@@ -3766,6 +3762,9 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                 } else {
                     emu->get_osd()->key_down(code, false, false);
                 }
+#else
+                emu->get_osd()->key_down(code, false, false);
+#endif
             }
         } else if (action == AKEY_EVENT_ACTION_UP) {
             if (AKEYCODE_BACK == AKeyEvent_getKeyCode(event)) {

@@ -963,11 +963,11 @@ public:
 #define VK_OEM_MINUS      0xBD   // '-' any country
 #define VK_OEM_PERIOD     0xBE   // '.' any country
 #define VK_OEM_2          0xBF   // '/?' for US         '/?' for JP
-#define VK_OEM_3          0xC0   // '`~' for US         '@`' for JP
+#define VK_OEM_3          0xC0   // '`~' for US         '@~' for JP
 #define VK_OEM_4          0xDB  //  '[{' for US         '[{' for JP
 #define VK_OEM_5          0xDC  //  '\|' for US         '\|' for JP
 #define VK_OEM_6          0xDD  //  ']}' for US         ']}' for JP
-#define VK_OEM_7          0xDE  //  ''"' for US         '^~' for JP
+#define VK_OEM_7          0xDE  //  ''"' for US         '^`' for JP
 #define VK_OEM_8          0xDF
 #define VK_OEM_102        0xE2  //  '<>' for US         '\_' for JP
 
