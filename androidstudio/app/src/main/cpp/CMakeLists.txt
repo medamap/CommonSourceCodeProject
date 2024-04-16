@@ -283,7 +283,7 @@ elseif(_PC8801)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14 -Wall -D_PC8801 -D_Android -D_HAS_TENKEY -D_RGB565 -Wno-narrowing -D_EXTEND_MENU")
 elseif(_PC8801MA)
 	include(_PC8801MA.txt)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14 -Wall -D_PC8801MA -D_Android -D_HAS_TENKEY -D_RGB565 -Wno-narrowing -D_EXTEND_MENU")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14 -Wall -D_PC8801MA -D_Android -D_HAS_TENKEY -D_RGB565 -Wno-narrowing -D_EXTEND_MENU -D_USE_OPENGL_ES20")
 elseif(_PC8801MK2)
 	include(_PC8801MK2.txt)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14 -Wall -D_PC8801MK2 -D_Android -D_HAS_TENKEY -D_RGB565 -Wno-narrowing -D_EXTEND_MENU")
@@ -361,7 +361,7 @@ elseif(_X1)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14 -Wall -D_X1 -D_Android -D_HAS_TENKEY -D_RGB565 -D_EXTEND_MENU")
 elseif(_X1TURBO)
 	include(_X1TURBO.txt)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14 -Wall -D_X1TURBO -D_Android -D_HAS_TENKEY -D_RGB565 -D_EXTEND_MENU")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14 -Wall -D_X1TURBO -D_Android -D_HAS_TENKEY -D_RGB565 -D_EXTEND_MENU -D_USE_OPENGL_ES20")
 elseif(_X1TURBOZ)
 	include(_X1TURBOZ.txt)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14 -Wall -D_X1TURBOZ -D_Android -D_HAS_TENKEY -D_RGB565 -D_EXTEND_MENU")
@@ -385,6 +385,8 @@ target_link_libraries(native-activity
 		android
 		native_app_glue
 		log
+		EGL
+		GLESv2
 		m
 		oboe
 		${log-lib})
