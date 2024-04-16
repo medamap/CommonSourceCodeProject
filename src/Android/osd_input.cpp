@@ -38,7 +38,7 @@ void OSD::initialize_input()
 
 	//機種ごとのカスタマイズ
 #if defined(_MZ700)
-	AndroidKeyCode[111] = 8; //ESC → BS([BREAK]KEY in MZ-700Emulator)
+    androidToAndroidToVk[111][0] = 8; //ESC → BS([BREAK]KEY in MZ-700Emulator)
 #endif
 
 }
