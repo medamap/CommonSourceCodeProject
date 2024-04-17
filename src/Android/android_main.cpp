@@ -37,16 +37,21 @@
 #include "fifo.h"
 #include "fileio.h"
 
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+#if defined(_USE_OPENGL_ES20)
+#include <GLES2/gl2.h>
+#elif defined(_USE_OPENGL_ES30)
+#include <GLES3/gl3.h>
+#endif
+#include <EGL/egl.h>
+#include <android/sensor.h>
+#include <android/native_window.h>
+#include <cmath>
+#endif // _USE_OPENGL_ES20 || _USE_OPENGL_ES30
+
 #include "Android/menu/menu.h"
 #include "Android/menu/BaseMenu.h"
 #include "res/resource.h"
-
-#ifdef _USE_OPENGL_ES20
-#include <EGL/egl.h>
-#include <GLES2/gl2.h>
-#include <android/sensor.h>
-#include <android/native_window.h>
-#endif // _USE_OPENGL_ES20
 
 // ストレージ権限付与イベント
 #define PERMISSIONS_GRANTED_EVENT 1
@@ -81,7 +86,7 @@ struct engine {
     Stats stats;
     int animating;
     bool emu_initialized;
-#if defined(_USE_OPENGL_ES20)
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
     EGLConfig eglConfig;
     EGLDisplay eglDisplay;
     EGLSurface eglSurface;
@@ -258,7 +263,7 @@ _TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title,
 ////////////////////////////////////////////////////////////////////////////////
 // screen
 
-#if !defined(_USE_OPENGL_ES20)
+#if !defined(_USE_OPENGL_ES20) && !defined(_USE_OPENGL_ES30)
 static void draw_icon(ANativeWindow_Buffer *buffer);
 static void draw_message(struct android_app *state, ANativeWindow_Buffer *buffer, const char *message);
 static void engine_draw_message(struct engine *engine, const char *message);
@@ -298,14 +303,14 @@ void set_window(HWND hWnd, int mode);
 ////////////////////////////////////////////////////////////////////////////////
 // opengl
 
-#ifdef _USE_OPENGL_ES20
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
 void initializeOpenGL(struct engine* engine);
 void updateSurface(struct engine* engine);
 void terminateOpenGL(struct engine* engine);
 void initializeShaders(struct engine* engine);
 void initTexture(struct engine* engine);
 void drawOpenGlFrame(struct engine* engine);
-#endif // _USE_OPENGL_ES20
+#endif // _USE_OPENGL_ES20 || _USE_OPENGL_ES30
 
 ////////////////////////////////////////////////////////////////////////////////
 // input
@@ -525,11 +530,15 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
         case APP_CMD_INIT_WINDOW:
         {
             if (engine->app->window != NULL) {
-#ifdef _USE_OPENGL_ES20
-                // OpenGL ES 2.0 の初期化
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+                // OpenGL ES 2.0 / 3.0 の初期化
                 initializeOpenGL(engine);
                 initializeShaders(engine);
+#if defined(_USE_OPENGL_ES20)
                 LOGI("OpenGL ES 2.0 initialization complete.");
+#elif defined(_USE_OPENGL_ES30)
+                LOGI("OpenGL ES 3.0 initialization complete.");
+#endif
 #else
                 // fill_plasma() assumes 565 format, get it here
                 format = ANativeWindow_getFormat(app->window);
@@ -550,10 +559,14 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
         }
         case APP_CMD_TERM_WINDOW:
         {
-#ifdef _USE_OPENGL_ES20
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
             // OpenGL ES 2.0 関連の終了処理
             terminateOpenGL(engine);
+#if defined(_USE_OPENGL_ES20)
             LOGI("OpenGL ES 2.0 termination complete.");
+#elif defined(_USE_OPENGL_ES30)
+            LOGI("OpenGL ES 3.0 termination complete.");
+#endif
 #else
             engine_term_display(engine);
             format = ANativeWindow_getFormat(app->window);
@@ -574,7 +587,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
         case APP_CMD_LOST_FOCUS:
         {
             //engine->animating = 0;
-#ifdef _USE_OPENGL_ES20
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
 #else
             engine_draw_frame(engine);
 #endif
@@ -583,7 +596,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
         case APP_CMD_CONFIG_CHANGED:
         {
             // 設定変更時の処理
-#ifdef _USE_OPENGL_ES20
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
             updateSurface(engine);
 #else
             AConfiguration* aconfig = AConfiguration_new();
@@ -598,9 +611,13 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
         case APP_CMD_DESTROY:
         {
             // 強制排出
-#ifdef _USE_OPENGL_ES20
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
             terminateOpenGL(engine);
+#if defined(_USE_OPENGL_ES20)
             LOGI("OpenGL ES 2.0 resources released.");
+#else
+            LOGI("OpenGL ES 3.0 resources released.");
+#endif
 #endif
             LOGI("APP_CMD_DESTROY");
             all_eject();
@@ -768,7 +785,7 @@ void android_main(struct android_app *state) {
         if (state->destroyRequested != 0) {
             LOGI("Engine thread destroy requested! ident=%d / fd=%d / events=%d", ident, fd, events);
             all_eject();
-#if defined(_USE_OPENGL_ES20)
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
             terminateOpenGL(&engine);
 #else
             engine_term_display(&engine);
@@ -890,7 +907,7 @@ void android_main(struct android_app *state) {
         }
 
         if (engine.animating && needDraw) {
-#if defined(_USE_OPENGL_ES20)
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
             initTexture(&engine);
             drawOpenGlFrame(&engine);
 #else
@@ -1485,7 +1502,7 @@ void EventProc(engine* engine, MenuNode menuNode)
                 case ID_SCREEN_BOTTOM_MARGIN_180: case ID_SCREEN_BOTTOM_MARGIN_210: case ID_SCREEN_BOTTOM_MARGIN_240:
                 case ID_SCREEN_BOTTOM_MARGIN_270:
                     config.screen_bottom_margin = (LOWORD(wParam) - ID_SCREEN_BOTTOM_MARGIN_0) * 30;
-#if !defined(_USE_OPENGL_ES20)
+#if !defined(_USE_OPENGL_ES20) && !defined(_USE_OPENGL_ES30)
                     clear_screen(engine);
                     clear_screen(engine);
 #endif
@@ -3140,7 +3157,7 @@ _TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title,
 // screen
 // ----------------------------------------------------------------------------
 
-#if !defined(_USE_OPENGL_ES20)
+#if !defined(_USE_OPENGL_ES20) && !defined(_USE_OPENGL_ES30)
 static void draw_icon(ANativeWindow_Buffer *buffer) {
     int bufferWidth = buffer->width;
     int bufferHeight = buffer->height;
@@ -3651,31 +3668,41 @@ void check_update_screen(engine* engine) {
 // opengl
 // ----------------------------------------------------------------------------
 
-#ifdef _USE_OPENGL_ES20
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
 
 void initializeOpenGL(struct engine* engine) {
     LOGI("initializeOpenGL start:");
     const EGLint attribs[] = {
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, // OpenGL ES 3.0を使用するために変更
+#if defined(_USE_OPENGL_ES20)
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, // OpenGL ES 2.0
             EGL_BLUE_SIZE, 8,
             EGL_GREEN_SIZE, 8,
             EGL_RED_SIZE, 8,
+            EGL_DEPTH_SIZE, 0,
+#elif defined(_USE_OPENGL_ES30)
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, // OpenGL ES 3.0
+            EGL_BLUE_SIZE, 5,
+            EGL_GREEN_SIZE, 6,
+            EGL_RED_SIZE, 5,
+            EGL_DEPTH_SIZE, 0,
+#endif
             EGL_NONE
     };
 
     engine->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     eglInitialize(engine->eglDisplay, NULL, NULL);
-
     EGLint numConfigs;
     eglChooseConfig(engine->eglDisplay, attribs, &engine->eglConfig, 1, &numConfigs);
-
     EGLint contextAttribs[] = {
-            EGL_CONTEXT_CLIENT_VERSION, 2, // OpenGL ES 3.0を使用するために変更
+#if defined(_USE_OPENGL_ES20)
+            EGL_CONTEXT_CLIENT_VERSION, 2, // OpenGL ES 2.0
+#elif defined(_USE_OPENGL_ES30)
+            EGL_CONTEXT_CLIENT_VERSION, 3, // OpenGL ES 3.0
+#endif
             EGL_NONE
     };
     engine->eglContext = eglCreateContext(engine->eglDisplay, engine->eglConfig, NULL, contextAttribs);
-
     engine->eglSurface = eglCreateWindowSurface(engine->eglDisplay, engine->eglConfig, engine->app->window, NULL);
 
     if (!eglMakeCurrent(engine->eglDisplay, engine->eglSurface, engine->eglSurface, engine->eglContext)) {
@@ -3685,6 +3712,9 @@ void initializeOpenGL(struct engine* engine) {
 
     // ビューポートの設定
     glViewport(0, 0, deviceInfo.width, deviceInfo.height);
+    // 各種設定の無効化
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
     LOGI("initializeOpenGL end:");
 }
 
@@ -3736,10 +3766,15 @@ void terminateOpenGL(struct engine* engine) {
     // 例えば、glDeleteBuffers, glDeleteTextures, glDeleteProgram など
 
     // 3. ログ出力
+#if defined(_USE_OPENGL_ES20)
     LOGI("OpenGL ES 2.0 resources have been released.");
+#elif defined(_USE_OPENGL_ES30)
+    LOGI("OpenGL ES 3.0 resources have been released.");
+#endif
 }
 
 // Vertex shader
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
 const char* vertexShaderSource = R"glsl(
 #version 100
 attribute vec4 vertexPosition;
@@ -3753,8 +3788,24 @@ void main() {
     vTextureCoord = textureCoord;
 }
 )glsl";
+#elif defined(_USE_OPENGL_ES30)
+const char* vertexShaderSource = R"glsl(
+#version 300 es
+in vec4 vertexPosition;
+in vec2 textureCoord;
+out vec2 vTextureCoord;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+void main() {
+    gl_Position = projectionMatrix * viewMatrix * vertexPosition;
+    vTextureCoord = textureCoord;
+}
+)glsl";
+#endif
 
 // Fragment shader
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
 const char* fragmentShaderSource = R"glsl(
 #version 100
 precision mediump float;
@@ -3765,6 +3816,19 @@ void main() {
     gl_FragColor = texture2D(texture, vTextureCoord);
 }
 )glsl";
+#elif defined(_USE_OPENGL_ES30)
+const char* fragmentShaderSource = R"glsl(
+#version 300 es
+precision mediump float;
+in vec2 vTextureCoord;
+out vec4 fragColor;
+uniform sampler2D texture;
+
+void main() {
+    fragColor = texture(texture, vTextureCoord);
+}
+)glsl";
+#endif
 
 // グローバル頂点データとインデックス
 static GLfloat origVertexData[] = {
@@ -3780,27 +3844,23 @@ static GLfloat origVertexData[] = {
 
 // グローバル頂点データとインデックス
 static GLfloat vertexData[] = {
-        // 左下
-        -1.0f, -1.0f, 0.0f,
-        // 右下
-        1.0f, -1.0f, 0.0f,
-        // 左上
-        -1.0f, 1.0f, 0.0f,
-        // 右上
-        1.0f, 1.0f, 0.0f
+        -1.0f, -1.0f, 0.0f,  // 左下
+        1.0f, -1.0f, 0.0f,   // 右下
+        -1.0f, 1.0f, 0.0f,   // 左上
+        1.0f, 1.0f, 0.0f     // 右上
 };
 
 static GLuint indices[] = {
         0, 1, 2,  // 第1の三角形
-        1, 3, 2   // 第2の三角形
+        1, 3, 2  // 第2の三角形
 };
 
 // グローバルなテクスチャ座標
 static GLfloat texCoords[] = {
-        0.0f, 1.0f,  // 左上
-        1.0f, 1.0f,  // 右上
         0.0f, 0.0f,  // 左下
-        1.0f, 0.0f   // 右下
+        1.0f, 0.0f,  // 右下
+        0.0f, 1.0f,  // 左上
+        1.0f, 1.0f   // 右上
 };
 
 void checkGLError(const char* operation) {
@@ -3919,29 +3979,9 @@ void initializeShaders(struct engine* engine) {
     LOGI("initializeShaders end:");
 }
 
-#include <cmath>
-
-// カメラのパラメータ
-float cameraPositionX = 0.0f;
-float cameraPositionY = 0.0f;
-float cameraPositionZ = 1.0f;
-float cameraTargetX = 0.0f;
-float cameraTargetY = 0.0f;
-float cameraTargetZ = 0.0f;
-float cameraUpX = 0.0f;
-float cameraUpY = 1.0f;
-float cameraUpZ = 0.0f;
-
-// ビューマトリックスの計算
+// ビューマトリックス
 float viewMatrix[16];
-
-// プロジェクションマトリックスの計算
-float left = -1.0f;
-float right = 1.0f;
-float bottom = -1.0f;
-float top = 1.0f;
-float nearPlane = 0.1f;
-float farPlane = 100.0f;
+// プロジェクションマトリックス
 float projectionMatrix[16];
 
 // カメラ行列を計算する関数
@@ -3980,27 +4020,29 @@ void calculateLookAt(float* outViewMatrix, float eyeX, float eyeY, float eyeZ, f
 }
 
 // プロジェクション行列を計算する関数
-void calculateOrtho(float* outProjectionMatrix, float left, float right, float bottom, float top, float near, float far) {
-    outProjectionMatrix[0] = 2.0f / (right - left);
+void calculateOrtho(float* outProjectionMatrix, float inLeft, float inRight, float inBottom, float inTop, float inNear, float inFar) {
+    outProjectionMatrix[0] = 2.0f / (inRight - inLeft);
     outProjectionMatrix[1] = 0.0f;
     outProjectionMatrix[2] = 0.0f;
     outProjectionMatrix[3] = 0.0f;
 
     outProjectionMatrix[4] = 0.0f;
-    outProjectionMatrix[5] = 2.0f / (top - bottom);
+    outProjectionMatrix[5] = 2.0f / (inTop - inBottom);
     outProjectionMatrix[6] = 0.0f;
     outProjectionMatrix[7] = 0.0f;
 
     outProjectionMatrix[8] = 0.0f;
     outProjectionMatrix[9] = 0.0f;
-    outProjectionMatrix[10] = -2.0f / (far - near);
+    outProjectionMatrix[10] = -2.0f / (inFar - inNear);
     outProjectionMatrix[11] = 0.0f;
 
-    outProjectionMatrix[12] = -(right + left) / (right - left);
-    outProjectionMatrix[13] = -(top + bottom) / (top - bottom);
-    outProjectionMatrix[14] = -(far + near) / (far - near);
+    outProjectionMatrix[12] = -(inRight + inLeft) / (inRight - inLeft);
+    outProjectionMatrix[13] = -(inTop + inBottom) / (inTop - inBottom);
+    outProjectionMatrix[14] = -(inFar + inNear) / (inFar - inNear);
     outProjectionMatrix[15] = 1.0f;
 }
+
+unsigned char counter = 0;
 
 // RGB565 データから RGBA データへの変換関数
 void convertRGB565toRGBA(unsigned char* srcData, unsigned char* dstData, int width, int height) {
@@ -4009,12 +4051,18 @@ void convertRGB565toRGBA(unsigned char* srcData, unsigned char* dstData, int wid
         unsigned char g = (pixel & 0xF800) >> 8; // R チャンネルを取得
         unsigned char b = (pixel & 0x07E0) >> 3; // G チャンネルを取得
         unsigned char r = (pixel & 0x001F) << 3; // B チャンネルを取得
+        // 0 から 255 の乱数を生成する
+        g = rand() % 256;
+        r = rand() % 256;
+        b = rand() % 256;
         dstData[i * 4] = r; // R チャンネルをコピー
         dstData[i * 4 + 1] = g; // G チャンネルをコピー
         dstData[i * 4 + 2] = b; // B チャンネルをコピー
         dstData[i * 4 + 3] = 255; // アルファ値を設定（完全不透明）
     }
 }
+
+std::vector<unsigned char> rgbaPixelData;
 
 void initTexture(struct engine* engine) {
     int emuWidth = emu->get_osd()->get_vm_window_width();
@@ -4034,49 +4082,78 @@ void initTexture(struct engine* engine) {
     }
 
     // ピクセルデータの変換とテクスチャのアップロード
-    unsigned char* rgbaPixelData = new unsigned char[emuWidth * emuHeight * 4];
-    convertRGB565toRGBA(reinterpret_cast<unsigned char *>(emu->get_osd()->getScreenBuffer()->lpBmp), rgbaPixelData, emuWidth, emuHeight);
+/*
+    if (rgbaPixelData.empty() || rgbaPixelData.size() != (emuWidth * emuHeight * 4)) {
+        rgbaPixelData.resize(emuWidth * emuHeight * 4);
+    }
+    convertRGB565toRGBA(reinterpret_cast<unsigned char *>(emu->get_osd()->getScreenBuffer()->lpBmp), rgbaPixelData.data(), emuWidth, emuHeight);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                  emuWidth, emuHeight,
                  0, GL_RGBA, GL_UNSIGNED_BYTE,
-                 rgbaPixelData);
+                 rgbaPixelData.data());
+*/
+    void *screenBuffer = emu->get_osd()->getScreenBuffer()->lpBmp;
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565,
+                 emuWidth, emuHeight,
+                 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5,
+                 screenBuffer);
 
     glBindTexture(GL_TEXTURE_2D, 0); // バインド解除
-
-    delete[] rgbaPixelData;
 }
 
 void drawOpenGlFrame(struct engine* engine) {
+
+    int topOffset = 100;
+    int bottomOffset = config.screen_bottom_margin;
+
+    int scrWidth = deviceInfo.width;
+    int scrHeight = deviceInfo.height - topOffset - bottomOffset;
+
     int emuWidth = emu->get_osd()->get_vm_window_width();
     int emuHeight = emu->get_osd()->get_vm_window_height();
 
-    float screenAspect = (float)deviceInfo.width / deviceInfo.height;
     float emuAspect = (float)emuWidth / emuHeight;
+    float screenAspect = (float)deviceInfo.width / deviceInfo.height;
+
+    float widthRate = (float)scrWidth / emuWidth;
+    float heightRate = (float)scrHeight / emuHeight;
+
+    //縦横小さい側の倍率で拡大
+    float screenRate = 0;
+    if (widthRate < heightRate) {
+        screenRate = widthRate;
+    } else {
+        screenRate = heightRate;
+    }
+    int realScreenWidth = (float) emuWidth * screenRate;
+    int realScreenHeight = (float) emuHeight * screenRate;
+    int leftOffset = (scrWidth - realScreenWidth) / 2;
+    //LOGI("realScreenWidth/Height (%d, %d)", realScreenWidth, realScreenHeight);
 
     // アスペクト比に応じて頂点座標を調整
-    float scaleWidth = 0.1f * 0.9f;
-    float scaleHeight = 1.0f * 0.9f;
+    float scaleWidth = 1.0f;
+    float scaleHeight = 1.0f;
     if (emuAspect > screenAspect) {
         scaleHeight = screenAspect / emuAspect;
     } else {
         scaleWidth = emuAspect / screenAspect;
     }
-    // アスペクト比でスケールされた新しい頂点座標
-    for (int i = 0; i < 4; i++) {
-        vertexData[3 * i] = origVertexData[3 * i] * scaleWidth;
-        vertexData[3 * i + 1] = origVertexData[3 * i + 1] * scaleHeight;
-        vertexData[3 * i + 2] = origVertexData[3 * i + 2];  // Z座標は変更なし
-    }
 
-    calculateLookAt(viewMatrix, cameraPositionX, cameraPositionY, cameraPositionZ, cameraTargetX, cameraTargetY, cameraTargetZ, cameraUpX, cameraUpY, cameraUpZ);
+    // アスペクト比でスケールされた新しい頂点座標
+    //for (int i = 0; i < 4; i++) {
+    //    vertexData[3 * i] = origVertexData[3 * i] * scaleWidth * 1.0;
+    //    vertexData[3 * i + 1] = origVertexData[3 * i + 1] * scaleHeight * 1.0;
+    //    vertexData[3 * i + 2] = origVertexData[3 * i + 2];  // Z座標は変更なし
+    //}
+
+    calculateLookAt(viewMatrix, 0, 0, 1, 0, 0, 0, 0, 1, 0);
     calculateOrtho(projectionMatrix, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 
-    glViewport(0, 0, deviceInfo.width, deviceInfo.height);
+    glViewport(leftOffset, bottomOffset, realScreenWidth, realScreenHeight);
 
     glUseProgram(engine->shaderProgram);
 
-    glDisable(GL_CULL_FACE);
     glClearColor(0.0f, 0.0f, 0.5f, 1.0f);  // 不透明の赤色
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -4090,7 +4167,6 @@ void drawOpenGlFrame(struct engine* engine) {
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texCoords);
 
@@ -4105,9 +4181,6 @@ void drawOpenGlFrame(struct engine* engine) {
     glUniform1i(glGetUniformLocation(engine->shaderProgram, "texture"), 0);
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     eglSwapBuffers(engine->eglDisplay, engine->eglSurface);
 }
 
