@@ -111,20 +111,35 @@ Menu::Menu() {
     addNode(screenId, "Rotate 180deg", Property, ID_SCREEN_ROTATE_180);
     addNode(screenId, "Rotate -90deg", Property, ID_SCREEN_ROTATE_270);
 
-    int marginId = addNode(screenId, "Screen Bottom Margin", Category, -1);
-    addNode(marginId, "0", Property, ID_SCREEN_BOTTOM_MARGIN_0);
-    addNode(marginId, "30", Property, ID_SCREEN_BOTTOM_MARGIN_30);
-    addNode(marginId, "60", Property, ID_SCREEN_BOTTOM_MARGIN_60);
-    addNode(marginId, "90", Property, ID_SCREEN_BOTTOM_MARGIN_90);
-    addNode(marginId, "120", Property, ID_SCREEN_BOTTOM_MARGIN_120);
-    addNode(marginId, "150", Property, ID_SCREEN_BOTTOM_MARGIN_150);
-    addNode(marginId, "180", Property, ID_SCREEN_BOTTOM_MARGIN_180);
-    addNode(marginId, "210", Property, ID_SCREEN_BOTTOM_MARGIN_210);
-    addNode(marginId, "240", Property, ID_SCREEN_BOTTOM_MARGIN_240);
-    addNode(marginId, "270", Property, ID_SCREEN_BOTTOM_MARGIN_270);
+    int marginId1 = addNode(screenId, "Screen Top Margin", Category, -1);
+    addNode(marginId1, "0", Property, ID_SCREEN_TOP_MARGIN_0);
+    addNode(marginId1, "30", Property, ID_SCREEN_TOP_MARGIN_30);
+    addNode(marginId1, "60", Property, ID_SCREEN_TOP_MARGIN_60);
+    addNode(marginId1, "90", Property, ID_SCREEN_TOP_MARGIN_90);
+    addNode(marginId1, "120", Property, ID_SCREEN_TOP_MARGIN_120);
+    addNode(marginId1, "150", Property, ID_SCREEN_TOP_MARGIN_150);
+    addNode(marginId1, "180", Property, ID_SCREEN_TOP_MARGIN_180);
+    addNode(marginId1, "210", Property, ID_SCREEN_TOP_MARGIN_210);
+    addNode(marginId1, "240", Property, ID_SCREEN_TOP_MARGIN_240);
+    addNode(marginId1, "270", Property, ID_SCREEN_TOP_MARGIN_270);
+
+    int marginId2 = addNode(screenId, "Screen Bottom Margin", Category, -1);
+    addNode(marginId2, "0", Property, ID_SCREEN_BOTTOM_MARGIN_0);
+    addNode(marginId2, "30", Property, ID_SCREEN_BOTTOM_MARGIN_30);
+    addNode(marginId2, "60", Property, ID_SCREEN_BOTTOM_MARGIN_60);
+    addNode(marginId2, "90", Property, ID_SCREEN_BOTTOM_MARGIN_90);
+    addNode(marginId2, "120", Property, ID_SCREEN_BOTTOM_MARGIN_120);
+    addNode(marginId2, "150", Property, ID_SCREEN_BOTTOM_MARGIN_150);
+    addNode(marginId2, "180", Property, ID_SCREEN_BOTTOM_MARGIN_180);
+    addNode(marginId2, "210", Property, ID_SCREEN_BOTTOM_MARGIN_210);
+    addNode(marginId2, "240", Property, ID_SCREEN_BOTTOM_MARGIN_240);
+    addNode(marginId2, "270", Property, ID_SCREEN_BOTTOM_MARGIN_270);
 
     int filterId = addNode(hostId, "Filter", Category, -1);
+    addNode(filterId, "Green Filter", Property, ID_FILTER_GREEN);
     addNode(filterId, "RGB Filter", Property, ID_FILTER_RGB);
+    addNode(filterId, "Blur Filter", Property, ID_FILTER_BLUR);
+    addNode(filterId, "DOT", Property, ID_FILTER_DOT);
     addNode(filterId, "None", Property, ID_FILTER_NONE);
 
     int soundId2 = addNode(hostId, "Sound", Category, -1);
@@ -153,63 +168,3 @@ Menu::Menu() {
     addNode(hostId, "Disable Windows 8 DWM", Property, ID_HOST_DISABLE_DWM);
     addNode(hostId, "Show Status Bar", Property, ID_HOST_SHOW_STATUS_BAR);
 }
-
-/*
-IDR_MENU1 MENU DISCARDABLE
-BEGIN
-    POPUP "Host"
-    BEGIN
-        MENUITEM "Rec Movie 60fps",             ID_HOST_REC_MOVIE_60FPS
-        MENUITEM "Rec Movie 30fps",             ID_HOST_REC_MOVIE_30FPS
-        MENUITEM "Rec Movie 15fps",             ID_HOST_REC_MOVIE_15FPS
-        MENUITEM "Rec Sound",                   ID_HOST_REC_SOUND
-        MENUITEM "Stop",                        ID_HOST_REC_STOP
-        MENUITEM "Capture Screen",              ID_HOST_CAPTURE_SCREEN
-        MENUITEM SEPARATOR
-        POPUP "Screen"
-        BEGIN
-            MENUITEM "Window x1",               ID_SCREEN_WINDOW
-            MENUITEM "Fullscreen 640x400",      ID_SCREEN_FULLSCREEN
-            MENUITEM SEPARATOR
-            MENUITEM "Fullscreen Stretch 1",    ID_SCREEN_FULLSCREEN_DOTBYDOT
-            MENUITEM "Fullscreen Stretch 2",    ID_SCREEN_FULLSCREEN_STRETCH
-            MENUITEM "Fullscreen Stretch 4",    ID_SCREEN_FULLSCREEN_FILL
-            MENUITEM SEPARATOR
-            MENUITEM "Rotate 0deg",             ID_SCREEN_ROTATE_0
-            MENUITEM "Rotate +90deg",           ID_SCREEN_ROTATE_90
-            MENUITEM "Rotate 180deg",           ID_SCREEN_ROTATE_180
-            MENUITEM "Rotate -90deg",           ID_SCREEN_ROTATE_270
-        END
-        POPUP "Sound"
-        BEGIN
-            MENUITEM "2000Hz",                  ID_SOUND_FREQ0
-            MENUITEM "4000Hz",                  ID_SOUND_FREQ1
-            MENUITEM "8000Hz",                  ID_SOUND_FREQ2
-            MENUITEM "11025Hz",                 ID_SOUND_FREQ3
-            MENUITEM "22050Hz",                 ID_SOUND_FREQ4
-            MENUITEM "44100Hz",                 ID_SOUND_FREQ5
-            MENUITEM "48000Hz",                 ID_SOUND_FREQ6
-            MENUITEM "96000Hz",                 ID_SOUND_FREQ7
-            MENUITEM SEPARATOR
-            MENUITEM "50msec",                  ID_SOUND_LATE0
-            MENUITEM "100msec",                 ID_SOUND_LATE1
-            MENUITEM "200msec",                 ID_SOUND_LATE2
-            MENUITEM "300msec",                 ID_SOUND_LATE3
-            MENUITEM "400msec",                 ID_SOUND_LATE4
-            MENUITEM SEPARATOR
-            MENUITEM "Realtime Mix",            ID_SOUND_STRICT_RENDER
-            MENUITEM "Light Weight Mix",        ID_SOUND_LIGHT_RENDER
-            MENUITEM SEPARATOR
-            MENUITEM "Volume",                  ID_SOUND_VOLUME
-        END
-        MENUITEM SEPARATOR
-        MENUITEM "Use Direct2D1",               ID_HOST_USE_D2D1
-        MENUITEM "Use Direct3D9",               ID_HOST_USE_D3D9
-        MENUITEM "Wait Vsync",                  ID_HOST_WAIT_VSYNC
-        MENUITEM "Use DirectInput",             ID_HOST_USE_DINPUT
-        MENUITEM "Disable Windows 8 DWM",       ID_HOST_DISABLE_DWM
-        MENUITEM "Show Status Bar",             ID_HOST_SHOW_STATUS_BAR
-    END
-END
-
- */

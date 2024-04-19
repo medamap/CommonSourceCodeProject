@@ -91,9 +91,11 @@ typedef struct {
     int viewPortWidth;
     int viewPortHeight;
     int topOffsetSystem;
+    int bottomOffsetSystem;
     int topOffsetIcon;
     int bottomOffsetIcon;
-    int bottomOffsetSystem;
+    int leftOffsetIcon;
+    int rightOffsetIcon;
     int scrWidth;
     int scrHeight;
     int emuWidth;
@@ -108,6 +110,8 @@ typedef struct {
     int leftOffset;
     float topEmuScreenOffset;
     float bottomEmuScreenOffset;
+    float leftEmuScreenOffset;
+    float rightEmuScreenOffset;
 } ScreenInfo;
 #endif
 
@@ -353,6 +357,7 @@ void useShaderProgram(GLuint programId);
 void updateTextureOpenGlFrame(struct engine* engine);
 void drawOpenGlFrame(struct engine *engine);
 void drawOpenGlIcon(struct engine* engine);
+void reloadOpenGlIcon(struct engine* engine);
 void completeDrawOpenGlFrame(struct engine* engine);
 void clickOpenGlIcon(struct android_app *app, float x, float y);
 
@@ -607,7 +612,7 @@ private:
             engine->app->activity->vm->AttachCurrentThread(&jni, NULL);
             jclass clazz = jni->GetObjectClass(engine->app->activity->clazz);
             jmethodID jIDLoadBitmap = jni->GetMethodID(clazz, "loadBitmap", "(III)[I");
-            jintArray ja = (jintArray) (jni->CallObjectMethod(engine->app->activity->clazz, jIDLoadBitmap, iconTypeNumber, iconIndexNumber, 25));
+            jintArray ja = (jintArray) (jni->CallObjectMethod(engine->app->activity->clazz, jIDLoadBitmap, iconTypeNumber, iconIndexNumber, 50));
             // アイコンビットマップデータの情報を取得
             int jasize = jni->GetArrayLength(ja);
             jint *arr1;
@@ -672,20 +677,22 @@ public:
             systemIconType(SYSTEM_NONE) {
         genarateTexture();
     }
-    GlIcon(struct engine *engine, int id, enum systemIconType systemIconType, bool isTogglle) :
+    GlIcon(struct engine *engine, int id, enum systemIconType systemIconType, bool isTogglle, bool toggleValue) :
             engine(engine),
             id(id),
-            name(systemIconType == SYSTEM_EXIT   ? "EXIT"
-                  : systemIconType == SYSTEM_RESET  ? "RESET"
-                  : systemIconType == SYSTEM_SOUND  ? "SOUND"
-                  : systemIconType == SYSTEM_PCG    ? "PCG"
-                  : systemIconType == SYSTEM_CONFIG ? "CONFIG"
+            name(systemIconType == SYSTEM_EXIT     ? "EXIT"
+                  : systemIconType == SYSTEM_RESET    ? "RESET"
+                  : systemIconType == SYSTEM_SOUND    ? "SOUND"
+                  : systemIconType == SYSTEM_PCG      ? "PCG"
+                  : systemIconType == SYSTEM_CONFIG   ? "CONFIG"
+                  : systemIconType == SYSTEM_KEYBOARD ? "KEYBOARD"
                   : "Other"),
             iconType(SYSTEM_ICON),
             isValid(true),
             FileSelectType(FILE_SELECT_NONE),
             systemIconType(systemIconType),
-            isToggle(isTogglle) {
+            isToggle(isTogglle),
+            toggleValue(toggleValue) {
         genarateTexture();
     }
     GlIcon() : engine(nullptr), isValid(false) {}
@@ -693,28 +700,60 @@ public:
     bool IsValid() { return isValid; }
     bool IsToggle() { return isToggle; }
     bool ToggleValue() { return toggleValue; }
+    void SetToggleValue(bool value) { toggleValue = value; }
+
+    void ReloadTexture() {
+        glBindTexture(GL_TEXTURE_2D, textureId);
+#if defined(_USE_OPENGL_ES20)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bmpImage.data());
+#elif defined(_USE_OPENGL_ES30)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, bmpImage.data());
+#endif
+    }
 
     void Draw() {
         float r = 1.0f, g = 1.0f, b = 1.0f;
+        float distance = 0.1f, size = 1.0f, xOffset = 0.9f, yOffset = 0.9f;
         switch (iconType) {
             case SYSTEM_ICON: {
-                float distance = 1.0f - abs(engine->screenInfo.bottomEmuScreenOffset);
-                float size = distance * 0.9f;
-                float xOffset = 1.0f - (distance * (id + 1));
-                vertex[0] = xOffset;        vertex[1]  = -1.0f + size;
-                vertex[3] = xOffset + size; vertex[4]  = -1.0f + size;
-                vertex[6] = xOffset;        vertex[7]  = -1.0f;
-                vertex[9] = xOffset + size; vertex[10] = -1.0f;
+                if (deviceInfo.width > deviceInfo.height) {
+                    distance = 1.0f - abs(engine->screenInfo.rightEmuScreenOffset);
+                    size = distance * 0.95f;
+                    yOffset = -1.0f + (distance * 1.15f) * id;
+                    vertex[0] = 1.0f - size;    vertex[1]  = yOffset + size;
+                    vertex[3] = 1.0f;           vertex[4]  = yOffset + size;
+                    vertex[6] = 1.0f - size;    vertex[7]  = yOffset;
+                    vertex[9] = 1.0f;           vertex[10] = yOffset;
+                } else {
+                    distance = 1.0f - abs(engine->screenInfo.bottomEmuScreenOffset);
+                    size = distance * 0.9f;
+                    xOffset = 1.0f - (distance * (id + 1));
+                    vertex[0] = xOffset;        vertex[1]  = -1.0f + size;
+                    vertex[3] = xOffset + size; vertex[4]  = -1.0f + size;
+                    vertex[6] = xOffset;        vertex[7]  = -1.0f;
+                    vertex[9] = xOffset + size; vertex[10] = -1.0f;
+                }
+                r = g = b = isToggle ? toggleValue ? 1.0f : 0.3f : 1.0f;
                 break;
             }
             case FILE_ICON: {
-                float distance = 1.0f - abs(engine->screenInfo.topEmuScreenOffset);
-                float size = distance * 0.9f;
-                float xOffset = -1.0f + distance * id;
-                vertex[0] = xOffset;        vertex[1]  = 1.0f;
-                vertex[3] = xOffset + size; vertex[4]  = 1.0f;
-                vertex[6] = xOffset;        vertex[7]  = 1.0f - size;
-                vertex[9] = xOffset + size; vertex[10] = 1.0f - size;
+                if (deviceInfo.width > deviceInfo.height) {
+                    distance = 1.0f - abs(engine->screenInfo.leftEmuScreenOffset);
+                    size = distance * 0.95f;
+                    yOffset = -1.0f + (distance * 1.15f) * id;
+                    vertex[0] = -1.0f;          vertex[1]  = yOffset + size;
+                    vertex[3] = -1.0f + size;   vertex[4]  = yOffset + size;
+                    vertex[6] = -1.0f;          vertex[7]  = yOffset;
+                    vertex[9] = -1.0f + size;   vertex[10] = yOffset;
+                } else {
+                    distance = 1.0f - abs(engine->screenInfo.topEmuScreenOffset);
+                    size = distance * 0.9f;
+                    xOffset = -1.0f + distance * id;
+                    vertex[0] = xOffset;        vertex[1]  = 1.0f;
+                    vertex[3] = xOffset + size; vertex[4]  = 1.0f;
+                    vertex[6] = xOffset;        vertex[7]  = 1.0f - size;
+                    vertex[9] = xOffset + size; vertex[10] = 1.0f - size;
+                }
                 r = g = b = 0.3f;
                 uint32_t driveColor = 0;
                 bool setFlag = false;
@@ -870,7 +909,12 @@ public:
         }
         // 点が四角形内にあるか判定
         if (ndcX >= left && ndcX <= right && ndcY >= bottom && ndcY <= top) {
-            LOGI("Click %s", name.c_str());
+            if (isToggle) {
+                toggleValue = !toggleValue;
+                LOGI("Click %s Toggle( %s => %s )", name.c_str(), toggleValue ? "False" : "True", toggleValue ? "True" : "False");
+            } else {
+                LOGI("Click %s", name.c_str());
+            }
             switch (systemIconType) {
                 case SYSTEM_EXIT:
                     return SYSTEM_EXIT;
@@ -882,6 +926,8 @@ public:
                     return SYSTEM_PCG;
                 case SYSTEM_CONFIG:
                     return SYSTEM_CONFIG;
+                case SYSTEM_KEYBOARD:
+                    return SYSTEM_KEYBOARD;
             }
         }
         return SYSTEM_NONE; // 四角形外
@@ -979,6 +1025,7 @@ BitmapData jniCreateBitmapFromString(struct android_app *state, const char *text
 static void toggle_soft_keyboard(struct android_app *app);
 void checkPermissionsAndInitialize(JNIEnv *env, jobject activity);
 std::vector<uint8_t> getClipboardText(struct android_app *app);
+static void callJavaFinish(struct android_app* app);
 
 #define SOFT_KEYBOARD_KEEP_COUNT  3
 int softKeyboardCount = 0;
@@ -1118,6 +1165,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
                 // OpenGL ES 2.0 / 3.0 の初期化
                 initializeOpenGL(engine);
                 initializeShaders(engine);
+                reloadOpenGlIcon(engine);
 #if defined(_USE_OPENGL_ES20)
                 LOGI("OpenGL ES 2.0 initialization complete.");
 #elif defined(_USE_OPENGL_ES30)
@@ -1175,6 +1223,10 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
 #else
             engine_draw_frame(engine);
 #endif
+            break;
+        }
+        case APP_CMD_GAINED_FOCUS: {
+            reloadOpenGlIcon(engine);
             break;
         }
         case APP_CMD_CONFIG_CHANGED:
@@ -1241,7 +1293,7 @@ void android_main(struct android_app *state) {
     sprintf(documentDir, "%s", documentDirTemp);
     sprintf(emulatorDir, "%s/emulator", documentDir);
     sprintf(applicationDir, "%s/%sROM", emulatorDir, CONFIG_NAME);
-    sprintf(configPath, "%s/config.ini", applicationDir);
+    sprintf(configPath, "%s/%s.ini", CONFIG_NAME, applicationDir);
     free((void*)documentDirTemp);
     LOGI("documentDir: %s", documentDir);
     LOGI("emulatorDir: %s", emulatorDir);
@@ -1280,7 +1332,8 @@ void android_main(struct android_app *state) {
         config.scan_line = 0;
         config.scan_line_auto = 0;
 #endif
-        // 画面下にマージンを設定する
+        // 画面上下にマージンを設定する
+        config.screen_top_margin = 90;
         config.screen_bottom_margin = 60;
         // コンフィグファイルを保存
         save_config(configPath);
@@ -1950,7 +2003,8 @@ void EventProc(engine* engine, MenuNode menuNode)
                     // 強制排出
                     LOGI("ID_EXIT");
                     all_eject();
-                    exit(0);
+                    save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
+                    callJavaFinish(app);
                     break;
 #ifdef USE_BOOT_MODE
                     case ID_VM_BOOT_MODE0: case ID_VM_BOOT_MODE1: case ID_VM_BOOT_MODE2: case ID_VM_BOOT_MODE3:
@@ -2092,6 +2146,16 @@ void EventProc(engine* engine, MenuNode menuNode)
                     config.scan_line_auto = !config.scan_line_auto;
                     break;
 #endif
+                case ID_SCREEN_TOP_MARGIN_0: case ID_SCREEN_TOP_MARGIN_30: case ID_SCREEN_TOP_MARGIN_60: // Medamap
+                case ID_SCREEN_TOP_MARGIN_90: case ID_SCREEN_TOP_MARGIN_120: case ID_SCREEN_TOP_MARGIN_150:
+                case ID_SCREEN_TOP_MARGIN_180: case ID_SCREEN_TOP_MARGIN_210: case ID_SCREEN_TOP_MARGIN_240:
+                case ID_SCREEN_TOP_MARGIN_270:
+                    config.screen_top_margin = (LOWORD(wParam) - ID_SCREEN_TOP_MARGIN_0) * 30;
+#if !defined(_USE_OPENGL_ES20) && !defined(_USE_OPENGL_ES30)
+                    clear_screen(engine);
+                    clear_screen(engine);
+#endif
+                    break;
                 case ID_SCREEN_BOTTOM_MARGIN_0: case ID_SCREEN_BOTTOM_MARGIN_30: case ID_SCREEN_BOTTOM_MARGIN_60: // Medamap
                 case ID_SCREEN_BOTTOM_MARGIN_90: case ID_SCREEN_BOTTOM_MARGIN_120: case ID_SCREEN_BOTTOM_MARGIN_150:
                 case ID_SCREEN_BOTTOM_MARGIN_180: case ID_SCREEN_BOTTOM_MARGIN_210: case ID_SCREEN_BOTTOM_MARGIN_240:
@@ -4347,33 +4411,48 @@ void updateSurface(struct engine* engine) {
 
 void terminateOpenGL(struct engine* engine) {
     LOGI("terminateOpenGL start:");
+    // 現在のコンテキストを確認
+    EGLContext currentContext = eglGetCurrentContext();
+    EGLDisplay currentDisplay = eglGetCurrentDisplay();
+
     // 1. EGL リソースの解放
     if (engine->eglDisplay != EGL_NO_DISPLAY) {
+        // まず現在のコンテキストを無効化
         eglMakeCurrent(engine->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        checkGLError("eglMakeCurrent to null");
+
         if (engine->eglContext != EGL_NO_CONTEXT) {
             eglDestroyContext(engine->eglDisplay, engine->eglContext);
+            checkGLError("eglDestroyContext");
         }
         if (engine->eglSurface != EGL_NO_SURFACE) {
             eglDestroySurface(engine->eglDisplay, engine->eglSurface);
+            checkGLError("eglDestroySurface");
         }
         eglTerminate(engine->eglDisplay);
+        checkGLError("eglTerminate");
     }
     engine->eglDisplay = EGL_NO_DISPLAY;
     engine->eglContext = EGL_NO_CONTEXT;
     engine->eglSurface = EGL_NO_SURFACE;
 
-    // 2. 追加された OpenGL リソースの解放
-    // ここに追加された OpenGL リソースの解放コードを記述する場合
-    // 例えば、glDeleteBuffers, glDeleteTextures, glDeleteProgram など
+    // 現在のコンテキストが有効だった場合、アンバインドを確認
+    if (currentContext == engine->eglContext && currentDisplay == engine->eglDisplay) {
+        eglMakeCurrent(currentDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        LOGI("Previous EGL context was active and has been unset.");
+    }
 
-    // 3. ログ出力
+        // 2. 追加された OpenGL リソースの解放
+        // ここに追加された OpenGL リソースの解放コードを記述する場合
+        // 例えば、glDeleteBuffers, glDeleteTextures, glDeleteProgram など
+
+        // 3. ログ出力
 #if defined(_USE_OPENGL_ES20)
-    LOGI("OpenGL ES 2.0 resources have been released.");
+        LOGI("OpenGL ES 2.0 resources have been released.");
 #elif defined(_USE_OPENGL_ES30)
     LOGI("OpenGL ES 3.0 resources have been released.");
 #endif
 }
-
 void checkGLError(const char* operation) {
     GLenum error;
     while ((error = glGetError()) != GL_NO_ERROR) {
@@ -4490,13 +4569,16 @@ void initializeGlIcons(struct engine* engine) {
     int iconMax = SYSTEM_ICON_MAX;
     int iconIndex = glIcons.size();
     int id = 0;
-    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_EXIT, false);
-    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_RESET, false);
-    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_SOUND, true);
-#if defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(SUPPORT_PC88_PCG8100)
-    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_PCG, true);
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_EXIT, false, false);
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_RESET, false, false);
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_KEYBOARD, true, false);
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_SOUND, true, config.sound_on);
+#if defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700)
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_PCG, true, config.dipswitch & 1);
+#elif defined(SUPPORT_PC88_PCG8100)
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_PCG, true, (config.dipswitch & (1 << 3)) > 0);
 #endif
-    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_CONFIG, false);
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_CONFIG, false, false);
 }
 
 // カメラ行列を計算する関数
@@ -4582,23 +4664,37 @@ void beginOpenGlFrame(struct engine* engine) {
 }
 
 void calculateScreenInfo(struct engine* engine) {
-    engine->screenInfo.topOffsetSystem = 80;
-    engine->screenInfo.topOffsetIcon = 50;
-    engine->screenInfo.bottomOffsetIcon = 32;
-    engine->screenInfo.bottomOffsetSystem = config.screen_bottom_margin;
 
+    // 画面上余白
+    engine->screenInfo.topOffsetSystem = config.screen_top_margin;
+
+    if (deviceInfo.width > deviceInfo.height) {
+        // 横向き時のアイコン余白ピクセル数をセット
+        engine->screenInfo.topOffsetIcon    = 0;
+        engine->screenInfo.bottomOffsetIcon = 0;
+        engine->screenInfo.leftOffsetIcon   = 54; // ファイルアイコン
+        engine->screenInfo.rightOffsetIcon  = 54; // システムアイコン
+    } else {
+        // 縦向き時のアイコン余白ピクセル数をセット
+        engine->screenInfo.topOffsetIcon    = 54; // システムアイコン
+        engine->screenInfo.bottomOffsetIcon = 26; // ファイルアイコン
+        engine->screenInfo.leftOffsetIcon   = 0;
+        engine->screenInfo.rightOffsetIcon  = 0;
+    }
+    // 画面下余白
+    engine->screenInfo.bottomOffsetSystem = config.screen_bottom_margin;
+    // 画面サイズからシステム余白を引いたもの
     engine->screenInfo.scrWidth = deviceInfo.width;
     engine->screenInfo.scrHeight = deviceInfo.height - engine->screenInfo.topOffsetSystem - engine->screenInfo.bottomOffsetSystem;
-
-    engine->screenInfo.emuWidth = emu->get_osd()->get_vm_window_width();
+    // エミュレータ画面サイズにアイコン余白を足したもの
+    engine->screenInfo.emuWidth = emu->get_osd()->get_vm_window_width() + engine->screenInfo.leftOffsetIcon + engine->screenInfo.rightOffsetIcon;
     engine->screenInfo.emuHeight = emu->get_osd()->get_vm_window_height() + engine->screenInfo.topOffsetIcon + engine->screenInfo.bottomOffsetIcon;
-
+    // アスペクト比
     engine->screenInfo.emuAspect = (float)engine->screenInfo.emuWidth / engine->screenInfo.emuHeight;
     engine->screenInfo.screenAspect = (float)deviceInfo.width / deviceInfo.height;
-
+    // 画面とエミュ画面の縦横のそれぞれの比率
     engine->screenInfo.widthRate = (float)engine->screenInfo.scrWidth / engine->screenInfo.emuWidth;
     engine->screenInfo.heightRate = (float)engine->screenInfo.scrHeight / engine->screenInfo.emuHeight;
-
     //縦横小さい側の倍率で拡大
     engine->screenInfo.screenRate = 0;
     if (engine->screenInfo.widthRate < engine->screenInfo.heightRate) {
@@ -4606,15 +4702,29 @@ void calculateScreenInfo(struct engine* engine) {
     } else {
         engine->screenInfo.screenRate = engine->screenInfo.heightRate;
     }
+    // エミュレータ画面の実際のsize（ビューポートの大きさ）
     engine->screenInfo.realScreenWidth = (float) engine->screenInfo.emuWidth * engine->screenInfo.screenRate;
     engine->screenInfo.realScreenHeight = (float) engine->screenInfo.emuHeight * engine->screenInfo.screenRate;
+    // 画面左余白を算出（ビューポートX起点となる）
     engine->screenInfo.leftOffset = (engine->screenInfo.scrWidth - engine->screenInfo.realScreenWidth) / 2;
 
-    // エミュレータ画面の上下にアイコン用の余白を空ける
-    engine->screenInfo.topEmuScreenOffset =
-            1.0f - ((1.0f / (engine->screenInfo.emuHeight * 0.5f + engine->screenInfo.topOffsetIcon)) * engine->screenInfo.topOffsetIcon);
-    engine->screenInfo.bottomEmuScreenOffset =
-            -1.0f + ((1.0f / (engine->screenInfo.emuHeight * 0.5f + engine->screenInfo.bottomOffsetIcon)) * engine->screenInfo.topOffsetIcon);
+    if (deviceInfo.width > deviceInfo.height) {
+        // エミュレータ画面の左右にアイコン用の余白を空ける
+        engine->screenInfo.topEmuScreenOffset = 1.0f;
+        engine->screenInfo.bottomEmuScreenOffset = -1.0f;
+        engine->screenInfo.leftEmuScreenOffset =
+                -1.0f + ((1.0f / (engine->screenInfo.emuWidth * 0.5f + engine->screenInfo.leftOffsetIcon)) * engine->screenInfo.leftOffsetIcon);
+        engine->screenInfo.rightEmuScreenOffset =
+                1.0f - ((1.0f / (engine->screenInfo.emuWidth * 0.5f + engine->screenInfo.rightOffsetIcon)) * engine->screenInfo.rightOffsetIcon);
+    } else {
+        // エミュレータ画面の上下にアイコン用の余白を空ける
+        engine->screenInfo.topEmuScreenOffset =
+                1.0f - ((1.0f / (engine->screenInfo.emuHeight * 0.5f + engine->screenInfo.topOffsetIcon)) * engine->screenInfo.topOffsetIcon);
+        engine->screenInfo.bottomEmuScreenOffset =
+                -1.0f + ((1.0f / (engine->screenInfo.emuHeight * 0.5f + engine->screenInfo.bottomOffsetIcon)) * engine->screenInfo.topOffsetIcon);
+        engine->screenInfo.leftEmuScreenOffset = -1.0f;
+        engine->screenInfo.rightEmuScreenOffset = 1.0f;
+    }
 
     // ビューポート
     int bottomOffset = deviceInfo.height - engine->screenInfo.topOffsetSystem - engine->screenInfo.realScreenHeight;
@@ -4623,10 +4733,14 @@ void calculateScreenInfo(struct engine* engine) {
     engine->screenInfo.viewPortWidth = engine->screenInfo.realScreenWidth;
     engine->screenInfo.viewPortHeight = engine->screenInfo.realScreenHeight;
 
-    // エミュレータ画面上下座標の調整
+    // エミュレータ画面上下左右座標の調整
+    vertexScreen[0] = engine->screenInfo.leftEmuScreenOffset;
     vertexScreen[1] = engine->screenInfo.bottomEmuScreenOffset;
+    vertexScreen[3] = engine->screenInfo.rightEmuScreenOffset;
     vertexScreen[4] = engine->screenInfo.bottomEmuScreenOffset;
+    vertexScreen[6] = engine->screenInfo.leftEmuScreenOffset;
     vertexScreen[7] = engine->screenInfo.topEmuScreenOffset;
+    vertexScreen[9] = engine->screenInfo.rightEmuScreenOffset;
     vertexScreen[10] = engine->screenInfo.topEmuScreenOffset;
 }
 
@@ -4770,6 +4884,13 @@ void drawOpenGlIcon(struct engine* engine) {
     }
 }
 
+void reloadOpenGlIcon(struct engine* engine) {
+    // アイコン再読み込み
+    for (auto& icon : glIcons) {
+        icon.ReloadTexture();
+    }
+}
+
 void completeDrawOpenGlFrame(struct engine* engine) {
     // ダブルバッファのスワップ
     eglSwapBuffers(engine->eglDisplay, engine->eglSurface);
@@ -4789,12 +4910,21 @@ void clickOpenGlIcon(struct android_app *app, float x, float y) {
                 break;
             case SYSTEM_SOUND:
                 switchSound();
+                icon.SetToggleValue(emu->get_osd()->soundEnable);
                 break;
             case SYSTEM_PCG:
                 switchPCG();
+#if defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700)
+                icon.SetToggleValue(config.dipswitch & 1);
+#elif defined(SUPPORT_PC88_PCG8100)
+                icon.SetToggleValue((config.dipswitch & (1 << 3)) > 0);
+#endif
                 break;
             case SYSTEM_CONFIG:
                 extendMenu(app);
+                break;
+            case SYSTEM_KEYBOARD:
+                toggle_soft_keyboard(app);
                 break;
         }
     }
@@ -4877,9 +5007,7 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                     return 1;
                 }
             }
-#endif
         }
-
         if (AMotionEvent_getAction(event) == AMOTION_EVENT_ACTION_DOWN) {
             float x = AMotionEvent_getX(event, 0);
             float y = AMotionEvent_getY(event, 0);
@@ -4895,6 +5023,7 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                 toggle_soft_keyboard(app);
                 return 1;
             }
+#endif
         }
         return 0;
     } else if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_KEY) {
@@ -6511,6 +6640,25 @@ std::vector<uint8_t> getClipboardText(struct android_app *app) {
     return clipboardData;
 }
 
+static void callJavaFinish(struct android_app* app) {
+    JNIEnv* jni;
+    app->activity->vm->AttachCurrentThread(&jni, NULL);
+    // MainActivity クラスを取得
+    jclass clazz = jni->GetObjectClass(app->activity->clazz);
+    // doFinish メソッドの ID を取得
+    jmethodID methodID = jni->GetMethodID(clazz, "doFinish", "()V");
+    if (methodID == nullptr) {
+        __android_log_print(ANDROID_LOG_ERROR, "JNI", "Failed to find the doFinish method");
+        return;
+    }
+    // doFinish メソッドを呼び出す
+    jni->CallVoidMethod(app->activity->clazz, methodID);
+    // リソースの解放
+    jni->DeleteLocalRef(clazz);
+    // スレッドをデタッチ
+    app->activity->vm->DetachCurrentThread();
+}
+
 // ----------------------------------------------------------------------------
 // jni export
 // ----------------------------------------------------------------------------
@@ -6915,10 +7063,24 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_exitSelectCallback(JNIEnv 
     // 強制排出
     LOGI("exitSelectCallback");
     all_eject();
+    save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
     // リソース解放
-    delete emu;
+    //delete emu;
     //TODO:free?
-    exit(0);
+    // MainActivityのクラスを取得
+    jclass clazz = env->GetObjectClass(thiz);
+    if (clazz == nullptr) {
+        __android_log_print(ANDROID_LOG_ERROR, "JNI", "Failed to find class");
+        return;
+    }
+    // doFinishメソッドのIDを取得
+    jmethodID midDoFinish = env->GetMethodID(clazz, "doFinish", "()V");
+    if (midDoFinish == nullptr) {
+        __android_log_print(ANDROID_LOG_ERROR, "JNI", "Failed to find method");
+        return;
+    }
+    // doFinishメソッドを呼び出す
+    env->CallVoidMethod(thiz, midDoFinish);
 }
 
 } //extern"C"
