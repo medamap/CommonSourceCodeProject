@@ -645,6 +645,7 @@ private:
 #elif defined(_USE_OPENGL_ES30)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, bmpImage.data());
 #endif
+#ifdef USE_SCREEN_FILTER
         if (config.filter_type == SCREEN_FILTER_DOT) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -652,6 +653,10 @@ private:
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         }
+#else
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+#endif
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         LOGI("Generate Icon : %d '%s' (%d, %d) width=%d height=%d", id, name.c_str(), iconTypeNumber, iconIndexNumber, width, height);
@@ -842,41 +847,46 @@ public:
             LOGI("Draw Icon : %d '%s' (%d, %d) width=%d height=%d", id, name.c_str(), iconType, iconType == SYSTEM_ICON ? systemIconType : FileSelectType, width, height);
             alreadyOutputLog = true;
         }
-        glUseProgram(engine->shaderProgram[config.filter_type]);
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        if (config.filter_type == SCREEN_FILTER_DOT) {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+#if defined(USE_SCREEN_FILTER)
+        int filter_type = config.filter_type = SCREEN_FILTER_NONE;
+#else
+        int filter_type = SCREEN_FILTER_NONE;
+#endif
+        glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram A0");
+        glBindTexture(GL_TEXTURE_2D, textureId); checkGLError("glBindTexture A1");
+        if (filter_type == SCREEN_FILTER_DOT) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri A2");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri A3");
         } else {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); checkGLError("glTexParameteri A4");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); checkGLError("glTexParameteri A5");
         }
-        glActiveTexture(GL_TEXTURE0);
-        GLint textureLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "texture");
+        glActiveTexture(GL_TEXTURE0); checkGLError("glActiveTexture A6");
+        GLint textureLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "texture"); checkGLError("glGetUniformLocation A7");
         if (textureLocation > -1) {
-            glUniform1i(textureLocation, 0);
+            glUniform1i(textureLocation, 0); checkGLError("glUniform1i A8");
         }
-        GLint colorLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "uColor");
+        GLint colorLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "uColor"); checkGLError("glGetUniformLocation A9");
         if (colorLocation > -1) {
-            glUniform3f(colorLocation, r, g, b);
+            glUniform3f(colorLocation, r, g, b); checkGLError("glUniform3f A10");
         }
-        GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "screenWidth");
+        GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "screenWidth"); checkGLError("glGetUniformLocation A11");
         if (screenWidthLocation > -1) {
-            glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width);
+            glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f A12");
         }
-        GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "screenHeight");
+        GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "screenHeight"); checkGLError("glGetUniformLocation A13");
         if (screenHeightLocation > -1) {
-            glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height);
+            glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f A14");
         }
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertex.data());
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texCoords.data());
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices.data());
-        glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glUseProgram(0);
+        glEnableVertexAttribArray(0); checkGLError("glEnableVertexAttribArray A15");
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertex.data()); checkGLError("glVertexAttribPointer A16");
+        glEnableVertexAttribArray(1); checkGLError("glEnableVertexAttribArray A17");
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texCoords.data()); checkGLError("glVertexAttribPointer A18");
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices.data()); checkGLError("glDrawElements A19");
+        glDisableVertexAttribArray(0); checkGLError("glDisableVertexAttribArray A20");
+        glDisableVertexAttribArray(1); checkGLError("glDisableVertexAttribArray A21");
+        glBindTexture(GL_TEXTURE_2D, 0); checkGLError("glBindTexture A22");
+        glUseProgram(0); checkGLError("glUseProgram A23");
     }
 
     enum systemIconType CheckClick(float x, float y) {
@@ -4746,32 +4756,37 @@ void calculateScreenInfo(struct engine* engine) {
 
 void calculateCameraProjectionMatrix(struct engine* engine) {
     // シェーダー設定
-    glUseProgram(engine->shaderProgram[config.filter_type]);
+#if defined(USE_SCREEN_FILTER)
+    int filter_type = config.filter_type = SCREEN_FILTER_NONE;
+#else
+    int filter_type = SCREEN_FILTER_NONE;
+#endif
+    glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram B1");
 
     // カメラと投影行列の計算
     calculateLookAt(viewMatrix, 0, 0, 1, 0, 0, 0, 0, 1, 0); // カメラ行列
     calculateOrtho(projectionMatrix, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f); // 並行透視投影
     // viewMatrixを渡す
-    GLint viewMatrixLoc = glGetUniformLocation(engine->shaderProgram[config.filter_type], "viewMatrix"); checkGLError("glGetUniformLocation");
-    glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, viewMatrix);
+    GLint viewMatrixLoc = glGetUniformLocation(engine->shaderProgram[filter_type], "viewMatrix"); checkGLError("glGetUniformLocation B2");
+    glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, viewMatrix); checkGLError("glUniformMatrix4fv B3");
     // projectionMatrixを渡す
-    GLint projectionMatrixLoc = glGetUniformLocation(engine->shaderProgram[config.filter_type], "projectionMatrix");  checkGLError("glGetUniformLocation");
-    glUniformMatrix4fv(projectionMatrixLoc, 1, GL_FALSE, projectionMatrix); checkGLError("glUniformMatrix4fv");
-    glUseProgram(0);
+    GLint projectionMatrixLoc = glGetUniformLocation(engine->shaderProgram[filter_type], "projectionMatrix");  checkGLError("glGetUniformLocation B4");
+    glUniformMatrix4fv(projectionMatrixLoc, 1, GL_FALSE, projectionMatrix); checkGLError("glUniformMatrix4fv B5");
+    glUseProgram(0); checkGLError("glUseProgram B6");
 }
 
 void useShaderProgram(GLuint programId) {
-    glUseProgram(programId);
+    glUseProgram(programId); checkGLError("glUseProgram C1");
 
     // プログラムが有効かチェック
     GLint isValid;
-    glValidateProgram(programId);
-    glGetProgramiv(programId, GL_VALIDATE_STATUS, &isValid);
+    glValidateProgram(programId); checkGLError("glValidateProgram C2");
+    glGetProgramiv(programId, GL_VALIDATE_STATUS, &isValid); checkGLError("glGetProgramiv C3");
     if (!isValid) {
         GLint logLength;
-        glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLength);
+        glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLength); checkGLError("glGetProgramiv C4");
         std::vector<char> logBuffer(logLength);
-        glGetProgramInfoLog(programId, logLength, nullptr, logBuffer.data());
+        glGetProgramInfoLog(programId, logLength, nullptr, logBuffer.data()); checkGLError("glGetProgramInfoLog C5");
         LOGE("Program validation error: %s", logBuffer.data());
         // 適切なエラー処理
         return;
@@ -4796,28 +4811,34 @@ void updateTextureOpenGlFrame(struct engine* engine) {
     int emuWidth = emu->get_osd()->get_vm_window_width();
     int emuHeight = emu->get_osd()->get_vm_window_height();
 
-    glUseProgram(engine->shaderProgram[config.filter_type]); checkGLError("glUseProgram");
+#if defined(USE_SCREEN_FILTER)
+    int filter_type = config.filter_type = SCREEN_FILTER_NONE;
+#else
+    int filter_type = SCREEN_FILTER_NONE;
+#endif
+
+    glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram D1");
 
     if (engine->textureId[0] == 0) {
-        glGenTextures(1, engine->textureId.data()); checkGLError("glGenTextures");
-        glBindTexture(GL_TEXTURE_2D, engine->textureId[0]); checkGLError("glBindTexture");
-        if (config.filter_type == SCREEN_FILTER_DOT) {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri");
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri");
+        glGenTextures(1, engine->textureId.data()); checkGLError("glGenTextures D2");
+        glBindTexture(GL_TEXTURE_2D, engine->textureId[0]); checkGLError("glBindTexture D3");
+        if (filter_type == SCREEN_FILTER_DOT) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri D4");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri D5");
         } else {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); checkGLError("glTexParameteri");
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); checkGLError("glTexParameteri");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); checkGLError("glTexParameteri D6");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); checkGLError("glTexParameteri D7");
         }
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri");
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri D8");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri D9");
     } else {
-        glBindTexture(GL_TEXTURE_2D, engine->textureId[0]); checkGLError("glBindTexture");
-        if (config.filter_type == SCREEN_FILTER_DOT) {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri");
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri");
+        glBindTexture(GL_TEXTURE_2D, engine->textureId[0]); checkGLError("glBindTexture D10");
+        if (filter_type == SCREEN_FILTER_DOT) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri D11");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri D12");
         } else {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); checkGLError("glTexParameteri");
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); checkGLError("glTexParameteri");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); checkGLError("glTexParameteri D13");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); checkGLError("glTexParameteri D14");
         }
     }
 
@@ -4827,54 +4848,58 @@ void updateTextureOpenGlFrame(struct engine* engine) {
         screenPixelData.resize(emuWidth * emuHeight * 4);
     }
     convertRGB565toRGBA(reinterpret_cast<unsigned char *>(emu->get_osd()->getScreenBuffer()->lpBmp), screenPixelData.data(), emuWidth, emuHeight);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, emuWidth, emuHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, screenPixelData.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, emuWidth, emuHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, screenPixelData.data()); checkGLError("glTexImage2D D15");
 #else
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, emuWidth, emuHeight, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, emu->get_osd()->getScreenBuffer()->lpBmp);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, emuWidth, emuHeight, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, emu->get_osd()->getScreenBuffer()->lpBmp); checkGLError("glTexImage2D D16");
 #endif
-    glBindTexture(GL_TEXTURE_2D, 0); // バインド解除
-    glUseProgram(0); checkGLError("glUseProgram");
+    glBindTexture(GL_TEXTURE_2D, 0);  checkGLError("glBindTexture D17"); // バインド解除
+    glUseProgram(0); checkGLError("glUseProgram D18");
 }
 
 void drawOpenGlFrame(struct engine* engine) {
     // フィルタを強制的に無効化（まだ早い）
-    config.filter_type = 0;
+#if defined(USE_SCREEN_FILTER)
+    int filter_type = config.filter_type = SCREEN_FILTER_NONE;
+#else
+    int filter_type = SCREEN_FILTER_NONE;
+#endif
     // シェーダーをセット
-    glUseProgram(engine->shaderProgram[config.filter_type]);
+    glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram E1");
     // テクスチャをセット
-    glBindTexture(GL_TEXTURE_2D, engine->textureId[config.filter_type]); checkGLError("glBindTexture");
-    glActiveTexture(GL_TEXTURE0);  checkGLError("glActiveTexture");
-    GLint textureLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "texture"); checkGLError("glGetUniformLocation");
+    glBindTexture(GL_TEXTURE_2D, engine->textureId[filter_type]); checkGLError("glBindTexture E2");
+    glActiveTexture(GL_TEXTURE0);  checkGLError("glActiveTexture E3");
+    GLint textureLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "texture"); checkGLError("glGetUniformLocation E4");
     if (textureLocation > -1) {
-        glUniform1i(textureLocation, 0); checkGLError("glUniform1i");
+        glUniform1i(textureLocation, 0); checkGLError("glUniform1i E5");
     }
     // シェーダーパラメータ uColor を設定
-    GLint colorLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "uColor"); checkGLError("glGetUniformLocation");
+    GLint colorLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "uColor"); checkGLError("glGetUniformLocation E6");
     if (colorLocation > -1) {
-        glUniform3f(colorLocation, 1.0f, 1.0f, 1.0f); checkGLError("glUniform3f");
+        glUniform3f(colorLocation, 1.0f, 1.0f, 1.0f); checkGLError("glUniform3f E7");
     }
     // シェーダーに画面の横サイズをセット
-    GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "screenWidth"); checkGLError("glGetUniformLocation");
+    GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "screenWidth"); checkGLError("glGetUniformLocation E8");
     if (screenWidthLocation > -1) {
-        glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f");
+        glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f E9");
     }
     // シェーダーに画面の縦サイズをセット
-    GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "screenHeight"); checkGLError("glGetUniformLocation");
+    GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "screenHeight"); checkGLError("glGetUniformLocation E10");
     if (screenHeightLocation > -1) {
-        glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f");
+        glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f E11");
     }
     // 頂点セット
-    glEnableVertexAttribArray(0); checkGLError("glEnableVertexAttribArray");
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertexScreen.data()); checkGLError("glVertexAttribPointer");
+    glEnableVertexAttribArray(0); checkGLError("glEnableVertexAttribArray E12");
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertexScreen.data()); checkGLError("glVertexAttribPointer E13");
     // UV 座標セット
-    glEnableVertexAttribArray(1); checkGLError("glEnableVertexAttribArray");
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texCoords.data()); checkGLError("glVertexAttribPointer");
+    glEnableVertexAttribArray(1); checkGLError("glEnableVertexAttribArray E14");
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texCoords.data()); checkGLError("glVertexAttribPointer E15");
     // エミュレータ画面描画
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices.data()); checkGLError("glDrawElements");
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices.data()); checkGLError("glDrawElements E16");
     // リソース解放
-    glDisableVertexAttribArray(0); checkGLError("glDisableVertexAttribArray");
-    glDisableVertexAttribArray(1); checkGLError("glDisableVertexAttribArray");
-    glBindTexture(GL_TEXTURE_2D, 0); checkGLError("glBindTexture");
-    glUseProgram(0); checkGLError("glUseProgram");
+    glDisableVertexAttribArray(0); checkGLError("glDisableVertexAttribArray E17");
+    glDisableVertexAttribArray(1); checkGLError("glDisableVertexAttribArray E18");
+    glBindTexture(GL_TEXTURE_2D, 0); checkGLError("glBindTexture E19");
+    glUseProgram(0); checkGLError("glUseProgram E20");
 }
 
 void drawOpenGlIcon(struct engine* engine) {
@@ -5057,13 +5082,13 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                     } else {
                         //ここでは shift / ctrl 押下のみ行い、キー入力自体はメインループ内で行っています。
                         //同時処理だと、 shift / ctrl を拾えない機種があったので。
-                        if (softKeyCtrl == true) {
+                        if (softKeyCtrl) {
                             emu->get_osd()->key_down(AKEYCODE_CTRL_LEFT, false, false);
                             softKeyDelayFlag = true;
                             //emu->get_osd()->key_down(softKeyCode, false, false);
                             softKeyboardCount = SOFT_KEYBOARD_KEEP_COUNT;
                         }
-                        if (softKeyShift == true) {
+                        if (softKeyShift) {
                             softKeyCode = androidToAndroidToVk[code][3];
                             if (androidToAndroidToVk[code][4] == 1) {
                                 emu->get_osd()->key_down(AKEYCODE_SHIFT_LEFT, false, false);
