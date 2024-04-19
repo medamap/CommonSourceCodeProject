@@ -530,7 +530,7 @@ public class EmulatorActivity extends NativeActivity {
     }
 
     //http://blog.livedoor.jp/itahidamito/archives/51661332.html
-    public int[] loadBitmap(int iconType, int iconId){
+    public int[] loadBitmap(int iconType, int iconId, int size){
         //画像を取得する
         Resources r = getResources();
         int id  = iconResouceId(iconType, iconId);
@@ -542,7 +542,7 @@ public class EmulatorActivity extends NativeActivity {
         Bitmap bitmap = BitmapFactory.decodeResource(r, id, options);
 
         //リサイズ
-        int size = 30;//端末スケールで取得すると、サイズ大きすぎるので、30%に縮小する。
+        //int size = 30;//端末スケールで取得すると、サイズ大きすぎるので、30%に縮小する。
         Bitmap afterResizeBitmap = Bitmap.createScaledBitmap(bitmap,
                 (int) (bitmap.getWidth() * size / 100),
                 (int) (bitmap.getHeight() * size / 100),

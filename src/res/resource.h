@@ -349,11 +349,21 @@
 #define ID_SCREEN_ROTATE_270            41370
 #define ID_SCREEN_MENU_END              41370
 
+#if defined(__ANDROID__)
+#define ID_FILTER_MENU_START            41401
+#define ID_FILTER_NONE                  41401
+#define ID_FILTER_DOT                   41402
+#define ID_FILTER_BLUR                  41403
+#define ID_FILTER_RGB                   41404
+#define ID_FILTER_GREEN                 41405
+#define ID_FILTER_MENU_END              41405
+#else
 #define ID_FILTER_MENU_START            41401
 #define ID_FILTER_RGB                   41401
 #define ID_FILTER_RF                    41402
 #define ID_FILTER_NONE                  41403
 #define ID_FILTER_MENU_END              41403
+#endif
 
 #define ID_SOUND_MENU_START             41501
 #define ID_SOUND_FREQ0                  41501

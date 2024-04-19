@@ -201,7 +201,10 @@ Menu::Menu() {
     addNode(marginId, "270", Property, ID_SCREEN_BOTTOM_MARGIN_270);
 
     int filterId = addNode(hostId, "Filter", Category, -1);
+    addNode(filterId, "Green Filter", Property, ID_FILTER_GREEN);
     addNode(filterId, "RGB Filter", Property, ID_FILTER_RGB);
+    addNode(filterId, "Blur Filter", Property, ID_FILTER_BLUR);
+    addNode(filterId, "DOT", Property, ID_FILTER_DOT);
     addNode(filterId, "None", Property, ID_FILTER_NONE);
 
     int soundId2 = addNode(hostId, "Sound", Category, -1);

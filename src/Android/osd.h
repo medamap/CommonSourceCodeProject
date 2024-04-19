@@ -19,6 +19,7 @@
 
 #define ENABLE_SOUND 1
 
+#include <android_native_app_glue.h>
 #include <android/log.h>
 #include "../vm/vm.h"
 //#include "../emu.h"
@@ -122,6 +123,18 @@ public:
 	}
 };
 #endif
+
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+#if defined(_USE_OPENGL_ES20)
+#include <GLES2/gl2.h>
+#elif defined(_USE_OPENGL_ES30)
+#include <GLES3/gl3.h>
+#endif
+#include <EGL/egl.h>
+#include <android/sensor.h>
+#include <android/native_window.h>
+#include <cmath>
+#endif // _USE_OPENGL_ES20 || _USE_OPENGL_ES30
 
 #include<string>
 #include <android/keycodes.h>
@@ -356,8 +369,10 @@ public:
 //#define SUPPORT_WIN32_DLL
 
 #define SCREEN_FILTER_NONE	0
-#define SCREEN_FILTER_RGB	1
-#define SCREEN_FILTER_RF	2
+#define SCREEN_FILTER_DOT	1
+#define SCREEN_FILTER_BLUR	2
+#define SCREEN_FILTER_RGB	3
+#define SCREEN_FILTER_GREEN	4
 
 // check memory leaks
 #ifdef _DEBUG
@@ -1544,7 +1559,14 @@ struct BitmapData{
 	uint16_t *bmpImage;
 };
 
+enum IconType {
+    NONE_ICON = -1,
+    SYSTEM_ICON = 0,
+    FILE_ICON,
+};
+
 enum systemIconType {
+    SYSTEM_NONE = -1,
     SYSTEM_EXIT = 0 ,
     SYSTEM_RESET ,  // SYSTEM_SCREEN ,
     SYSTEM_SOUND,

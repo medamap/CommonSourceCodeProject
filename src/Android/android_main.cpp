@@ -18,16 +18,19 @@
 #include <sys/stat.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cstring>
 #include <dirent.h>
 #include <errno.h>
 #include <iconv.h>
+#include <iostream>
 #include <jni.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <thread>
 #include <time.h>
 #include <unistd.h>
 #include <vector>
@@ -81,6 +84,33 @@ typedef struct {
     FrameStats frames[MAX_FRAME_STATS];
 } Stats;
 
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+typedef struct {
+    int viewPortX;
+    int viewPortY;
+    int viewPortWidth;
+    int viewPortHeight;
+    int topOffsetSystem;
+    int topOffsetIcon;
+    int bottomOffsetIcon;
+    int bottomOffsetSystem;
+    int scrWidth;
+    int scrHeight;
+    int emuWidth;
+    int emuHeight;
+    float emuAspect;
+    float screenAspect;
+    float widthRate;
+    float heightRate;
+    float screenRate;
+    int realScreenWidth;
+    int realScreenHeight;
+    int leftOffset;
+    float topEmuScreenOffset;
+    float bottomEmuScreenOffset;
+} ScreenInfo;
+#endif
+
 struct engine {
     struct android_app *app;
     Stats stats;
@@ -91,10 +121,9 @@ struct engine {
     EGLDisplay eglDisplay;
     EGLSurface eglSurface;
     EGLContext eglContext;
-    GLuint textureScreenId;
-    GLuint shaderProgram;
-    GLuint vertexBuffer;
-    GLuint indexBuffer;
+    std::vector<GLuint> shaderProgram;
+    std::vector<GLuint> textureId;
+    ScreenInfo screenInfo;
 #endif
 };
 
@@ -307,14 +336,569 @@ void set_window(HWND hWnd, int mode);
 void initializeOpenGL(struct engine* engine);
 void updateSurface(struct engine* engine);
 void terminateOpenGL(struct engine* engine);
+void checkGLError(const char* operation);
+GLuint loadShader(GLenum type, const char* shaderSource);
 void initializeShaders(struct engine* engine);
-void initTexture(struct engine* engine);
-void drawOpenGlFrame(struct engine* engine);
+void initializeGlIcons(struct engine* engine);
+void calculateLookAt(float* outViewMatrix, float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
+void calculateOrtho(float* outProjectionMatrix, float inLeft, float inRight, float inBottom, float inTop, float inNear, float inFar);
+#if defined(_USE_OPENGL_ES20)
+void convertRGB565toRGBA(unsigned char* srcData, unsigned char* dstData, int width, int height);
+#endif
+void beginOpenGlFrame(struct engine* engine);
+void calculateScreenInfo(struct engine *engine);
+void calculateCameraProjectionMatrix(struct engine* engine);
+void updateViewPort(struct engine* engine);
+void useShaderProgram(GLuint programId);
+void updateTextureOpenGlFrame(struct engine* engine);
+void drawOpenGlFrame(struct engine *engine);
+void drawOpenGlIcon(struct engine* engine);
+void completeDrawOpenGlFrame(struct engine* engine);
+void clickOpenGlIcon(struct android_app *app, float x, float y);
+
+#if defined(_USE_OPENGL_ES20)
+// エミュレータ画面ピクセルデータ
+std::vector<unsigned char> screenPixelData;
+#endif
+
+// ビューマトリックス
+float viewMatrix[16];
+// プロジェクションマトリックス
+float projectionMatrix[16];
+
+// Vertex shader Color
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+const char *vertexShaderColor = R"glsl(
+#version 100
+attribute vec4 vertexPosition;
+attribute vec2 textureCoord;
+varying vec2 vTextureCoord;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+void main() {
+    gl_Position = projectionMatrix * viewMatrix * vertexPosition;
+    vTextureCoord = textureCoord;
+}
+)glsl";
+#endif
+
+// Vertex shader Blur
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+const char *vertexShaderBlur = R"glsl(
+#version 100
+attribute vec4 vertexPosition;
+attribute vec2 textureCoord;
+varying vec2 vTextureCoord;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+void main() {
+    gl_Position = projectionMatrix * viewMatrix * vertexPosition;
+    vTextureCoord = textureCoord;
+}
+)glsl";
+#endif
+
+// Vertex shader TV
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+const char *vertexShaderTv = R"glsl(
+#version 100
+attribute vec4 vertexPosition;
+attribute vec2 textureCoord;
+varying vec2 vTextureCoord;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+void main() {
+    gl_Position = projectionMatrix * viewMatrix * vertexPosition;
+    vTextureCoord = textureCoord;
+}
+)glsl";
+#endif
+
+// Vertex shader GreenDisplay
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+const char *vertexShaderGreenDisplay = R"glsl(
+#version 100
+attribute vec4 vertexPosition;
+attribute vec2 textureCoord;
+varying vec2 vTextureCoord;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+void main() {
+    gl_Position = projectionMatrix * viewMatrix * vertexPosition;
+    vTextureCoord = textureCoord;
+}
+)glsl";
+#endif
+
+// Fragment shader Color
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+const char *fragmentShaderColor = R"glsl(
+#version 100
+precision mediump float;
+varying vec2 vTextureCoord;
+uniform sampler2D texture;
+uniform vec3 uColor;
+
+void main() {
+    vec4 texColor = texture2D(texture, vTextureCoord);
+    gl_FragColor = vec4(texColor.r * uColor.r, texColor.g * uColor.g, texColor.b * uColor.b, 1.0);
+}
+)glsl";
+#endif
+
+// Fragment shader Blur
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+const char *fragmentShaderBlur = R"glsl(
+#version 100
+precision mediump float;
+varying vec2 vTextureCoord;
+uniform sampler2D texture;
+uniform vec3 uColor;
+
+void main() {
+    float offset = 1.0 / 600.0; // テクスチャの寸法に基づいてこの値を調整
+    vec4 blurColor = vec4(0.0);
+    // 周囲の複数点をサンプリング
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            vec2 sampleCoord = vTextureCoord + vec2(x, y) * offset;
+            blurColor += texture2D(texture, sampleCoord);
+        }
+    }
+    blurColor /= 9.0; // 9つのサンプルの色を平均
+
+    // 色フィルターを適用
+    blurColor.r *= uColor.r;
+    blurColor.g *= uColor.g;
+    blurColor.b *= uColor.b;
+    gl_FragColor = vec4(blurColor.rgb, 1.0);
+}
+)glsl";
+#endif
+
+// Fragment shader TV
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+const char *fragmentShaderTv = R"glsl(
+#version 100
+precision mediump float;
+varying vec2 vTextureCoord;
+uniform sampler2D texture;
+uniform vec3 uColor;
+uniform float screenWidth;
+uniform float screenHeight;
+
+void main() {
+    vec4 texColor = texture2D(texture, vTextureCoord);
+
+    // テクスチャ座標をスクリーン座標に変換
+    int x = int(vTextureCoord.x * screenWidth*0.33);
+    int y = int(vTextureCoord.y * screenHeight*0.33);
+    int channel = int(mod(float(x + int(mod(float(y), 3.0))), 3.0));
+
+    float offset = 1.0 / 700.0; // テクスチャの寸法に基づいてこの値を調整
+    vec4 blurColor = vec4(0.0);
+    // 周囲の複数点をサンプリング
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            vec2 sampleCoord = vTextureCoord + vec2(x, y) * offset;
+            blurColor += texture2D(texture, sampleCoord);
+        }
+    }
+    blurColor /= 9.0; // 9つのサンプルの色を平均
+
+    vec3 color;
+    if (channel == 0) {
+        color = vec3(blurColor.r * uColor.r * 3.0, blurColor.g * uColor.g * 0.5, blurColor.b * uColor.b * 0.5);  // 赤
+    } else if (channel == 1) {
+        color = vec3(blurColor.r * uColor.r * 0.5, blurColor.g * uColor.g * 3.0, blurColor.b * uColor.b * 0.5);  // 緑
+    } else {
+        color = vec3(blurColor.r * uColor.r * 0.5, blurColor.g * uColor.g * 0.5, blurColor.b * uColor.b * 3.0);  // 青
+    }
+
+    gl_FragColor = vec4(color, 1.0);
+}
+)glsl";
+#endif
+
+// Fragment shader GreenDisplay
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+const char *fragmentShaderGreenDisplay = R"glsl(
+#version 100
+precision mediump float;
+varying vec2 vTextureCoord;
+uniform sampler2D texture;
+uniform vec3 uColor;
+uniform float screenWidth;
+uniform float screenHeight;
+
+void main() {
+    vec4 texColor = texture2D(texture, vTextureCoord);
+
+    // テクスチャ座標をスクリーン座標に変換
+    float x = vTextureCoord.x * screenWidth * 0.33;
+    float y = vTextureCoord.y * screenHeight * 0.33;
+
+    float offset = 1.0 / 700.0; // テクスチャの寸法に基づいてこの値を調整
+    vec4 blurColor = vec4(0.0);
+    // 周囲の複数点をサンプリング
+    for (int dx = -1; dx <= 1; dx++) {
+        for (int dy = -1; dy <= 1; dy++) {
+            vec2 sampleCoord = vTextureCoord + vec2(dx, dy) * offset;
+            blurColor += texture2D(texture, sampleCoord);
+        }
+    }
+    blurColor /= 9.0; // 9つのサンプルの色を平均
+
+    // グレースケール変換
+    float gray = dot(blurColor.rgb, vec3(0.299, 0.587, 0.114));
+
+    // 最終的な色はグレースケール値を使って緑のみを強調
+    vec3 color = vec3(0.0, gray * uColor.g, 0.0);
+
+    gl_FragColor = vec4(color, 1.0);
+}
+)glsl";
+#endif
+
+std::vector<GLfloat> vertexScreen = {-1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f};
+std::vector<GLuint> indices = {0, 1, 2, 1, 3, 2};
+std::vector<GLfloat> texCoords = {0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+
+class GlIcon {
+private:
+    // Icon Information
+    struct engine *engine;
+    int id;
+    std::string name;
+    GLuint textureId;
+    int width;
+    int height;
+#if defined(_USE_OPENGL_ES20)
+    std::vector<uint8_t> bmpImage;
+#else
+    std::vector<uint16_t> bmpImage;
+#endif
+    std::vector<GLfloat> vertex = {-1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f};
+    std::vector<GLuint> indices = {0, 1, 2, 1, 3, 2};
+    std::vector<GLfloat> texCoords = {0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+    IconType iconType = NONE_ICON;
+    bool isValid = false;
+    // Debug Information
+    bool alreadyOutputLog = false;
+    // File Information
+    FileSelectType FileSelectType = FILE_SELECT_NONE;
+    int driveNo = 0;
+    // System Information
+    systemIconType systemIconType = SYSTEM_NONE;
+    bool isToggle = false;
+    bool toggleValue = false;
+
+    void genarateTexture() {
+        // アイコンインデックス情報取得
+        int iconTypeNumber = static_cast<int>(this->iconType);
+        int iconIndexNumber = (iconType == SYSTEM_ICON) ? static_cast<int>(this->systemIconType) : static_cast<int>(this->FileSelectType);
+        // アイコンビットマップデータ取得
+        {
+            JNIEnv *jni = NULL;
+            engine->app->activity->vm->AttachCurrentThread(&jni, NULL);
+            jclass clazz = jni->GetObjectClass(engine->app->activity->clazz);
+            jmethodID jIDLoadBitmap = jni->GetMethodID(clazz, "loadBitmap", "(III)[I");
+            jintArray ja = (jintArray) (jni->CallObjectMethod(engine->app->activity->clazz, jIDLoadBitmap, iconTypeNumber, iconIndexNumber, 25));
+            // アイコンビットマップデータの情報を取得
+            int jasize = jni->GetArrayLength(ja);
+            jint *arr1;
+            arr1 = jni->GetIntArrayElements(ja, 0);
+            width = arr1[0];    // 画像の幅を取得
+            height = arr1[1];   // 画像の縦サイズを取得
+#if defined(_USE_OPENGL_ES20)
+            bmpImage.resize(width * height * 4);
+#elif defined(_USE_OPENGL_ES30)
+            bmpImage.resize(width * height);
+#endif
+            // ビットマップ取得
+            for (int index = 0; index < jasize - 2; index++) {
+#if defined(_USE_OPENGL_ES20)
+                bmpImage[index * 4 + 0] = (arr1[index + 2] & 0xF800) >> 8;
+                bmpImage[index * 4 + 1] = (arr1[index + 2] & 0xF800) >> 8;
+                bmpImage[index * 4 + 2] = (arr1[index + 2] & 0xF800) >> 8;
+                bmpImage[index * 4 + 3] = 255;
+#elif defined(_USE_OPENGL_ES30)
+                bmpImage[index] = (arr1[index + 2] & 0xF800) + ((arr1[index + 2] & 0xF800) >> 5) + ((arr1[index + 2] & 0xF800) >> 11);
+#endif
+            }
+            jni->ReleaseIntArrayElements(ja, arr1, 0);
+            engine->app->activity->vm->DetachCurrentThread();
+        }
+        glGenTextures(1, &textureId);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+#if defined(_USE_OPENGL_ES20)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bmpImage.data());
+#elif defined(_USE_OPENGL_ES30)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, bmpImage.data());
+#endif
+        if (config.filter_type == SCREEN_FILTER_DOT) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        } else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        }
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        LOGI("Generate Icon : %d '%s' (%d, %d) width=%d height=%d", id, name.c_str(), iconTypeNumber, iconIndexNumber, width, height);
+    }
+
+public:
+    GlIcon(struct engine *engine, int id, enum FileSelectType FileSelectType, int driveNo) :
+            engine(engine),
+            id(id),
+            name(FileSelectType == FLOPPY_DISK    ? "FDD"    + std::to_string(driveNo)
+               : FileSelectType == HARD_DISK      ? "HDD"    + std::to_string(driveNo)
+               : FileSelectType == COMPACT_DISC   ? "CD"     + std::to_string(driveNo)
+               : FileSelectType == QUICK_DISK     ? "QD"     + std::to_string(driveNo)
+               : FileSelectType == CASETTE_TAPE   ? "TAPE"   + std::to_string(driveNo)
+               : FileSelectType == CARTRIDGE      ? "CART"   + std::to_string(driveNo)
+               : FileSelectType == BUBBLE_CASETTE ? "BUBBLE" + std::to_string(driveNo)
+               : FileSelectType == BINARY         ? "BIN"    + std::to_string(driveNo)
+               : "Drive" + std::to_string(driveNo)),
+            iconType(FILE_ICON),
+            isValid(true),
+            FileSelectType(FileSelectType),
+            driveNo(driveNo),
+            systemIconType(SYSTEM_NONE) {
+        genarateTexture();
+    }
+    GlIcon(struct engine *engine, int id, enum systemIconType systemIconType, bool isTogglle) :
+            engine(engine),
+            id(id),
+            name(systemIconType == SYSTEM_EXIT   ? "EXIT"
+                  : systemIconType == SYSTEM_RESET  ? "RESET"
+                  : systemIconType == SYSTEM_SOUND  ? "SOUND"
+                  : systemIconType == SYSTEM_PCG    ? "PCG"
+                  : systemIconType == SYSTEM_CONFIG ? "CONFIG"
+                  : "Other"),
+            iconType(SYSTEM_ICON),
+            isValid(true),
+            FileSelectType(FILE_SELECT_NONE),
+            systemIconType(systemIconType),
+            isToggle(isTogglle) {
+        genarateTexture();
+    }
+    GlIcon() : engine(nullptr), isValid(false) {}
+
+    bool IsValid() { return isValid; }
+    bool IsToggle() { return isToggle; }
+    bool ToggleValue() { return toggleValue; }
+
+    void Draw() {
+        float r = 1.0f, g = 1.0f, b = 1.0f;
+        switch (iconType) {
+            case SYSTEM_ICON: {
+                float distance = 1.0f - abs(engine->screenInfo.bottomEmuScreenOffset);
+                float size = distance * 0.9f;
+                float xOffset = 1.0f - (distance * (id + 1));
+                vertex[0] = xOffset;        vertex[1]  = -1.0f + size;
+                vertex[3] = xOffset + size; vertex[4]  = -1.0f + size;
+                vertex[6] = xOffset;        vertex[7]  = -1.0f;
+                vertex[9] = xOffset + size; vertex[10] = -1.0f;
+                break;
+            }
+            case FILE_ICON: {
+                float distance = 1.0f - abs(engine->screenInfo.topEmuScreenOffset);
+                float size = distance * 0.9f;
+                float xOffset = -1.0f + distance * id;
+                vertex[0] = xOffset;        vertex[1]  = 1.0f;
+                vertex[3] = xOffset + size; vertex[4]  = 1.0f;
+                vertex[6] = xOffset;        vertex[7]  = 1.0f - size;
+                vertex[9] = xOffset + size; vertex[10] = 1.0f - size;
+                r = g = b = 0.3f;
+                uint32_t driveColor = 0;
+                bool setFlag = false;
+                bool accessFlag = false;
+                bool greenFlag = false;
+                switch (FileSelectType) {
+                    case FLOPPY_DISK:
+#ifdef USE_FLOPPY_DISK
+                        setFlag = emu->is_floppy_disk_inserted(driveNo);
+                        accessFlag = ((fd_status >> driveNo) & 1) != 0;
+                        driveColor = emu->floppy_disk_indicator_color();
+                        greenFlag = ((driveColor >> driveNo) & 1) != 0;
+                        if (setFlag) {
+                            if (accessFlag) {
+                                r = greenFlag ? 0.3f : 1.0f;
+                                g = greenFlag ? 1.0f : 0.3f;
+                                b = greenFlag ? 0.3f : 0.3f;
+                            } else {
+                                r = greenFlag ? 0.0f : 0.9f;
+                                g = 0.9f;
+                                b = 0.8f;
+                            }
+                        } else {
+                            r = g = b = 0.3f;
+                        }
+#endif
+                        break;
+                    case HARD_DISK:
+#ifdef USE_HARD_DISK
+                        setFlag = emu->is_hard_disk_inserted(driveNo);
+                        accessFlag = ((hd_status >> driveNo) & 1) != 0;
+                        r = setFlag ? accessFlag ? 0.3f : 0.8f : 0.3f;
+                        g = setFlag ? accessFlag ? 1.0f : 0.8f : 0.3f;
+                        b = setFlag ? accessFlag ? 0.3f : 0.8f : 0.3f;
+#endif
+                        break;
+                    case COMPACT_DISC:
+#ifdef USE_COMPACT_DISC
+                        setFlag = emu->is_compact_disc_inserted(driveNo);
+                        accessFlag = ((cd_status >> driveNo) & 1) != 0;
+                        r = setFlag ? accessFlag ? 0.3f : 0.8f : 0.3f;
+                        g = setFlag ? accessFlag ? 1.0f : 0.8f : 0.3f;
+                        b = setFlag ? accessFlag ? 0.3f : 0.8f : 0.3f;
+#endif
+                        break;
+                    case QUICK_DISK:
+#ifdef USE_QUICK_DISK
+                        setFlag = emu->is_quick_disk_inserted(driveNo);
+                        accessFlag = emu->is_quick_disk_accessed();
+                        r = setFlag ? accessFlag ? 0.3f : 0.8f : 0.3f;
+                        g = setFlag ? accessFlag ? 1.0f : 0.8f : 0.3f;
+                        b = setFlag ? accessFlag ? 0.3f : 0.8f : 0.3f;
+#endif
+                        break;
+                    case CASETTE_TAPE:
+#ifdef USE_TAPE
+                        setFlag = emu->is_tape_inserted(driveNo);
+                        accessFlag = emu->is_tape_playing(driveNo);
+                        r = setFlag ? accessFlag ? 0.3f : 0.8f : 0.3f;
+                        g = setFlag ? accessFlag ? 1.0f : 0.8f : 0.3f;
+                        b = setFlag ? accessFlag ? 0.3f : 0.8f : 0.3f;
+#endif
+                        break;
+                    case CARTRIDGE:
+#ifdef USE_CART
+                        setFlag = emu->is_cart_inserted(driveNo);
+                        r = setFlag ? accessFlag ? 0.3f : 0.8f : 0.3f;
+                        g = setFlag ? accessFlag ? 1.0f : 0.8f : 0.3f;
+                        b = setFlag ? accessFlag ? 0.3f : 0.8f : 0.3f;
+#endif
+                        break;
+                    case BUBBLE_CASETTE:
+#ifdef USE_BUBBLE
+                        setFlag = emu->is_bubble_casette_inserted(driveNo);
+                        accessFlag = ((bc_status >> driveNo) & 1) != 0;
+                        r = setFlag ? accessFlag ? 0.3f : 0.8f : 0.3f;
+                        g = setFlag ? accessFlag ? 1.0f : 0.8f : 0.3f;
+                        b = setFlag ? accessFlag ? 0.3f : 0.8f : 0.3f;
+#endif
+                        break;
+                }
+                break;
+            }
+        }
+        if (!alreadyOutputLog) {
+            LOGI("Draw Icon : %d '%s' (%d, %d) width=%d height=%d", id, name.c_str(), iconType, iconType == SYSTEM_ICON ? systemIconType : FileSelectType, width, height);
+            alreadyOutputLog = true;
+        }
+        glUseProgram(engine->shaderProgram[config.filter_type]);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        if (config.filter_type == SCREEN_FILTER_DOT) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        } else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        }
+        glActiveTexture(GL_TEXTURE0);
+        GLint textureLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "texture");
+        if (textureLocation > -1) {
+            glUniform1i(textureLocation, 0);
+        }
+        GLint colorLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "uColor");
+        if (colorLocation > -1) {
+            glUniform3f(colorLocation, r, g, b);
+        }
+        GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "screenWidth");
+        if (screenWidthLocation > -1) {
+            glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width);
+        }
+        GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "screenHeight");
+        if (screenHeightLocation > -1) {
+            glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height);
+        }
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertex.data());
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texCoords.data());
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices.data());
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glUseProgram(0);
+    }
+
+    enum systemIconType CheckClick(float x, float y) {
+        float vx = engine->screenInfo.viewPortX;
+        float vy = engine->screenInfo.viewPortY;
+        float vw = engine->screenInfo.viewPortWidth;
+        float vh = engine->screenInfo.viewPortHeight;
+        int dw = deviceInfo.width;
+        int dh = deviceInfo.height;
+
+        // クリック座標系からビューポート座標系への変換
+        float viewportX = x - vx;
+        float viewportY = dh - y - vy;  // クリック座標系のY座標をビューポート座標系に変換
+
+        // ビューポート座標系からOpenGL座標系への変換
+        float ndcX = (2.0f * viewportX / vw) - 1.0f;
+        float ndcY = (2.0f * viewportY / vh) - 1.0f; // OpenGL座標系への変換
+
+        // Y座標の反転
+        ndcY = -ndcY;
+
+        // 四角形の頂点座標
+        float left = vertex[0];
+        float right = vertex[3];
+        float top = vertex[1];
+        float bottom = vertex[7];
+
+        if (systemIconType == SYSTEM_CONFIG) {
+            LOGI("vx=%f vy=%f vw=%f vh=%f nx=%f ny=%f l=%f r=%f t=%f b=%f", vx, vy, vw, vh, ndcX, ndcY, left, right, top, bottom);
+        }
+        // 点が四角形内にあるか判定
+        if (ndcX >= left && ndcX <= right && ndcY >= bottom && ndcY <= top) {
+            LOGI("Click %s", name.c_str());
+            switch (systemIconType) {
+                case SYSTEM_EXIT:
+                    return SYSTEM_EXIT;
+                case SYSTEM_RESET:
+                    return SYSTEM_RESET;
+                case SYSTEM_SOUND:
+                    return SYSTEM_SOUND;
+                case SYSTEM_PCG:
+                    return SYSTEM_PCG;
+                case SYSTEM_CONFIG:
+                    return SYSTEM_CONFIG;
+            }
+        }
+        return SYSTEM_NONE; // 四角形外
+    }
+
+    ~GlIcon() {
+        engine = nullptr;
+        glDeleteTextures(1, &textureId);
+    }
+};
+
+std::vector<GlIcon> glIcons;
+
 #endif // _USE_OPENGL_ES20 || _USE_OPENGL_ES30
 
 ////////////////////////////////////////////////////////////////////////////////
 // input
-
 static int32_t engine_handle_input(struct android_app *app, AInputEvent *event);
 
 #ifdef USE_AUTO_KEY
@@ -378,7 +962,7 @@ void draw_button(HDC hDC, UINT index, UINT pressed);
 
 static int get_unicode_character(struct android_app *app, int event_type, int key_code, int meta_state);
 bool caseInsensitiveCompare(const std::string &a, const std::string &b);
-void setFileSelectIcon();
+void setFileSelectIcon(struct engine *engine);
 bool check_dir_exists(const char *path);
 bool create_dir(const char *path);
 
@@ -668,7 +1252,6 @@ void android_main(struct android_app *state) {
 
     //Read Icon Image
     jniReadIconData(state);
-    setFileSelectIcon();
 
     // エミュレータフォルダの存在チェック、存在しなければフォルダを作製する
     if (access(emulatorDir, F_OK) == -1) {
@@ -736,6 +1319,12 @@ void android_main(struct android_app *state) {
 
     emu = new EMU(state);
     engine.emu_initialized = true;
+
+    glIcons.reserve(32);
+    setFileSelectIcon(&engine);
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+    initializeGlIcons(&engine);
+#endif
 
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
@@ -908,8 +1497,14 @@ void android_main(struct android_app *state) {
 
         if (engine.animating && needDraw) {
 #if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-            initTexture(&engine);
+            beginOpenGlFrame(&engine);
+            calculateScreenInfo(&engine);
+            calculateCameraProjectionMatrix(&engine);
+            updateViewPort(&engine);
+            updateTextureOpenGlFrame(&engine);
             drawOpenGlFrame(&engine);
+            drawOpenGlIcon(&engine);
+            completeDrawOpenGlFrame(&engine);
 #else
             engine_draw_frame(&engine);
 #endif
@@ -1644,14 +2239,20 @@ void EventProc(engine* engine, MenuNode menuNode)
 //#endif
 #endif
 #ifdef USE_SCREEN_FILTER
+                case ID_FILTER_NONE:
+                    config.filter_type = SCREEN_FILTER_NONE;
+                    break;
+                case ID_FILTER_DOT:
+                    config.filter_type = SCREEN_FILTER_DOT;
+                    break;
+                case ID_FILTER_BLUR:
+                    config.filter_type = SCREEN_FILTER_BLUR;
+                    break;
                 case ID_FILTER_RGB:
                     config.filter_type = SCREEN_FILTER_RGB;
                     break;
-                case ID_FILTER_RF:
-                    config.filter_type = SCREEN_FILTER_RF;
-                    break;
-                case ID_FILTER_NONE:
-                    config.filter_type = SCREEN_FILTER_NONE;
+                case ID_FILTER_GREEN:
+                    config.filter_type = SCREEN_FILTER_GREEN;
                     break;
 #endif
                 case ID_SOUND_ON:
@@ -3773,96 +4374,6 @@ void terminateOpenGL(struct engine* engine) {
 #endif
 }
 
-// Vertex shader
-#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-const char* vertexShaderSource = R"glsl(
-#version 100
-attribute vec4 vertexPosition;
-attribute vec2 textureCoord;
-varying vec2 vTextureCoord;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
-
-void main() {
-    gl_Position = projectionMatrix * viewMatrix * vertexPosition;
-    vTextureCoord = textureCoord;
-}
-)glsl";
-#elif defined(_USE_OPENGL_ES30)
-const char* vertexShaderSource = R"glsl(
-#version 300 es
-in vec4 vertexPosition;
-in vec2 textureCoord;
-out vec2 vTextureCoord;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
-
-void main() {
-    gl_Position = projectionMatrix * viewMatrix * vertexPosition;
-    vTextureCoord = textureCoord;
-}
-)glsl";
-#endif
-
-// Fragment shader
-#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-const char* fragmentShaderSource = R"glsl(
-#version 100
-precision mediump float;
-varying vec2 vTextureCoord;
-uniform sampler2D texture;
-
-void main() {
-    gl_FragColor = texture2D(texture, vTextureCoord);
-}
-)glsl";
-#elif defined(_USE_OPENGL_ES30)
-const char* fragmentShaderSource = R"glsl(
-#version 300 es
-precision mediump float;
-in vec2 vTextureCoord;
-out vec4 fragColor;
-uniform sampler2D texture;
-
-void main() {
-    fragColor = texture(texture, vTextureCoord);
-}
-)glsl";
-#endif
-
-// グローバル頂点データとインデックス
-static GLfloat origVertexData[] = {
-        // 左下
-        1.0f, 1.0f, 0.0f,
-        // 右下
-        -1.0f, 1.0f, 0.0f,
-        // 左上
-        1.0f, -1.0f, 0.0f,
-        // 右上
-        -1.0f, -1.0f, 0.0f
-};
-
-// グローバル頂点データとインデックス
-static GLfloat vertexData[] = {
-        -1.0f, -1.0f, 0.0f,  // 左下
-        1.0f, -1.0f, 0.0f,   // 右下
-        -1.0f, 1.0f, 0.0f,   // 左上
-        1.0f, 1.0f, 0.0f     // 右上
-};
-
-static GLuint indices[] = {
-        0, 1, 2,  // 第1の三角形
-        1, 3, 2  // 第2の三角形
-};
-
-// グローバルなテクスチャ座標
-static GLfloat texCoords[] = {
-        0.0f, 0.0f,  // 左下
-        1.0f, 0.0f,  // 右下
-        0.0f, 1.0f,  // 左上
-        1.0f, 1.0f   // 右上
-};
-
 void checkGLError(const char* operation) {
     GLenum error;
     while ((error = glGetError()) != GL_NO_ERROR) {
@@ -3871,24 +4382,13 @@ void checkGLError(const char* operation) {
 }
 
 GLuint loadShader(GLenum type, const char* shaderSource) {
-    LOGI("loadShader start: %s", (type == GL_VERTEX_SHADER) ? "GL_VERTEX_SHADER" : "GL_FRAGMENT_SHADER");
-    LOGI("loadShader 1: %s", shaderSource);
-
-    // OpenGL の状態をチェックする
-    checkGLError("loadShader start");
-
+    LOGI("loadShader start: %s (%x)", (type == GL_VERTEX_SHADER) ? "GL_VERTEX_SHADER" : "GL_FRAGMENT_SHADER", shaderSource);
     GLuint shader = glCreateShader(type);
-    LOGI("loadShader 2: %d", shader);
-
-    // OpenGL の状態をチェックする
     checkGLError("glCreateShader");
-
     if (shader == 0) {
         LOGE("Unable to create shader");
         return 0;
     }
-    LOGI("loadShader 3: %d", shader);
-
     // シェーダソースを設定
     glShaderSource(shader, 1, &shaderSource, NULL);
     glCompileShader(shader);
@@ -3912,6 +4412,7 @@ GLuint loadShader(GLenum type, const char* shaderSource) {
 }
 
 void initializeShaders(struct engine* engine) {
+    LOGI("initializeShaders start:");
 
     if (!eglMakeCurrent(engine->eglDisplay, engine->eglSurface, engine->eglSurface, engine->eglContext)) {
         LOGE("Failed to make EGL context current");
@@ -3931,58 +4432,72 @@ void initializeShaders(struct engine* engine) {
 
     checkGLError("eglMakeCurrent");
 
-    LOGI("initializeShaders start:");
-    GLuint vertexShader = loadShader(GL_VERTEX_SHADER, vertexShaderSource);
-    LOGI("initializeShaders 1: %d", vertexShader);
-    GLuint fragmentShader = loadShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-    LOGI("initializeShaders 2: %d", fragmentShader);
-
-    // 頂点バッファの初期化
-    glGenBuffers(1, &engine->vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, engine->vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
-
-    // インデックスバッファの初期化
-    GLuint indexBuffer;
-    glGenBuffers(1, &engine->indexBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, engine->indexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    GLuint vertexShaderColorId          = loadShader(GL_VERTEX_SHADER, vertexShaderColor);
+    GLuint vertexShaderBlurId           = loadShader(GL_VERTEX_SHADER, vertexShaderBlur);
+    GLuint vertexShaderTvId             = loadShader(GL_VERTEX_SHADER, vertexShaderTv);
+    GLuint vertexShaderGreenDisplayId   = loadShader(GL_VERTEX_SHADER, vertexShaderGreenDisplay);
+    GLuint fragmentShaderColorId        = loadShader(GL_FRAGMENT_SHADER, fragmentShaderColor);
+    GLuint fragmentShaderBlurId         = loadShader(GL_FRAGMENT_SHADER, fragmentShaderBlur);
+    GLuint fragmentShaderTvId           = loadShader(GL_FRAGMENT_SHADER, fragmentShaderTv);
+    GLuint fragmentShaderGreenDisplayId = loadShader(GL_FRAGMENT_SHADER, fragmentShaderGreenDisplay);
+    std::vector<GLuint> shaders = {
+            vertexShaderColorId,        fragmentShaderColorId,
+            vertexShaderColorId,        fragmentShaderColorId,
+            vertexShaderBlurId,         fragmentShaderBlurId,
+            vertexShaderTvId,           fragmentShaderTvId,
+            vertexShaderGreenDisplayId, fragmentShaderGreenDisplayId
+    };
 
     // シェーダプログラムの作成
-    engine->shaderProgram = glCreateProgram();
-    glAttachShader(engine->shaderProgram, vertexShader);
-    glAttachShader(engine->shaderProgram, fragmentShader);
-    glBindAttribLocation(engine->shaderProgram, 0, "vertexPosition");
-    glBindAttribLocation(engine->shaderProgram, 1, "textureCoord");
-    glLinkProgram(engine->shaderProgram);
+    engine->shaderProgram.resize(shaders.size() / 2);
 
-    // Check link status
-    GLint linked;
-    glGetProgramiv(engine->shaderProgram, GL_LINK_STATUS, &linked);
-    if (!linked) {
-        GLint infoLen = 0;
-        glGetProgramiv(engine->shaderProgram, GL_INFO_LOG_LENGTH, &infoLen);
-        if (infoLen > 1) {
-            char* infoLog = new char[infoLen];
-            glGetProgramInfoLog(engine->shaderProgram, infoLen, NULL, infoLog);
-            LOGE("Error linking program: %s", infoLog);
-            delete[] infoLog;
+    for (int i = 0; i < engine->shaderProgram.size(); i++) {
+        engine->shaderProgram[i] = glCreateProgram();
+        LOGI("Filter %d = ShaderProgram %d (%d, %d)", i, engine->shaderProgram[i], shaders[i * 2], shaders[i * 2 + 1]);
+        glAttachShader(engine->shaderProgram[i], shaders[i * 2]);
+        glAttachShader(engine->shaderProgram[i], shaders[i * 2 + 1]);
+        glBindAttribLocation(engine->shaderProgram[i], 0, "vertexPosition");
+        glBindAttribLocation(engine->shaderProgram[i], 1, "textureCoord");
+        glLinkProgram(engine->shaderProgram[i]);
+
+        // Check link status
+        GLint linked;
+        glGetProgramiv(engine->shaderProgram[i], GL_LINK_STATUS, &linked);
+        if (!linked) {
+            GLint infoLen = 0;
+            glGetProgramiv(engine->shaderProgram[i], GL_INFO_LOG_LENGTH, &infoLen);
+            if (infoLen > 1) {
+                char* infoLog = new char[infoLen];
+                glGetProgramInfoLog(engine->shaderProgram[i], infoLen, NULL, infoLog);
+                LOGE("Error linking program: %s", infoLog);
+                delete[] infoLog;
+            }
+            glDeleteProgram(engine->shaderProgram[i]);
+            // Handle error
+            return;
         }
-        glDeleteProgram(engine->shaderProgram);
-        // Handle error
-        return;
     }
 
     // 頂点バッファとテクスチャ座標の設定など、その他の初期化処理
-    // ...
+
+    // テクスチャバッファの初期化
+    engine->textureId.resize(1);
 
     LOGI("initializeShaders end:");
 }
 
-// ビューマトリックス
-float viewMatrix[16];
-// プロジェクションマトリックス
-float projectionMatrix[16];
+void initializeGlIcons(struct engine* engine) {
+    int iconMax = SYSTEM_ICON_MAX;
+    int iconIndex = glIcons.size();
+    int id = 0;
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_EXIT, false);
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_RESET, false);
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_SOUND, true);
+#if defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(SUPPORT_PC88_PCG8100)
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_PCG, true);
+#endif
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_CONFIG, false);
+}
 
 // カメラ行列を計算する関数
 void calculateLookAt(float* outViewMatrix, float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) {
@@ -4042,7 +4557,7 @@ void calculateOrtho(float* outProjectionMatrix, float inLeft, float inRight, flo
     outProjectionMatrix[15] = 1.0f;
 }
 
-unsigned char counter = 0;
+#if defined(_USE_OPENGL_ES20)
 
 // RGB565 データから RGBA データへの変換関数
 void convertRGB565toRGBA(unsigned char* srcData, unsigned char* dstData, int width, int height) {
@@ -4051,10 +4566,6 @@ void convertRGB565toRGBA(unsigned char* srcData, unsigned char* dstData, int wid
         unsigned char g = (pixel & 0xF800) >> 8; // R チャンネルを取得
         unsigned char b = (pixel & 0x07E0) >> 3; // G チャンネルを取得
         unsigned char r = (pixel & 0x001F) << 3; // B チャンネルを取得
-        // 0 から 255 の乱数を生成する
-        g = rand() % 256;
-        r = rand() % 256;
-        b = rand() % 256;
         dstData[i * 4] = r; // R チャンネルをコピー
         dstData[i * 4 + 1] = g; // G チャンネルをコピー
         dstData[i * 4 + 2] = b; // B チャンネルをコピー
@@ -4062,129 +4573,234 @@ void convertRGB565toRGBA(unsigned char* srcData, unsigned char* dstData, int wid
     }
 }
 
-std::vector<unsigned char> rgbaPixelData;
+#endif
 
-void initTexture(struct engine* engine) {
+void beginOpenGlFrame(struct engine* engine) {
+    // 画面クリア
+    glClearColor(0.0f, 0.0f, 0.5f, 1.0f);  // 不透明の青色
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void calculateScreenInfo(struct engine* engine) {
+    engine->screenInfo.topOffsetSystem = 80;
+    engine->screenInfo.topOffsetIcon = 50;
+    engine->screenInfo.bottomOffsetIcon = 32;
+    engine->screenInfo.bottomOffsetSystem = config.screen_bottom_margin;
+
+    engine->screenInfo.scrWidth = deviceInfo.width;
+    engine->screenInfo.scrHeight = deviceInfo.height - engine->screenInfo.topOffsetSystem - engine->screenInfo.bottomOffsetSystem;
+
+    engine->screenInfo.emuWidth = emu->get_osd()->get_vm_window_width();
+    engine->screenInfo.emuHeight = emu->get_osd()->get_vm_window_height() + engine->screenInfo.topOffsetIcon + engine->screenInfo.bottomOffsetIcon;
+
+    engine->screenInfo.emuAspect = (float)engine->screenInfo.emuWidth / engine->screenInfo.emuHeight;
+    engine->screenInfo.screenAspect = (float)deviceInfo.width / deviceInfo.height;
+
+    engine->screenInfo.widthRate = (float)engine->screenInfo.scrWidth / engine->screenInfo.emuWidth;
+    engine->screenInfo.heightRate = (float)engine->screenInfo.scrHeight / engine->screenInfo.emuHeight;
+
+    //縦横小さい側の倍率で拡大
+    engine->screenInfo.screenRate = 0;
+    if (engine->screenInfo.widthRate < engine->screenInfo.heightRate) {
+        engine->screenInfo.screenRate = engine->screenInfo.widthRate;
+    } else {
+        engine->screenInfo.screenRate = engine->screenInfo.heightRate;
+    }
+    engine->screenInfo.realScreenWidth = (float) engine->screenInfo.emuWidth * engine->screenInfo.screenRate;
+    engine->screenInfo.realScreenHeight = (float) engine->screenInfo.emuHeight * engine->screenInfo.screenRate;
+    engine->screenInfo.leftOffset = (engine->screenInfo.scrWidth - engine->screenInfo.realScreenWidth) / 2;
+
+    // エミュレータ画面の上下にアイコン用の余白を空ける
+    engine->screenInfo.topEmuScreenOffset =
+            1.0f - ((1.0f / (engine->screenInfo.emuHeight * 0.5f + engine->screenInfo.topOffsetIcon)) * engine->screenInfo.topOffsetIcon);
+    engine->screenInfo.bottomEmuScreenOffset =
+            -1.0f + ((1.0f / (engine->screenInfo.emuHeight * 0.5f + engine->screenInfo.bottomOffsetIcon)) * engine->screenInfo.topOffsetIcon);
+
+    // ビューポート
+    int bottomOffset = deviceInfo.height - engine->screenInfo.topOffsetSystem - engine->screenInfo.realScreenHeight;
+    engine->screenInfo.viewPortX = engine->screenInfo.leftOffset;
+    engine->screenInfo.viewPortY = bottomOffset;
+    engine->screenInfo.viewPortWidth = engine->screenInfo.realScreenWidth;
+    engine->screenInfo.viewPortHeight = engine->screenInfo.realScreenHeight;
+
+    // エミュレータ画面上下座標の調整
+    vertexScreen[1] = engine->screenInfo.bottomEmuScreenOffset;
+    vertexScreen[4] = engine->screenInfo.bottomEmuScreenOffset;
+    vertexScreen[7] = engine->screenInfo.topEmuScreenOffset;
+    vertexScreen[10] = engine->screenInfo.topEmuScreenOffset;
+}
+
+void calculateCameraProjectionMatrix(struct engine* engine) {
+    // シェーダー設定
+    glUseProgram(engine->shaderProgram[config.filter_type]);
+
+    // カメラと投影行列の計算
+    calculateLookAt(viewMatrix, 0, 0, 1, 0, 0, 0, 0, 1, 0); // カメラ行列
+    calculateOrtho(projectionMatrix, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f); // 並行透視投影
+    // viewMatrixを渡す
+    GLint viewMatrixLoc = glGetUniformLocation(engine->shaderProgram[config.filter_type], "viewMatrix"); checkGLError("glGetUniformLocation");
+    glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, viewMatrix);
+    // projectionMatrixを渡す
+    GLint projectionMatrixLoc = glGetUniformLocation(engine->shaderProgram[config.filter_type], "projectionMatrix");  checkGLError("glGetUniformLocation");
+    glUniformMatrix4fv(projectionMatrixLoc, 1, GL_FALSE, projectionMatrix); checkGLError("glUniformMatrix4fv");
+    glUseProgram(0);
+}
+
+void useShaderProgram(GLuint programId) {
+    glUseProgram(programId);
+
+    // プログラムが有効かチェック
+    GLint isValid;
+    glValidateProgram(programId);
+    glGetProgramiv(programId, GL_VALIDATE_STATUS, &isValid);
+    if (!isValid) {
+        GLint logLength;
+        glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLength);
+        std::vector<char> logBuffer(logLength);
+        glGetProgramInfoLog(programId, logLength, nullptr, logBuffer.data());
+        LOGE("Program validation error: %s", logBuffer.data());
+        // 適切なエラー処理
+        return;
+    }
+
+    // エラーチェック
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        LOGE("OpenGL Error after using shader program: 0x%x", error);
+        // エラーに応じた処理
+        return;
+    }
+}
+
+void updateViewPort(struct engine* engine) {
+    // ビューポートの設定
+    int bottomOffset = deviceInfo.height - engine->screenInfo.topOffsetSystem - engine->screenInfo.realScreenHeight;
+    glViewport(engine->screenInfo.leftOffset, bottomOffset, engine->screenInfo.realScreenWidth, engine->screenInfo.realScreenHeight); checkGLError("glViewport");
+}
+
+void updateTextureOpenGlFrame(struct engine* engine) {
     int emuWidth = emu->get_osd()->get_vm_window_width();
     int emuHeight = emu->get_osd()->get_vm_window_height();
 
-    if (engine->textureScreenId == 0) {
-        glGenTextures(1, &engine->textureScreenId);
-        glBindTexture(GL_TEXTURE_2D, engine->textureScreenId);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glUseProgram(engine->shaderProgram[config.filter_type]); checkGLError("glUseProgram");
+
+    if (engine->textureId[0] == 0) {
+        glGenTextures(1, engine->textureId.data()); checkGLError("glGenTextures");
+        glBindTexture(GL_TEXTURE_2D, engine->textureId[0]); checkGLError("glBindTexture");
+        if (config.filter_type == SCREEN_FILTER_DOT) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri");
+        } else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); checkGLError("glTexParameteri");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); checkGLError("glTexParameteri");
+        }
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri");
     } else {
-        glBindTexture(GL_TEXTURE_2D, engine->textureScreenId);
+        glBindTexture(GL_TEXTURE_2D, engine->textureId[0]); checkGLError("glBindTexture");
+        if (config.filter_type == SCREEN_FILTER_DOT) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri");
+        } else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); checkGLError("glTexParameteri");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); checkGLError("glTexParameteri");
+        }
     }
 
     // ピクセルデータの変換とテクスチャのアップロード
-/*
-    if (rgbaPixelData.empty() || rgbaPixelData.size() != (emuWidth * emuHeight * 4)) {
-        rgbaPixelData.resize(emuWidth * emuHeight * 4);
+#if defined(_USE_OPENGL_ES20)
+    if (screenPixelData.empty() || screenPixelData.size() != (emuWidth * emuHeight * 4)) {
+        screenPixelData.resize(emuWidth * emuHeight * 4);
     }
-    convertRGB565toRGBA(reinterpret_cast<unsigned char *>(emu->get_osd()->getScreenBuffer()->lpBmp), rgbaPixelData.data(), emuWidth, emuHeight);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                 emuWidth, emuHeight,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                 rgbaPixelData.data());
-*/
-    void *screenBuffer = emu->get_osd()->getScreenBuffer()->lpBmp;
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565,
-                 emuWidth, emuHeight,
-                 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5,
-                 screenBuffer);
-
+    convertRGB565toRGBA(reinterpret_cast<unsigned char *>(emu->get_osd()->getScreenBuffer()->lpBmp), screenPixelData.data(), emuWidth, emuHeight);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, emuWidth, emuHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, screenPixelData.data());
+#else
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, emuWidth, emuHeight, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, emu->get_osd()->getScreenBuffer()->lpBmp);
+#endif
     glBindTexture(GL_TEXTURE_2D, 0); // バインド解除
+    glUseProgram(0); checkGLError("glUseProgram");
 }
 
 void drawOpenGlFrame(struct engine* engine) {
-
-    int topOffset = 100;
-    int bottomOffset = config.screen_bottom_margin;
-
-    int scrWidth = deviceInfo.width;
-    int scrHeight = deviceInfo.height - topOffset - bottomOffset;
-
-    int emuWidth = emu->get_osd()->get_vm_window_width();
-    int emuHeight = emu->get_osd()->get_vm_window_height();
-
-    float emuAspect = (float)emuWidth / emuHeight;
-    float screenAspect = (float)deviceInfo.width / deviceInfo.height;
-
-    float widthRate = (float)scrWidth / emuWidth;
-    float heightRate = (float)scrHeight / emuHeight;
-
-    //縦横小さい側の倍率で拡大
-    float screenRate = 0;
-    if (widthRate < heightRate) {
-        screenRate = widthRate;
-    } else {
-        screenRate = heightRate;
+    // フィルタを強制的に無効化（まだ早い）
+    config.filter_type = 0;
+    // シェーダーをセット
+    glUseProgram(engine->shaderProgram[config.filter_type]);
+    // テクスチャをセット
+    glBindTexture(GL_TEXTURE_2D, engine->textureId[config.filter_type]); checkGLError("glBindTexture");
+    glActiveTexture(GL_TEXTURE0);  checkGLError("glActiveTexture");
+    GLint textureLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "texture"); checkGLError("glGetUniformLocation");
+    if (textureLocation > -1) {
+        glUniform1i(textureLocation, 0); checkGLError("glUniform1i");
     }
-    int realScreenWidth = (float) emuWidth * screenRate;
-    int realScreenHeight = (float) emuHeight * screenRate;
-    int leftOffset = (scrWidth - realScreenWidth) / 2;
-    //LOGI("realScreenWidth/Height (%d, %d)", realScreenWidth, realScreenHeight);
-
-    // アスペクト比に応じて頂点座標を調整
-    float scaleWidth = 1.0f;
-    float scaleHeight = 1.0f;
-    if (emuAspect > screenAspect) {
-        scaleHeight = screenAspect / emuAspect;
-    } else {
-        scaleWidth = emuAspect / screenAspect;
+    // シェーダーパラメータ uColor を設定
+    GLint colorLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "uColor"); checkGLError("glGetUniformLocation");
+    if (colorLocation > -1) {
+        glUniform3f(colorLocation, 1.0f, 1.0f, 1.0f); checkGLError("glUniform3f");
     }
+    // シェーダーに画面の横サイズをセット
+    GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "screenWidth"); checkGLError("glGetUniformLocation");
+    if (screenWidthLocation > -1) {
+        glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f");
+    }
+    // シェーダーに画面の縦サイズをセット
+    GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[config.filter_type], "screenHeight"); checkGLError("glGetUniformLocation");
+    if (screenHeightLocation > -1) {
+        glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f");
+    }
+    // 頂点セット
+    glEnableVertexAttribArray(0); checkGLError("glEnableVertexAttribArray");
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertexScreen.data()); checkGLError("glVertexAttribPointer");
+    // UV 座標セット
+    glEnableVertexAttribArray(1); checkGLError("glEnableVertexAttribArray");
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texCoords.data()); checkGLError("glVertexAttribPointer");
+    // エミュレータ画面描画
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices.data()); checkGLError("glDrawElements");
+    // リソース解放
+    glDisableVertexAttribArray(0); checkGLError("glDisableVertexAttribArray");
+    glDisableVertexAttribArray(1); checkGLError("glDisableVertexAttribArray");
+    glBindTexture(GL_TEXTURE_2D, 0); checkGLError("glBindTexture");
+    glUseProgram(0); checkGLError("glUseProgram");
+}
 
-    // アスペクト比でスケールされた新しい頂点座標
-    //for (int i = 0; i < 4; i++) {
-    //    vertexData[3 * i] = origVertexData[3 * i] * scaleWidth * 1.0;
-    //    vertexData[3 * i + 1] = origVertexData[3 * i + 1] * scaleHeight * 1.0;
-    //    vertexData[3 * i + 2] = origVertexData[3 * i + 2];  // Z座標は変更なし
-    //}
+void drawOpenGlIcon(struct engine* engine) {
+    // アイコン描画
+    for (auto& icon : glIcons) {
+        icon.Draw();
+    }
+}
 
-    calculateLookAt(viewMatrix, 0, 0, 1, 0, 0, 0, 0, 1, 0);
-    calculateOrtho(projectionMatrix, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-
-    glViewport(leftOffset, bottomOffset, realScreenWidth, realScreenHeight);
-
-    glUseProgram(engine->shaderProgram);
-
-    glClearColor(0.0f, 0.0f, 0.5f, 1.0f);  // 不透明の赤色
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // viewMatrixを渡す
-    GLint viewMatrixLoc = glGetUniformLocation(engine->shaderProgram, "viewMatrix");
-    glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, viewMatrix);
-
-    // projectionMatrixを渡す
-    GLint projectionMatrixLoc = glGetUniformLocation(engine->shaderProgram, "projectionMatrix");
-    glUniformMatrix4fv(projectionMatrixLoc, 1, GL_FALSE, projectionMatrix);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texCoords);
-
-    glBindBuffer(GL_ARRAY_BUFFER, engine->vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, engine->indexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // テクスチャをバインド
-    glBindTexture(GL_TEXTURE_2D, engine->textureScreenId);
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1i(glGetUniformLocation(engine->shaderProgram, "texture"), 0);
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+void completeDrawOpenGlFrame(struct engine* engine) {
+    // ダブルバッファのスワップ
     eglSwapBuffers(engine->eglDisplay, engine->eglSurface);
 }
 
-#endif // _USE_OPENGL_ES20
+void clickOpenGlIcon(struct android_app *app, float x, float y) {
+    // アイコンクリック判定
+    for (auto& icon : glIcons) {
+        switch (icon.CheckClick(x, y)) {
+            case SYSTEM_EXIT:
+                char message[128];
+                sprintf(message, "Exit Emulator? [%s/%s]",__DATE__,__TIME__);
+                showAlert(app, message, "Exit", true, EXIT_EMULATOR);
+                break;
+            case SYSTEM_RESET:
+                selectBootMode(app);
+                break;
+            case SYSTEM_SOUND:
+                switchSound();
+                break;
+            case SYSTEM_PCG:
+                switchPCG();
+                break;
+            case SYSTEM_CONFIG:
+                extendMenu(app);
+                break;
+        }
+    }
+}
+
+#endif // _USE_OPENGL_ES20 || _USE_OPENGL_ES30
 
 // ----------------------------------------------------------------------------
 // input
@@ -4199,11 +4815,15 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
             float x = AMotionEvent_getX(event, 0);
             float y = AMotionEvent_getY(event, 0);
 
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+            LOGI("X:%f, Y:%f, Witdh:%d, Height:%d", x, y, deviceInfo.width, deviceInfo.height);
+            // アイコンクリック判定
+            clickOpenGlIcon(app, x, y);
+#else
             int sideOffset = (deviceInfo.width > deviceInfo.height) ? 300 : 100;
             x -= sideOffset; // 左側のオフセットを考慮したX座標の補正
 
             //アイコンチェック
-            LOGI("X:%f, Y:%f, Witdh:%d, Height:%d", x, y, deviceInfo.width, deviceInfo.height);
             if (y > 100 && y < 300) {
                 int unitPixel = (deviceInfo.width - sideOffset * 2) / 12;
                 for (int index = 0; index < MAX_FILE_SELECT_ICON; index++) {
@@ -4257,6 +4877,7 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                     return 1;
                 }
             }
+#endif
         }
 
         if (AMotionEvent_getAction(event) == AMOTION_EVENT_ACTION_DOWN) {
@@ -5539,7 +6160,75 @@ bool caseInsensitiveCompare(const std::string &a, const std::string &b) {
     return lowerA < lowerB;
 }
 
-void setFileSelectIcon() {
+void setFileSelectIcon(struct engine *engine) {
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+    int index = glIcons.size();
+    int id = 0;
+#ifdef USE_FLOPPY_DISK
+    for (int drive=0; drive<USE_FLOPPY_DISK; drive++) {
+        fileSelectIconData[id].fileSelectType = FLOPPY_DISK;
+        fileSelectIconData[id].driveNo = drive;
+        glIcons.resize(glIcons.size() + 1);
+        glIcons[index++] = *new GlIcon(engine, id++, FLOPPY_DISK, drive);
+    }
+#endif
+#ifdef USE_HARD_DISK
+    for (int drive=0; drive<USE_HARD_DISK; drive++) {
+        fileSelectIconData[id].fileSelectType = HARD_DISK;
+        fileSelectIconData[id].driveNo = drive;
+        glIcons.resize(glIcons.size() + 1);
+        glIcons[index++] = *new GlIcon(engine, id++, HARD_DISK, drive);
+    }
+#endif
+#ifdef USE_COMPACT_DISC
+    for (int drive=0; drive<USE_COMPACT_DISC; drive++) {
+        fileSelectIconData[id].fileSelectType = COMPACT_DISC;
+        fileSelectIconData[id].driveNo = drive;
+        glIcons.resize(glIcons.size() + 1);
+        glIcons[index++] = *new GlIcon(engine, id++, COMPACT_DISC, drive);
+    }
+#endif
+#ifdef USE_QUICK_DISK
+    for (int drive=0; drive<USE_QUICK_DISK; drive++) {
+        fileSelectIconData[id].fileSelectType = QUICK_DISK;
+        fileSelectIconData[id].driveNo = drive;
+        glIcons.resize(glIcons.size() + 1);
+        glIcons[index++] = *new GlIcon(engine, id++, QUICK_DISK, drive);
+    }
+#endif
+#ifdef USE_TAPE
+    for (int drive=0; drive<USE_TAPE; drive++) {
+        fileSelectIconData[id].fileSelectType = CASETTE_TAPE;
+        fileSelectIconData[id].driveNo = drive;
+        glIcons.resize(glIcons.size() + 1);
+        glIcons[index++] = *new GlIcon(engine, id++, CASETTE_TAPE, drive);
+    }
+#endif
+#ifdef USE_CART
+    for (int drive=0; drive<USE_CART; drive++) {
+        fileSelectIconData[id].fileSelectType = CARTRIDGE;
+        fileSelectIconData[id].driveNo = drive;
+        glIcons.resize(glIcons.size() + 1);
+        glIcons[index++] = *new GlIcon(engine, id++, CARTRIDGE, drive);
+    }
+#endif
+#ifdef USE_BUBBLE
+    for (int drive=0; drive<USE_BUBBLE; drive++) {
+        fileSelectIconData[id].fileSelectType = BUBBLE_CASETTE;
+        fileSelectIconData[id].driveNo = drive;
+        glIcons.resize(glIcons.size() + 1);
+        glIcons[index++] = *new GlIcon(engine, id++, BUBBLE_CASETTE, drive);
+    }
+#endif
+#ifdef USE_BINARY_FILE
+    for (int drive=0; drive<USE_BINARY_FILE; drive++) {
+        fileSelectIconData[id].fileSelectType = BINARY;
+        fileSelectIconData[id].driveNo = drive;
+        glIcons.resize(glIcons.size() + 1);
+        glIcons[index++] = *new GlIcon(engine, id++, BINARY, drive);
+    }
+#endif
+#else
     for(int iconIndex = 0;iconIndex < MAX_FILE_SELECT_ICON;iconIndex++){
         fileSelectIconData[iconIndex].fileSelectType = FILE_SELECT_NONE;
     }
@@ -5604,6 +6293,7 @@ void setFileSelectIcon() {
     fileSelectIconData[index].fileSelectType = BINARY;
     fileSelectIconData[index].driveNo = 0;
     index++;
+#endif
 #endif
 }
 
@@ -5674,7 +6364,7 @@ void jniReadIconData(struct android_app *state) {
     state->activity->vm->AttachCurrentThread(&jni, NULL);
 
     jclass clazz = jni->GetObjectClass(state->activity->clazz);
-    jmethodID jIDLoadBitmap = jni->GetMethodID(clazz, "loadBitmap", "(II)[I");
+    jmethodID jIDLoadBitmap = jni->GetMethodID(clazz, "loadBitmap", "(III)[I");
     int width, height;
 
     for (int iconType = 0; iconType < 2; iconType++) {
@@ -5686,8 +6376,7 @@ void jniReadIconData(struct android_app *state) {
         }
 
         for (int iconIndex = 0; iconIndex < iconNumber; iconIndex++) {
-            LOGI("Load Icon:%d", iconIndex);
-            jintArray ja = (jintArray) (jni->CallObjectMethod(state->activity->clazz, jIDLoadBitmap, iconType, iconIndex));
+            jintArray ja = (jintArray) (jni->CallObjectMethod(state->activity->clazz, jIDLoadBitmap, iconType, iconIndex, 30));
             int jasize = jni->GetArrayLength(ja);
 
             jint *arr1;
@@ -5715,6 +6404,7 @@ void jniReadIconData(struct android_app *state) {
                 }
             }
             jni->ReleaseIntArrayElements(ja, arr1, 0);
+            LOGI("Load Icon:%d width=%d, height=%d", iconIndex, width, height);
         }
     }
     state->activity->vm->DetachCurrentThread();
