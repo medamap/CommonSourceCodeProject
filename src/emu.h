@@ -471,9 +471,7 @@ public:
 
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
-#if !defined(__ANDROID__)
 	bool is_floppy_disk_connected(int drv);
-#endif
 	bool is_floppy_disk_inserted(int drv);
 	void is_floppy_disk_protected(int drv, bool value);
 	bool is_floppy_disk_protected(int drv);

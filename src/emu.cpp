@@ -2412,7 +2412,6 @@ void EMU::close_floppy_disk(int drv)
 	}
 }
 
-#if !defined(__ANDROID__)
 bool EMU::is_floppy_disk_connected(int drv)
 {
 	if(drv < USE_FLOPPY_DISK) {
@@ -2421,7 +2420,6 @@ bool EMU::is_floppy_disk_connected(int drv)
 		return false;
 	}
 }
-#endif
 
 bool EMU::is_floppy_disk_inserted(int drv)
 {
