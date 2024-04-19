@@ -113,21 +113,36 @@ Menu::Menu() {
     addNode(screen, "Rotate 180deg", Property, ID_SCREEN_ROTATE_180);
     addNode(screen, "Rotate -90deg", Property, ID_SCREEN_ROTATE_270);
 
-    int marginId = addNode(screen, "Screen Bottom Margin", Category, -1);
-    addNode(marginId, "0", Property, ID_SCREEN_BOTTOM_MARGIN_0);
-    addNode(marginId, "30", Property, ID_SCREEN_BOTTOM_MARGIN_30);
-    addNode(marginId, "60", Property, ID_SCREEN_BOTTOM_MARGIN_60);
-    addNode(marginId, "90", Property, ID_SCREEN_BOTTOM_MARGIN_90);
-    addNode(marginId, "120", Property, ID_SCREEN_BOTTOM_MARGIN_120);
-    addNode(marginId, "150", Property, ID_SCREEN_BOTTOM_MARGIN_150);
-    addNode(marginId, "180", Property, ID_SCREEN_BOTTOM_MARGIN_180);
-    addNode(marginId, "210", Property, ID_SCREEN_BOTTOM_MARGIN_210);
-    addNode(marginId, "240", Property, ID_SCREEN_BOTTOM_MARGIN_240);
-    addNode(marginId, "270", Property, ID_SCREEN_BOTTOM_MARGIN_270);
+    int marginId1 = addNode(screen, "Screen Top Margin", Category, -1);
+    addNode(marginId1, "0", Property, ID_SCREEN_TOP_MARGIN_0);
+    addNode(marginId1, "30", Property, ID_SCREEN_TOP_MARGIN_30);
+    addNode(marginId1, "60", Property, ID_SCREEN_TOP_MARGIN_60);
+    addNode(marginId1, "90", Property, ID_SCREEN_TOP_MARGIN_90);
+    addNode(marginId1, "120", Property, ID_SCREEN_TOP_MARGIN_120);
+    addNode(marginId1, "150", Property, ID_SCREEN_TOP_MARGIN_150);
+    addNode(marginId1, "180", Property, ID_SCREEN_TOP_MARGIN_180);
+    addNode(marginId1, "210", Property, ID_SCREEN_TOP_MARGIN_210);
+    addNode(marginId1, "240", Property, ID_SCREEN_TOP_MARGIN_240);
+    addNode(marginId1, "270", Property, ID_SCREEN_TOP_MARGIN_270);
 
-    int filter = addNode(host, "Filter", Category, -1);
-    addNode(filter, "RGB Filter", Property, ID_FILTER_RGB);
-    addNode(filter, "None", Property, ID_FILTER_NONE);
+    int marginId2 = addNode(screen, "Screen Bottom Margin", Category, -1);
+    addNode(marginId2, "0", Property, ID_SCREEN_BOTTOM_MARGIN_0);
+    addNode(marginId2, "30", Property, ID_SCREEN_BOTTOM_MARGIN_30);
+    addNode(marginId2, "60", Property, ID_SCREEN_BOTTOM_MARGIN_60);
+    addNode(marginId2, "90", Property, ID_SCREEN_BOTTOM_MARGIN_90);
+    addNode(marginId2, "120", Property, ID_SCREEN_BOTTOM_MARGIN_120);
+    addNode(marginId2, "150", Property, ID_SCREEN_BOTTOM_MARGIN_150);
+    addNode(marginId2, "180", Property, ID_SCREEN_BOTTOM_MARGIN_180);
+    addNode(marginId2, "210", Property, ID_SCREEN_BOTTOM_MARGIN_210);
+    addNode(marginId2, "240", Property, ID_SCREEN_BOTTOM_MARGIN_240);
+    addNode(marginId2, "270", Property, ID_SCREEN_BOTTOM_MARGIN_270);
+
+    int filterId = addNode(host, "Filter", Category, -1);
+    addNode(filterId, "Green Filter", Property, ID_FILTER_GREEN);
+    addNode(filterId, "RGB Filter", Property, ID_FILTER_RGB);
+    addNode(filterId, "Blur Filter", Property, ID_FILTER_BLUR);
+    addNode(filterId, "DOT", Property, ID_FILTER_DOT);
+    addNode(filterId, "None", Property, ID_FILTER_NONE);
 
     int sound2 = addNode(host, "Sound", Category, -1);
     addNode(sound2, "Switch On / Off", Property, ID_SOUND_ON);

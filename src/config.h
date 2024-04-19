@@ -179,6 +179,7 @@ typedef struct {
     #endif
 
     #if defined(__ANDROID__) // Medamap
+        int screen_top_margin;
         int screen_bottom_margin;
     #endif
 	

@@ -1572,6 +1572,7 @@ enum systemIconType {
     SYSTEM_SOUND,
     SYSTEM_PCG ,
     SYSTEM_CONFIG ,
+    SYSTEM_KEYBOARD ,
     SYSTEM_ICON_MAX
 };
 enum FileSelectType {
