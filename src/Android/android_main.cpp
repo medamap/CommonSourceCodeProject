@@ -1338,11 +1338,12 @@ void android_main(struct android_app *state) {
     sprintf(documentDir, "%s", documentDirTemp);
     sprintf(emulatorDir, "%s/emulator", documentDir);
     sprintf(applicationDir, "%s/%sROM", emulatorDir, CONFIG_NAME);
-    sprintf(configPath, "%s/%s.ini", CONFIG_NAME, applicationDir);
+    sprintf(configPath, "%s/%s.ini", applicationDir, CONFIG_NAME);
     free((void*)documentDirTemp);
     LOGI("documentDir: %s", documentDir);
     LOGI("emulatorDir: %s", emulatorDir);
     LOGI("applicationDir: %s", applicationDir);
+    LOGI("configPath: %s", configPath);
 
     // メニュー初期化
     menu = new Menu();
