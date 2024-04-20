@@ -22,10 +22,15 @@ public:
     std::string caption;
     ItemType itemType;
     int returnValue;
+    int tag;
 
     MenuNode(int parentId, int nodeId, const std::string& caption, ItemType itemType, int returnValue)
             : parentId(parentId), nodeId(nodeId), caption(caption),
-              itemType(itemType), returnValue(returnValue) {}
+              itemType(itemType), returnValue(returnValue), tag(0) {}
+
+    MenuNode(int parentId, int nodeId, const std::string& caption, ItemType itemType, int returnValue, int tag)
+            : parentId(parentId), nodeId(nodeId), caption(caption),
+              itemType(itemType), returnValue(returnValue), tag(tag) {}
 
     // ノードIDを返すメソッド
     int getNodeId() const {
@@ -47,6 +52,10 @@ public:
     int getParentId() const {
         return parentId;
     }
+    // タグを返すメソッド
+    int getTag() const {
+        return tag;
+    }
     // 空のメニューノードを返す
     static MenuNode emptyNode() {
         return MenuNode(-1, -1, "", Category, -1);
@@ -61,6 +70,11 @@ public:
 
     // ノードを追加する
     int addNode(int parentId, const std::string& caption, ItemType itemType, int returnValue) {
+        return this->addNode(parentId, caption, itemType, returnValue, -1);
+    }
+
+    // ノードを追加する
+    int addNode(int parentId, const std::string& caption, ItemType itemType, int returnValue, int tag) {
         int nodeId = nextNodeId++;
         // 文字列引数の中にカンマやセミコロンがある場合、空白に置き換える
         std::string captionCopy = caption;
@@ -69,7 +83,7 @@ public:
                 c = ' ';
             }
         }
-        nodes.emplace_back(parentId, nodeId, captionCopy, itemType, returnValue);
+        nodes.emplace_back(parentId, nodeId, captionCopy, itemType, returnValue, tag);
         return nodeId;
     }
 
@@ -93,6 +107,16 @@ public:
     MenuNode getNode(int nodeId) {
         for (const auto& node : nodes) {
             if (node.nodeId == nodeId) {
+                return node;
+            }
+        }
+        return MenuNode(-1, -1, "", Category, -1);
+    }
+
+    // tag を指定して指定されたタグを持つノードを１つ取得する
+    MenuNode getNodeByTag(int tag) {
+        for (const auto& node : nodes) {
+            if (node.tag == tag) {
                 return node;
             }
         }
@@ -228,7 +252,6 @@ public:
         }
         return true;
     }
-
 
 private:
     std::vector<MenuNode> nodes;

@@ -34,7 +34,26 @@ Menu::Menu() {
     addNode(controlId, "Close Debugger", Property, ID_CLOSE_DEBUGGER);
     addNode(controlId, "Exit", Property, ID_EXIT);
 
-    int cmtId = addNode(rootId, "CMT", Category, -1);
+    int cartId1 = addNode(rootId, "Cart #1", Category, -1, MENU_CART0);
+    int cartId2 = addNode(rootId, "Cart #2", Category, -1, MENU_CART1);
+    int cmtId = addNode(rootId, "CMT", Category, -1, MENU_TAPE0);
+    int fdId1 = addNode(rootId, "FD1", Category, -1, MENU_FDD0);
+    int fdId2 = addNode(rootId, "FD2", Category, -1, MENU_FDD1);
+
+    int deviceId = addNode(rootId, "Device", Category, -1);
+    int hostId = addNode(rootId, "Host", Category, -1);
+
+    // Cart #1
+    addNode(cartId1, "Insert", Property, ID_OPEN_CART1);
+    addNode(cartId1, "Eject", Property, ID_CLOSE_CART1);
+    addNode(cartId1, "Recent", Property, ID_RECENT_CART1);
+
+    // Cart #2
+    addNode(cartId2, "Insert", Property, ID_OPEN_CART2);
+    addNode(cartId2, "Eject", Property, ID_CLOSE_CART2);
+    addNode(cartId2, "Recent", Property, ID_RECENT_CART2);
+
+    // CMT
     addNode(cmtId, "Play", Property, ID_PLAY_TAPE1);
     addNode(cmtId, "Rec", Property, ID_REC_TAPE1);
     addNode(cmtId, "Eject", Property, ID_CLOSE_TAPE1);
@@ -45,48 +64,43 @@ Menu::Menu() {
     addNode(cmtId, "Waveform Shaper", Property, ID_USE_WAVE_SHAPER1);
     addNode(cmtId, "Recent", Property, ID_RECENT_TAPE1);
 
-    int qdId = addNode(rootId, "QD", Category, -1);
-    addNode(qdId, "Insert", Property, ID_OPEN_QD1);
-    addNode(qdId, "Eject", Property, ID_CLOSE_QD1);
-    addNode(qdId, "Recent", Property, ID_RECENT_QD1);
+    // FD1
+    addNode(fdId1, "Insert", Property, ID_OPEN_FD1);
+    addNode(fdId1, "Eject", Property, ID_CLOSE_FD1);
+    addNode(fdId1, "Insert Blank 2DD Disk", Property, ID_OPEN_BLANK_2DD_FD1);
+    addNode(fdId1, "Write Protected", Property, ID_WRITE_PROTECT_FD1);
+    addNode(fdId1, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD1);
+    addNode(fdId1, "Recent", Property, ID_RECENT_FD1);
 
-    int fd1Id = addNode(rootId, "FD1", Category, -1);
-    addNode(fd1Id, "Insert", Property, ID_OPEN_FD1);
-    addNode(fd1Id, "Eject", Property, ID_CLOSE_FD1);
-    addNode(fd1Id, "Insert Blank 2D Disk", Property, ID_OPEN_BLANK_2D_FD1);
-    addNode(fd1Id, "Insert Blank 2DD Disk", Property, ID_OPEN_BLANK_2DD_FD1);
-    addNode(fd1Id, "Write Protected", Property, ID_WRITE_PROTECT_FD1);
-    addNode(fd1Id, "Correct Timing", Property, ID_CORRECT_TIMING_FD1);
-    addNode(fd1Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD1);
-    addNode(fd1Id, "Recent", Property, ID_RECENT_FD1);
+    // FD2
+    addNode(fdId2, "Insert", Property, ID_OPEN_FD2);
+    addNode(fdId2, "Eject", Property, ID_CLOSE_FD2);
+    addNode(fdId2, "Insert Blank 2DD Disk", Property, ID_OPEN_BLANK_2DD_FD2);
+    addNode(fdId2, "Write Protected", Property, ID_WRITE_PROTECT_FD2);
+    addNode(fdId2, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD2);
+    addNode(fdId2, "Recent", Property, ID_RECENT_FD2);
 
-    int fd2Id = addNode(rootId, "FD2", Category, -1);
-    addNode(fd2Id, "Insert", Property, ID_OPEN_FD2);
-    addNode(fd2Id, "Eject", Property, ID_CLOSE_FD2);
-    addNode(fd2Id, "Insert Blank 2D Disk", Property, ID_OPEN_BLANK_2D_FD2);
-    addNode(fd2Id, "Insert Blank 2DD Disk", Property, ID_OPEN_BLANK_2DD_FD2);
-    addNode(fd2Id, "Write Protected", Property, ID_WRITE_PROTECT_FD2);
-    addNode(fd2Id, "Correct Timing", Property, ID_CORRECT_TIMING_FD2);
-    addNode(fd2Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD2);
-    addNode(fd2Id, "Recent", Property, ID_RECENT_FD2);
-
-    int deviceId = addNode(rootId, "Device", Category, -1);
+    // Device
     int soundId = addNode(deviceId, "Sound", Category, -1);
-    addNode(soundId, "Play FDD Noise", Property, ID_VM_SOUND_NOISE_FDD);
-    addNode(soundId, "Play CMT Noise", Property, ID_VM_SOUND_NOISE_CMT);
-    addNode(soundId, "Play CMT Signal", Property, ID_VM_SOUND_TAPE_SIGNAL);
-    addNode(soundId, "Play CMT Voice", Property, ID_VM_SOUND_TAPE_VOICE);
-
     int printerId = addNode(deviceId, "Printer", Category, -1);
-    addNode(printerId, "Write Printer to File", Property, ID_VM_PRINTER_TYPE0);
-    addNode(printerId, "MSX Printer", Property, ID_VM_PRINTER_TYPE1);
-    addNode(printerId, "PC-PR201", Property, ID_VM_PRINTER_TYPE2);
-    addNode(printerId, "None", Property, ID_VM_PRINTER_TYPE3);
 
-    int hostId = addNode(rootId, "Host", Category, -1);
-    addNode(hostId, "Rec Movie 60fps", Property, ID_HOST_REC_MOVIE_60FPS);
-    addNode(hostId, "Rec Movie 30fps", Property, ID_HOST_REC_MOVIE_30FPS);
-    addNode(hostId, "Rec Movie 15fps", Property, ID_HOST_REC_MOVIE_15FPS);
+    // Sound
+    addNode(soundId, "Play FDD Noise", Property, ID_VM_SOUND_NOISE_FDD, -1);
+    addNode(soundId, "Play CMT Noise", Property, ID_VM_SOUND_NOISE_CMT, -1);
+    addNode(soundId, "Play CMT Signal", Property, ID_VM_SOUND_TAPE_SIGNAL, -1);
+    addNode(soundId, "Play CMT Voice", Property, ID_VM_SOUND_TAPE_VOICE, -1);
+
+    // Printer
+    addNode(printerId, "Write Printer to File", Property, ID_VM_PRINTER_TYPE0, -1);
+    addNode(printerId, "MSX Printer", Property, ID_VM_PRINTER_TYPE1, -1);
+    addNode(printerId, "PC-PR201", Property, ID_VM_PRINTER_TYPE2, -1);
+    addNode(printerId, "None", Property, ID_VM_PRINTER_TYPE3, -1);
+
+    // Host
+    int recMovieId = addNode(hostId, "Rec Movie", Category, -1);
+    addNode(recMovieId, "60fps", Property, ID_HOST_REC_MOVIE_60FPS);
+    addNode(recMovieId, "30fps", Property, ID_HOST_REC_MOVIE_30FPS);
+    addNode(recMovieId, "15fps", Property, ID_HOST_REC_MOVIE_15FPS);
     addNode(hostId, "Rec Sound", Property, ID_HOST_REC_SOUND);
     addNode(hostId, "Stop", Property, ID_HOST_REC_STOP);
     addNode(hostId, "Capture Screen", Property, ID_HOST_CAPTURE_SCREEN);
@@ -144,7 +158,7 @@ Menu::Menu() {
     addNode(soundId2, "11025Hz", Property, ID_SOUND_FREQ3);
     addNode(soundId2, "22050Hz", Property, ID_SOUND_FREQ4);
     addNode(soundId2, "44100Hz", Property, ID_SOUND_FREQ5);
-    addNode(soundId2, "48000Hz", Property, ID_SOUND_FREQ6);
+    addNode(soundId2, "62500Hz", Property, ID_SOUND_FREQ6);
     addNode(soundId2, "96000Hz", Property, ID_SOUND_FREQ7);
     addNode(soundId2, "50msec", Property, ID_SOUND_LATE0);
     addNode(soundId2, "100msec", Property, ID_SOUND_LATE1);

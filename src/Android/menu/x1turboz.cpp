@@ -11,15 +11,15 @@ Menu::Menu() {
     // Root メニューを作成
     int rootId = addNode(0, "Root", Category, -1);
     int controlId = addNode(rootId, "Control", Category, -1);
-    int fd0Id = addNode(rootId, "FD0", Category, -1);
-    int fd1Id = addNode(rootId, "FD1", Category, -1);
-    int fd2Id = addNode(rootId, "FD2", Category, -1);
-    int fd3Id = addNode(rootId, "FD3", Category, -1);
-    int cmtId = addNode(rootId, "CMT", Category, -1);
-    int hd0Id = addNode(rootId, "HD0", Category, -1);
-    int hd1Id = addNode(rootId, "HD1", Category, -1);
-    int hd2Id = addNode(rootId, "HD2", Category, -1);
-    int hd3Id = addNode(rootId, "HD3", Category, -1);
+    int fd0Id = addNode(rootId, "FD0", Category, -1, MENU_FDD0);
+    int fd1Id = addNode(rootId, "FD1", Category, -1, MENU_FDD1);
+    int fd2Id = addNode(rootId, "FD2", Category, -1, MENU_FDD2);
+    int fd3Id = addNode(rootId, "FD3", Category, -1, MENU_FDD3);
+    int cmtId = addNode(rootId, "CMT", Category, -1, MENU_TAPE0);
+    int hd0Id = addNode(rootId, "HD0", Category, -1, MENU_HDD0);
+    int hd1Id = addNode(rootId, "HD1", Category, -1, MENU_HDD1);
+    int hd2Id = addNode(rootId, "HD2", Category, -1, MENU_HDD2);
+    int hd3Id = addNode(rootId, "HD3", Category, -1, MENU_HDD3);
     int deviceId = addNode(rootId, "Device", Category, -1);
     int hostId = addNode(rootId, "Host", Category, -1);
 

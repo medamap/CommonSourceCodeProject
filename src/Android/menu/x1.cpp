@@ -11,15 +11,15 @@ Menu::Menu() {
     // Root メニューを作成
     int rootId = addNode(0, "Root", Category, -1);
     int controlId = addNode(rootId, "Control", Category, -1);
-    int fd0Id = addNode(rootId, "FD0", Category, -1);
-    int fd1Id = addNode(rootId, "FD1", Category, -1);
-    int fd2Id = addNode(rootId, "FD2", Category, -1);
-    int fd3Id = addNode(rootId, "FD3", Category, -1);
-    int cmtId = addNode(rootId, "CMT", Category, -1);
-    int hd0Id = addNode(rootId, "HD0", Category, -1);
-    int hd1Id = addNode(rootId, "HD1", Category, -1);
-    int hd2Id = addNode(rootId, "HD2", Category, -1);
-    int hd3Id = addNode(rootId, "HD3", Category, -1);
+    int fd0Id = addNode(rootId, "FD0", Category, -1, MENU_FDD0);
+    int fd1Id = addNode(rootId, "FD1", Category, -1, MENU_FDD1);
+    int fd2Id = addNode(rootId, "FD2", Category, -1, MENU_FDD2);
+    int fd3Id = addNode(rootId, "FD3", Category, -1, MENU_FDD3);
+    int cmtId = addNode(rootId, "CMT", Category, -1, MENU_TAPE0);
+    int hd0Id = addNode(rootId, "HD0", Category, -1, MENU_HDD0);
+    int hd1Id = addNode(rootId, "HD1", Category, -1, MENU_HDD1);
+    int hd2Id = addNode(rootId, "HD2", Category, -1, MENU_HDD2);
+    int hd3Id = addNode(rootId, "HD3", Category, -1, MENU_HDD3);
     int deviceId = addNode(rootId, "Device", Category, -1);
     int hostId = addNode(rootId, "Host", Category, -1);
     // Control メニューを作成
@@ -54,7 +54,7 @@ Menu::Menu() {
     addNode(fd0Id, "Write Protected", Property, ID_WRITE_PROTECT_FD1);
     addNode(fd0Id, "Correct Timing", Property, ID_CORRECT_TIMING_FD1);
     addNode(fd0Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD1);
-    addNode(fd0Id, "Recent", Category, ID_RECENT_FD1);
+    addNode(fd0Id, "Recent", Property, ID_RECENT_FD1);
 
     // FD1 メニューを作成
     addNode(fd1Id, "Insert", Property, ID_OPEN_FD2);
@@ -63,7 +63,7 @@ Menu::Menu() {
     addNode(fd1Id, "Write Protected", Property, ID_WRITE_PROTECT_FD2);
     addNode(fd1Id, "Correct Timing", Property, ID_CORRECT_TIMING_FD2);
     addNode(fd1Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD2);
-    addNode(fd1Id, "Recent", Category, ID_RECENT_FD2);
+    addNode(fd1Id, "Recent", Property, ID_RECENT_FD2);
 
     // FD2 メニューを作成
     addNode(fd2Id, "Insert", Property, ID_OPEN_FD3);
@@ -74,7 +74,7 @@ Menu::Menu() {
     addNode(fd2Id, "Write Protected", Property, ID_WRITE_PROTECT_FD3);
     addNode(fd2Id, "Correct Timing", Property, ID_CORRECT_TIMING_FD3);
     addNode(fd2Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD3);
-    addNode(fd2Id, "Recent", Category, ID_RECENT_FD3);
+    addNode(fd2Id, "Recent", Property, ID_RECENT_FD3);
 
     // FD3 メニューを作成
     addNode(fd3Id, "Insert", Property, ID_OPEN_FD4);
@@ -85,7 +85,7 @@ Menu::Menu() {
     addNode(fd3Id, "Write Protected", Property, ID_WRITE_PROTECT_FD4);
     addNode(fd3Id, "Correct Timing", Property, ID_CORRECT_TIMING_FD4);
     addNode(fd3Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD4);
-    addNode(fd3Id, "Recent", Category, ID_RECENT_FD4);
+    addNode(fd3Id, "Recent", Property, ID_RECENT_FD4);
 
     // CMT メニューを作成
     addNode(cmtId, "Play", Property, ID_PLAY_TAPE1);
@@ -98,31 +98,31 @@ Menu::Menu() {
     addNode(cmtId, "APSS Forward", Property, ID_APSS_FORWARD1);
     addNode(cmtId, "APSS Rewind", Property, ID_APSS_REWIND1);
     addNode(cmtId, "Waveform Shaper", Property, ID_USE_WAVE_SHAPER1);
-    addNode(cmtId, "Recent", Category, ID_RECENT_TAPE1);
+    addNode(cmtId, "Recent", Property, ID_RECENT_TAPE1);
 
     // HD0 メニューを作成
     addNode(hd0Id, "Mount", Property, ID_OPEN_HD1);
     addNode(hd0Id, "Unmount", Property, ID_CLOSE_HD1);
     addNode(hd0Id, "Mount Blank 20MB Disk", Property, ID_OPEN_BLANK_20MB_HD1);
-    addNode(hd0Id, "Recent", Category, ID_RECENT_HD1);
+    addNode(hd0Id, "Recent", Property, ID_RECENT_HD1);
 
     // HD1 メニューを作成
     addNode(hd1Id, "Mount", Property, ID_OPEN_HD2);
     addNode(hd1Id, "Unmount", Property, ID_CLOSE_HD2);
     addNode(hd1Id, "Mount Blank 20MB Disk", Property, ID_OPEN_BLANK_20MB_HD2);
-    addNode(hd1Id, "Recent", Category, ID_RECENT_HD2);
+    addNode(hd1Id, "Recent", Property, ID_RECENT_HD2);
 
     // HD2 メニューを作成
     addNode(hd2Id, "Mount", Property, ID_OPEN_HD3);
     addNode(hd2Id, "Unmount", Property, ID_CLOSE_HD3);
     addNode(hd2Id, "Mount Blank 20MB Disk", Property, ID_OPEN_BLANK_20MB_HD3);
-    addNode(hd2Id, "Recent", Category, ID_RECENT_HD3);
+    addNode(hd2Id, "Recent", Property, ID_RECENT_HD3);
 
     // HD3 メニューを作成
     addNode(hd3Id, "Mount", Property, ID_OPEN_HD4);
     addNode(hd3Id, "Unmount", Property, ID_CLOSE_HD4);
     addNode(hd3Id, "Mount Blank 20MB Disk", Property, ID_OPEN_BLANK_20MB_HD4);
-    addNode(hd3Id, "Recent", Category, ID_RECENT_HD4);
+    addNode(hd3Id, "Recent", Property, ID_RECENT_HD4);
 
     // Device メニューを作成
     int soundId = addNode(deviceId, "Sound", Category, -1);
