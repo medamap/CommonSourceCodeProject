@@ -249,6 +249,30 @@ public class EmulatorActivity extends NativeActivity {
         return result[0];
     }
 
+    public boolean isSoftKeyboardShown() {
+        Rect r = new Rect();
+        View rootview = this.getWindow().getDecorView(); // root view
+        rootview.getWindowVisibleDisplayFrame(r);
+        int screenHeight = rootview.getRootView().getHeight();
+
+        // ステータスバーの高さを取得
+        int statusBarHeight = 0;
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            statusBarHeight = getResources().getDimensionPixelSize(resourceId);
+        }
+
+        // ナビゲーションバーの高さを取得
+        int navigationBarHeight = 0;
+        resourceId = getResources().getIdentifier("navigation_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            navigationBarHeight = getResources().getDimensionPixelSize(resourceId);
+        }
+
+        int keypadHeight = screenHeight - r.bottom - statusBarHeight - navigationBarHeight;
+        return keypadHeight > screenHeight * 0.15; // キーボードが画面の15%以上を占めていれば表示中と判断
+    }
+
     public byte[] getClipboardTextEncoded() {
         final byte[][] result = new byte[1][];
 
