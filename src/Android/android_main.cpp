@@ -355,7 +355,7 @@ void useShaderProgram(GLuint programId);
 void updateTextureOpenGlFrame(struct engine* engine);
 void drawOpenGlFrame(struct engine *engine);
 void drawOpenGlIcon(struct engine* engine);
-void reloadOpenGlIcon(struct engine* engine);
+void resumeStatusOpenGlIcon(struct engine* engine);
 void completeDrawOpenGlFrame(struct engine* engine);
 void clickOpenGlIcon(struct android_app *app, float x, float y);
 
@@ -670,6 +670,38 @@ private:
         LOGI("Generate Icon : %d '%s' (%d, %d) width=%d height=%d", id, name.c_str(), iconTypeNumber, iconIndexNumber, width, height);
     }
 
+    bool IsClicked(float x, float y) {
+        float vx = engine->screenInfo.viewPortX;
+        float vy = engine->screenInfo.viewPortY;
+        float vw = engine->screenInfo.viewPortWidth;
+        float vh = engine->screenInfo.viewPortHeight;
+        int dw = deviceInfo.width;
+        int dh = deviceInfo.height;
+
+        // クリック座標系からビューポート座標系への変換
+        float viewportX = x - vx;
+        float viewportY = dh - y - vy;  // クリック座標系のY座標をビューポート座標系に変換
+
+        // ビューポート座標系からOpenGL座標系への変換
+        float ndcX = (2.0f * viewportX / vw) - 1.0f;
+        float ndcY = (2.0f * viewportY / vh) - 1.0f; // OpenGL座標系への変換
+
+        // Y座標の反転
+        ndcY = -ndcY;
+
+        // 四角形の頂点座標
+        float left = vertex[0];
+        float right = vertex[3];
+        float top = vertex[1];
+        float bottom = vertex[7];
+
+        if (systemIconType == SYSTEM_CONFIG) {
+            LOGI("nx=%f ny=%f l=%f r=%f t=%f b=%f vx=%f vy=%f vw=%f vh=%f", ndcX, ndcY, left, right, top, bottom, vx, vy, vw, vh);
+        }
+        // 点が四角形内にあるか判定
+        return (ndcX >= left && ndcX <= right && ndcY >= bottom && ndcY <= top);
+    }
+
 public:
     GlIcon(struct engine *engine, int id, enum FileSelectType FileSelectType, int driveNo) :
             engine(engine),
@@ -726,6 +758,12 @@ public:
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, bmpImage16.data());
                 checkGLError("glTexImage2D F10");
                 break;
+        }
+    }
+
+    void ResumeSoftKeyboardFlag(bool value) {
+        if (iconType == SYSTEM_ICON && systemIconType == SYSTEM_KEYBOARD) {
+            toggleValue = value;
         }
     }
 
@@ -902,36 +940,17 @@ public:
         glUseProgram(0); checkGLError("glUseProgram A23");
     }
 
-    enum systemIconType CheckClick(float x, float y) {
-        float vx = engine->screenInfo.viewPortX;
-        float vy = engine->screenInfo.viewPortY;
-        float vw = engine->screenInfo.viewPortWidth;
-        float vh = engine->screenInfo.viewPortHeight;
-        int dw = deviceInfo.width;
-        int dh = deviceInfo.height;
-
-        // クリック座標系からビューポート座標系への変換
-        float viewportX = x - vx;
-        float viewportY = dh - y - vy;  // クリック座標系のY座標をビューポート座標系に変換
-
-        // ビューポート座標系からOpenGL座標系への変換
-        float ndcX = (2.0f * viewportX / vw) - 1.0f;
-        float ndcY = (2.0f * viewportY / vh) - 1.0f; // OpenGL座標系への変換
-
-        // Y座標の反転
-        ndcY = -ndcY;
-
-        // 四角形の頂点座標
-        float left = vertex[0];
-        float right = vertex[3];
-        float top = vertex[1];
-        float bottom = vertex[7];
-
-        if (systemIconType == SYSTEM_CONFIG) {
-            LOGI("vx=%f vy=%f vw=%f vh=%f nx=%f ny=%f l=%f r=%f t=%f b=%f", vx, vy, vw, vh, ndcX, ndcY, left, right, top, bottom);
+    int CheckClickFileIcon(float x, float y) {
+        if (iconType != FILE_ICON) return -1;
+        if (IsClicked(x, y)) {
+            return static_cast<int>(FileSelectType) * 256 + driveNo;
         }
+        return -1;
+    }
+
+    enum systemIconType CheckClickSystemIcon(float x, float y) {
         // 点が四角形内にあるか判定
-        if (ndcX >= left && ndcX <= right && ndcY >= bottom && ndcY <= top) {
+        if (IsClicked(x, y)) {
             if (isToggle) {
                 toggleValue = !toggleValue;
                 LOGI("Click %s Toggle( %s => %s )", name.c_str(), toggleValue ? "False" : "True", toggleValue ? "True" : "False");
@@ -985,6 +1004,7 @@ jint showExtendMenu(struct android_app *state, const char *title, const char *ex
 
 void EventProc(engine *engine, MenuNode menuNode);
 void extendMenu(struct android_app *app);
+void extendMenu(struct android_app *app, MenuNode node);
 void selectDialog(struct android_app *state, const char *message, const char *addPath, const char *recentFiles);
 void selectD88Bank(struct android_app *state, int driveNo);
 void selectBootMode(struct android_app *state);
@@ -1030,6 +1050,7 @@ void draw_button(HDC hDC, UINT index, UINT pressed);
 // misc
 
 static int get_unicode_character(struct android_app *app, int event_type, int key_code, int meta_state);
+static jboolean getSoftKeyboardShown(struct android_app *app);
 bool caseInsensitiveCompare(const std::string &a, const std::string &b);
 void setFileSelectIcon(struct engine *engine);
 bool check_dir_exists(const char *path);
@@ -1188,7 +1209,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
                 // OpenGL ES 2.0 / 3.0 の初期化
                 initializeOpenGL(engine);
                 initializeShaders(engine);
-                reloadOpenGlIcon(engine);
+                resumeStatusOpenGlIcon(engine);
 #if defined(_USE_OPENGL_ES20)
                 LOGI("OpenGL ES 2.0 initialization complete.");
 #elif defined(_USE_OPENGL_ES30)
@@ -1249,7 +1270,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
             break;
         }
         case APP_CMD_GAINED_FOCUS: {
-            reloadOpenGlIcon(engine);
+            resumeStatusOpenGlIcon(engine);
             break;
         }
         case APP_CMD_CONFIG_CHANGED:
@@ -1257,6 +1278,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
             // 設定変更時の処理
 #if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
             updateSurface(engine);
+            resumeStatusOpenGlIcon(engine);
 #else
             AConfiguration* aconfig = AConfiguration_new();
             AConfiguration_fromAssetManager(aconfig, app->activity->assetManager);
@@ -2079,7 +2101,7 @@ void EventProc(engine* engine, MenuNode menuNode)
                     break;
 #endif
 #ifdef USE_DRIVE_TYPE
-                case ID_VM_DRIVE_TYPE0: case ID_VM_DRIVE_TYPE1: case ID_VM_DRIVE_TYPE2: case ID_VM_DRIVE_TYPE3:
+                    case ID_VM_DRIVE_TYPE0: case ID_VM_DRIVE_TYPE1: case ID_VM_DRIVE_TYPE2: case ID_VM_DRIVE_TYPE3:
                 case ID_VM_DRIVE_TYPE4: case ID_VM_DRIVE_TYPE5: case ID_VM_DRIVE_TYPE6: case ID_VM_DRIVE_TYPE7:
                     config.drive_type = LOWORD(wParam) - ID_VM_DRIVE_TYPE0;
                     if(emu) {
@@ -2088,7 +2110,7 @@ void EventProc(engine* engine, MenuNode menuNode)
                     break;
 #endif
 #ifdef USE_KEYBOARD_TYPE
-                case ID_VM_KEYBOARD_TYPE0: case ID_VM_KEYBOARD_TYPE1: case ID_VM_KEYBOARD_TYPE2: case ID_VM_KEYBOARD_TYPE3:
+                    case ID_VM_KEYBOARD_TYPE0: case ID_VM_KEYBOARD_TYPE1: case ID_VM_KEYBOARD_TYPE2: case ID_VM_KEYBOARD_TYPE3:
                 case ID_VM_KEYBOARD_TYPE4: case ID_VM_KEYBOARD_TYPE5: case ID_VM_KEYBOARD_TYPE6: case ID_VM_KEYBOARD_TYPE7:
                     config.keyboard_type = LOWORD(wParam) - ID_VM_KEYBOARD_TYPE0;
                     if(emu) {
@@ -4972,10 +4994,11 @@ void drawOpenGlIcon(struct engine* engine) {
     }
 }
 
-void reloadOpenGlIcon(struct engine* engine) {
+void resumeStatusOpenGlIcon(struct engine* engine) {
     // アイコン再読み込み
     for (auto& icon : glIcons) {
         icon.ReloadTexture();
+        icon.ResumeSoftKeyboardFlag(getSoftKeyboardShown(engine->app));
     }
 }
 
@@ -4987,7 +5010,8 @@ void completeDrawOpenGlFrame(struct engine* engine) {
 void clickOpenGlIcon(struct android_app *app, float x, float y) {
     // アイコンクリック判定
     for (auto& icon : glIcons) {
-        switch (icon.CheckClick(x, y)) {
+        // システムアイコンチェック
+        switch (icon.CheckClickSystemIcon(x, y)) {
             case SYSTEM_EXIT:
                 char message[128];
                 sprintf(message, "Exit Emulator? [%s/%s]",__DATE__,__TIME__);
@@ -5014,7 +5038,16 @@ void clickOpenGlIcon(struct android_app *app, float x, float y) {
             case SYSTEM_KEYBOARD:
                 toggle_soft_keyboard(app);
                 break;
+            case SYSTEM_NONE:
+                break;
+            case SYSTEM_ICON_MAX:
+                break;
         }
+        // ファイルアイコンチェック
+        int tag = icon.CheckClickFileIcon(x, y);
+        if (tag < 0) continue;
+        MenuNode node = menu->getNodeByTag(tag);
+        extendMenu(app, node);
     }
 }
 
@@ -5826,6 +5859,16 @@ void extendMenu(struct android_app *app)
     jint nodeId = showExtendMenu(app, menu->getCaption(1).c_str(), extendMenuString.c_str());
 }
 
+void extendMenu(struct android_app *app, MenuNode node)
+{
+    if (extendMenuDisplay) return;
+    // メニュー文字列を取得する
+    extendMenuString = menu->getExtendMenuString(node.getNodeId());
+    // NDKからJavaの関数を呼び出す
+    extendMenuDisplay = true;
+    jint nodeId = showExtendMenu(app, menu->getCaption(node.getNodeId()).c_str(), extendMenuString.c_str());
+}
+
 void selectDialog(struct android_app *state, const char *message, const char *addPath, const char *recentFiles) {
     char long_message[_MAX_PATH+33];
     fileList.clear();
@@ -6364,6 +6407,24 @@ static int get_unicode_character(struct android_app *app, int event_type, int ke
 
     app->activity->vm->DetachCurrentThread();
     return unicode_key;
+}
+
+static jboolean getSoftKeyboardShown(struct android_app *app) {
+    JNIEnv *jni;
+    JavaVMAttachArgs args;
+    args.version = JNI_VERSION_1_6;
+    args.name = "NativeThread";
+    args.group = NULL;
+
+    // Current threadをJava VMにアタッチ
+    app->activity->vm->AttachCurrentThread(&jni, &args);
+    jclass clazz = jni->GetObjectClass(app->activity->clazz);
+    jmethodID mid = jni->GetMethodID(clazz, "isSoftKeyboardShown", "()Z");
+    jboolean isShown = jni->CallBooleanMethod(app->activity->clazz, mid);
+    jni->DeleteLocalRef(clazz);
+    app->activity->vm->DetachCurrentThread();
+
+    return isShown;
 }
 
 // 大文字小文字を区別しない比較関数
