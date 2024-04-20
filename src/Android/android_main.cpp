@@ -346,9 +346,7 @@ void initializeShaders(struct engine* engine);
 void initializeGlIcons(struct engine* engine);
 void calculateLookAt(float* outViewMatrix, float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
 void calculateOrtho(float* outProjectionMatrix, float inLeft, float inRight, float inBottom, float inTop, float inNear, float inFar);
-#if defined(_USE_OPENGL_ES20)
 void convertRGB565toRGBA(unsigned char* srcData, unsigned char* dstData, int width, int height);
-#endif
 void beginOpenGlFrame(struct engine* engine);
 void calculateScreenInfo(struct engine *engine);
 void calculateCameraProjectionMatrix(struct engine* engine);
@@ -361,10 +359,13 @@ void reloadOpenGlIcon(struct engine* engine);
 void completeDrawOpenGlFrame(struct engine* engine);
 void clickOpenGlIcon(struct android_app *app, float x, float y);
 
-#if defined(_USE_OPENGL_ES20)
+#define EMULATOR_SCREEN_TYPE_DEFAULT     0
+#define EMULATOR_SCREEN_TYPE_RGB565      1
+#define EMULATOR_SCREEN_TYPE_RGBA8888    2
+uint16_t emulator_screen_type = EMULATOR_SCREEN_TYPE_DEFAULT;
+
 // エミュレータ画面ピクセルデータ
 std::vector<unsigned char> screenPixelData;
-#endif
 
 // ビューマトリックス
 float viewMatrix[16];
@@ -582,11 +583,8 @@ private:
     GLuint textureId;
     int width;
     int height;
-#if defined(_USE_OPENGL_ES20)
-    std::vector<uint8_t> bmpImage;
-#else
-    std::vector<uint16_t> bmpImage;
-#endif
+    std::vector<uint8_t> bmpImage8;
+    std::vector<uint16_t> bmpImage16;
     std::vector<GLfloat> vertex = {-1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f};
     std::vector<GLuint> indices = {0, 1, 2, 1, 3, 2};
     std::vector<GLfloat> texCoords = {0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f};
@@ -619,46 +617,56 @@ private:
             arr1 = jni->GetIntArrayElements(ja, 0);
             width = arr1[0];    // 画像の幅を取得
             height = arr1[1];   // 画像の縦サイズを取得
-#if defined(_USE_OPENGL_ES20)
-            bmpImage.resize(width * height * 4);
-#elif defined(_USE_OPENGL_ES30)
-            bmpImage.resize(width * height);
-#endif
-            // ビットマップ取得
-            for (int index = 0; index < jasize - 2; index++) {
-#if defined(_USE_OPENGL_ES20)
-                bmpImage[index * 4 + 0] = (arr1[index + 2] & 0xF800) >> 8;
-                bmpImage[index * 4 + 1] = (arr1[index + 2] & 0xF800) >> 8;
-                bmpImage[index * 4 + 2] = (arr1[index + 2] & 0xF800) >> 8;
-                bmpImage[index * 4 + 3] = 255;
-#elif defined(_USE_OPENGL_ES30)
-                bmpImage[index] = (arr1[index + 2] & 0xF800) + ((arr1[index + 2] & 0xF800) >> 5) + ((arr1[index + 2] & 0xF800) >> 11);
-#endif
+
+            switch (emulator_screen_type) {
+                case EMULATOR_SCREEN_TYPE_RGBA8888:
+                    bmpImage8.resize(width * height * 4);
+                    // ビットマップ取得
+                    for (int index = 0; index < jasize - 2; index++) {
+                        bmpImage8[index * 4 + 0] = (arr1[index + 2] & 0xF800) >> 8;
+                        bmpImage8[index * 4 + 1] = (arr1[index + 2] & 0xF800) >> 8;
+                        bmpImage8[index * 4 + 2] = (arr1[index + 2] & 0xF800) >> 8;
+                        bmpImage8[index * 4 + 3] = 255;
+                    }
+                    break;
+                case EMULATOR_SCREEN_TYPE_RGB565:
+                    bmpImage16.resize(width * height);
+                    // ビットマップ取得
+                    for (int index = 0; index < jasize - 2; index++) {
+                        bmpImage16[index] = (arr1[index + 2] & 0xF800) + ((arr1[index + 2] & 0xF800) >> 5) + ((arr1[index + 2] & 0xF800) >> 11);
+                    }
+                    break;
             }
             jni->ReleaseIntArrayElements(ja, arr1, 0);
             engine->app->activity->vm->DetachCurrentThread();
         }
         glGenTextures(1, &textureId);
         glBindTexture(GL_TEXTURE_2D, textureId);
-#if defined(_USE_OPENGL_ES20)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bmpImage.data());
-#elif defined(_USE_OPENGL_ES30)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, bmpImage.data());
-#endif
+
+        switch (emulator_screen_type) {
+            case EMULATOR_SCREEN_TYPE_RGBA8888:
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bmpImage8.data());
+                checkGLError("glTexImage2D F1");
+                break;
+            case EMULATOR_SCREEN_TYPE_RGB565:
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, bmpImage16.data());
+                checkGLError("glTexImage2D F2");
+                break;
+        }
 #ifdef USE_SCREEN_FILTER
         if (config.filter_type == SCREEN_FILTER_DOT) {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri F3");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri F4");
         } else {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); checkGLError("glTexParameteri F5");
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); checkGLError("glTexParameteri F6");
         }
 #else
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 #endif
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri F7");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri F8");
         LOGI("Generate Icon : %d '%s' (%d, %d) width=%d height=%d", id, name.c_str(), iconTypeNumber, iconIndexNumber, width, height);
     }
 
@@ -709,11 +717,16 @@ public:
 
     void ReloadTexture() {
         glBindTexture(GL_TEXTURE_2D, textureId);
-#if defined(_USE_OPENGL_ES20)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bmpImage.data());
-#elif defined(_USE_OPENGL_ES30)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, bmpImage.data());
-#endif
+        switch (emulator_screen_type) {
+            case EMULATOR_SCREEN_TYPE_RGBA8888:
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bmpImage8.data());
+                checkGLError("glTexImage2D F9");
+                break;
+            case EMULATOR_SCREEN_TYPE_RGB565:
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, bmpImage16.data());
+                checkGLError("glTexImage2D F10");
+                break;
+        }
     }
 
     void Draw() {
@@ -4347,20 +4360,27 @@ void check_update_screen(engine* engine) {
 
 void initializeOpenGL(struct engine* engine) {
     LOGI("initializeOpenGL start:");
+
+    LOGI("initialize EGL Config:");
+#if defined(_USE_OPENGL_ES20)
+    emulator_screen_type = EMULATOR_SCREEN_TYPE_RGBA8888;
+#elif defined(_USE_OPENGL_ES30)
+    emulator_screen_type = EMULATOR_SCREEN_TYPE_RGB565;
+#endif
     const EGLint attribs[] = {
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
 #if defined(_USE_OPENGL_ES20)
             EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, // OpenGL ES 2.0
-            EGL_BLUE_SIZE, 8,
+            EGL_BLUE_SIZE,  8,
             EGL_GREEN_SIZE, 8,
-            EGL_RED_SIZE, 8,
+            EGL_RED_SIZE,   8,
             EGL_DEPTH_SIZE, 0,
 #elif defined(_USE_OPENGL_ES30)
             EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, // OpenGL ES 3.0
-            EGL_BLUE_SIZE, 5,
-            EGL_GREEN_SIZE, 6,
-            EGL_RED_SIZE, 5,
-            EGL_DEPTH_SIZE, 0,
+            EGL_BLUE_SIZE,    5,
+            EGL_GREEN_SIZE,   6,
+            EGL_RED_SIZE,     5,
+            EGL_DEPTH_SIZE, 9,
 #endif
             EGL_NONE
     };
@@ -4368,7 +4388,38 @@ void initializeOpenGL(struct engine* engine) {
     engine->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     eglInitialize(engine->eglDisplay, NULL, NULL);
     EGLint numConfigs;
-    eglChooseConfig(engine->eglDisplay, attribs, &engine->eglConfig, 1, &numConfigs);
+    EGLConfig config;
+
+    // 設定の選択を試みる
+    if (!eglChooseConfig(engine->eglDisplay, attribs, &config, 1, &numConfigs) || numConfigs < 1) {
+        // 設定が見つからない場合は、RGBA8888を試みる
+        LOGE("Failed to find a matching EGLConfig, attempting RGBA8888 fallback.");
+
+#if defined(_USE_OPENGL_ES30)
+        const EGLint fallbackAttribs[] = {
+                EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+                EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
+                EGL_BLUE_SIZE, 8,
+                EGL_GREEN_SIZE, 8,
+                EGL_RED_SIZE, 8,
+                EGL_DEPTH_SIZE, 0,
+                EGL_NONE
+        };
+        if (!eglChooseConfig(engine->eglDisplay, fallbackAttribs, &config, 1, &numConfigs) || numConfigs < 1) {
+            LOGE("Failed to find a suitable RGBA8888 EGLConfig.");
+            return;
+        }
+        emulator_screen_type = EMULATOR_SCREEN_TYPE_RGBA8888;
+        LOGI("Using RGBA8888 configuration.");
+#else
+        LOGE("No compatible configuration found, unable to proceed.");
+        return;
+#endif
+    }
+
+    engine->eglConfig = config;
+    LOGI("EGLConfig chosen successfully.");
+
     EGLint contextAttribs[] = {
 #if defined(_USE_OPENGL_ES20)
             EGL_CONTEXT_CLIENT_VERSION, 2, // OpenGL ES 2.0
@@ -4395,27 +4446,39 @@ void initializeOpenGL(struct engine* engine) {
 
 void updateSurface(struct engine* engine) {
     LOGI("updateSurface start:");
-    // 1. 既存のサーフェスを破棄する
+    eglMakeCurrent(engine->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+
+    // 既存のサーフェスを破棄
     if (engine->eglSurface != EGL_NO_SURFACE) {
         eglDestroySurface(engine->eglDisplay, engine->eglSurface);
         engine->eglSurface = EGL_NO_SURFACE;
     }
-    // 2. 新しいウィンドウサーフェスを作成する
+
+    // 新しいサーフェスを作成
     engine->eglSurface = eglCreateWindowSurface(engine->eglDisplay, engine->eglConfig, engine->app->window, NULL);
     if (engine->eglSurface == EGL_NO_SURFACE) {
         LOGE("Failed to create a new window surface.");
+        // 新しいサーフェスの作成に失敗した場合のエラー処理
+        eglTerminate(engine->eglDisplay);
+        engine->eglDisplay = EGL_NO_DISPLAY;
         return;
     }
-    // 3. サーフェスを現在のコンテキストにバインドする
+
+    // サーフェスをバインド
     if (!eglMakeCurrent(engine->eglDisplay, engine->eglSurface, engine->eglSurface, engine->eglContext)) {
         LOGE("Failed to re-bind the new surface.");
+        // サーフェスバインド失敗の処理
+        eglDestroySurface(engine->eglDisplay, engine->eglSurface);
+        eglTerminate(engine->eglDisplay);
+        engine->eglDisplay = EGL_NO_DISPLAY;
         return;
     }
-    // 4. ビューポートの再設定
+
+    // ビューポートの再設定
     int width = ANativeWindow_getWidth(engine->app->window);
     int height = ANativeWindow_getHeight(engine->app->window);
     glViewport(0, 0, width, height);
-    // 5. ログ出力
+
     LOGI("Surface updated: width=%d, height=%d", width, height);
 }
 
@@ -4649,8 +4712,6 @@ void calculateOrtho(float* outProjectionMatrix, float inLeft, float inRight, flo
     outProjectionMatrix[15] = 1.0f;
 }
 
-#if defined(_USE_OPENGL_ES20)
-
 // RGB565 データから RGBA データへの変換関数
 void convertRGB565toRGBA(unsigned char* srcData, unsigned char* dstData, int width, int height) {
     for (int i = 0; i < width * height; i++) {
@@ -4664,8 +4725,6 @@ void convertRGB565toRGBA(unsigned char* srcData, unsigned char* dstData, int wid
         dstData[i * 4 + 3] = 255; // アルファ値を設定（完全不透明）
     }
 }
-
-#endif
 
 void beginOpenGlFrame(struct engine* engine) {
     // 画面クリア
@@ -4843,15 +4902,19 @@ void updateTextureOpenGlFrame(struct engine* engine) {
     }
 
     // ピクセルデータの変換とテクスチャのアップロード
-#if defined(_USE_OPENGL_ES20)
-    if (screenPixelData.empty() || screenPixelData.size() != (emuWidth * emuHeight * 4)) {
-        screenPixelData.resize(emuWidth * emuHeight * 4);
+    switch (emulator_screen_type) {
+        case EMULATOR_SCREEN_TYPE_RGBA8888:
+            if (screenPixelData.empty() || screenPixelData.size() != (emuWidth * emuHeight * 4)) {
+                screenPixelData.resize(emuWidth * emuHeight * 4);
+            }
+            convertRGB565toRGBA(reinterpret_cast<unsigned char *>(emu->get_osd()->getScreenBuffer()->lpBmp), screenPixelData.data(), emuWidth, emuHeight);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, emuWidth, emuHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, screenPixelData.data()); checkGLError("glTexImage2D D15");
+            break;
+        case EMULATOR_SCREEN_TYPE_RGB565:
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, emuWidth, emuHeight, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, emu->get_osd()->getScreenBuffer()->lpBmp); checkGLError("glTexImage2D D16");
+            break;
     }
-    convertRGB565toRGBA(reinterpret_cast<unsigned char *>(emu->get_osd()->getScreenBuffer()->lpBmp), screenPixelData.data(), emuWidth, emuHeight);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, emuWidth, emuHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, screenPixelData.data()); checkGLError("glTexImage2D D15");
-#else
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, emuWidth, emuHeight, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, emu->get_osd()->getScreenBuffer()->lpBmp); checkGLError("glTexImage2D D16");
-#endif
+
     glBindTexture(GL_TEXTURE_2D, 0);  checkGLError("glBindTexture D17"); // バインド解除
     glUseProgram(0); checkGLError("glUseProgram D18");
 }
