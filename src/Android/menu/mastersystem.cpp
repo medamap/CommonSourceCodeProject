@@ -34,7 +34,7 @@ Menu::Menu() {
     addNode(controlId, "Close Debugger", Property, ID_CLOSE_DEBUGGER);
     addNode(controlId, "Exit", Property, ID_EXIT);
 
-    int cartId = addNode(rootId, "Cart", Category, -1);
+    int cartId = addNode(rootId, "Cart", Category, -1, MENU_CART0);
     addNode(cartId, "Insert", Property, ID_OPEN_CART1);
     addNode(cartId, "Eject", Property, ID_CLOSE_CART1);
     addNode(cartId, "Recent", Property, ID_RECENT_CART1);

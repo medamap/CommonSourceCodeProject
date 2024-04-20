@@ -11,10 +11,10 @@ Menu::Menu() {
     // Root メニューを作成
     int rootId = addNode(0, "Root", Category, -1);
     int controlId = addNode(rootId, "Control", Category, -1);
-    int cmtId = addNode(rootId, "CMT", Category, -1);
-    int qdId = addNode(rootId, "QD", Category, -1);
-    int fd1Id = addNode(rootId, "FD1", Category, -1);
-    int fd2Id = addNode(rootId, "FD2", Category, -1);
+    int cmtId = addNode(rootId, "CMT", Category, -1, MENU_TAPE0);
+    int qdId = addNode(rootId, "QD", Category, -1, MENU_QD0);
+    int fd1Id = addNode(rootId, "FD1", Category, -1, MENU_FDD0);
+    int fd2Id = addNode(rootId, "FD2", Category, -1, MENU_FDD1);
     int deviceId = addNode(rootId, "Device", Category, -1);
     int hostId = addNode(rootId, "Host", Category, -1);
 
