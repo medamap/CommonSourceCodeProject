@@ -334,6 +334,7 @@ void load_config(const _TCHAR* config_path)
 	#endif
 
     #if defined(__ANDROID__)
+        config.screen_top_margin = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenTopMargin"), config.screen_top_margin, config_path);
         config.screen_bottom_margin = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenBottomMargin"), config.screen_bottom_margin, config_path);
     #endif
 
@@ -585,6 +586,7 @@ void save_config(const _TCHAR* config_path)
     #endif
 
     #if defined(__ANDROID__)
+        MyWritePrivateProfileInt(_T("Screen"), _T("ScreenTopMargin"), config.screen_top_margin, config_path);
         MyWritePrivateProfileInt(_T("Screen"), _T("ScreenBottomMargin"), config.screen_bottom_margin, config_path);
     #endif
 
