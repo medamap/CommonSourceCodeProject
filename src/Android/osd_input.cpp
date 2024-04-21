@@ -37,8 +37,8 @@ void OSD::initialize_input()
 	lost_focus = false;
 
 	//機種ごとのカスタマイズ
-#if defined(_MZ700)
-    androidToAndroidToVk[111][0] = 8; //ESC → BS([BREAK]KEY in MZ-700Emulator)
+#if defined(_MZ700) || defined(_MZ1500)
+    androidToAndroidToVk[111][0] = 8; //ESC → BS([BREAK]KEY in MZ-700/1500Emulator)
 #endif
 
 }
