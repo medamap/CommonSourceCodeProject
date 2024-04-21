@@ -901,7 +901,7 @@ public:
                     vertex[6] = -1.0f;          vertex[7]  = yOffset;
                     vertex[9] = -1.0f + size;   vertex[10] = yOffset;
                 } else {
-                    float topY = engine->screenInfo.topOffsetProgress;
+                    float topY = engine->screenInfo.topEmuProgressOffset;
                     distance = topY - abs(engine->screenInfo.topEmuScreenOffset);
                     size = distance * 0.9f;
                     xOffset = -1.0f + distance * id;
