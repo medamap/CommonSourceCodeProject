@@ -92,6 +92,7 @@ typedef struct {
     int viewPortHeight;
     int topOffsetSystem;
     int bottomOffsetSystem;
+    int topOffsetProgress;
     int topOffsetIcon;
     int bottomOffsetIcon;
     int leftOffsetIcon;
@@ -108,6 +109,7 @@ typedef struct {
     int realScreenWidth;
     int realScreenHeight;
     int leftOffset;
+    float topEmuProgressOffset;
     float topEmuScreenOffset;
     float bottomEmuScreenOffset;
     float leftEmuScreenOffset;
@@ -344,6 +346,7 @@ void checkGLError(const char* operation);
 GLuint loadShader(GLenum type, const char* shaderSource);
 void initializeShaders(struct engine* engine);
 void initializeGlIcons(struct engine* engine);
+void initializeGlProgress(struct engine* engine);
 void calculateLookAt(float* outViewMatrix, float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
 void calculateOrtho(float* outProjectionMatrix, float inLeft, float inRight, float inBottom, float inTop, float inNear, float inFar);
 void convertRGB565toRGBA(unsigned char* srcData, unsigned char* dstData, int width, int height);
@@ -355,6 +358,7 @@ void useShaderProgram(GLuint programId);
 void updateTextureOpenGlFrame(struct engine* engine);
 void drawOpenGlFrame(struct engine *engine);
 void drawOpenGlIcon(struct engine* engine);
+void drawOpenGlProgress(struct engine* engine, int progress);
 void resumeStatusOpenGlIcon(struct engine* engine);
 void completeDrawOpenGlFrame(struct engine* engine);
 void clickOpenGlIcon(struct android_app *app, float x, float y);
@@ -573,6 +577,101 @@ void main() {
 std::vector<GLfloat> vertexScreen = {-1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f};
 std::vector<GLuint> indices = {0, 1, 2, 1, 3, 2};
 std::vector<GLfloat> texCoords = {0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+
+class GlProgress {
+private:
+    struct engine *engine;
+    GLuint textureId;
+    int progress = 0;
+    float r, g, b;
+    std::vector<uint8_t> bmpImage8;
+    std::vector<GLfloat> vertex = {-1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f};
+    std::vector<GLuint> indices = {0, 1, 2, 1, 3, 2};
+    std::vector<GLfloat> texCoords = {0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+    void generateTexture() {
+        bmpImage8.resize(100 * 4);
+        glGenTextures(1, &textureId); checkGLError("glGenTextures G1");
+        UpdateProgress(0, true);
+        glGenTextures(1, &textureId); checkGLError("glTexParameteri G7");
+        glBindTexture(GL_TEXTURE_2D, textureId); checkGLError("glTexParameteri G8");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri G15");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri G16");
+        glBindTexture(GL_TEXTURE_2D, 0); checkGLError("glTexParameteri G17");
+        LOGI("Generate Progress: rgb = (%f, %f, %f)", r, g, b);
+    }
+
+public:
+    GlProgress(struct engine* engine, float r, float g, float b) : engine(engine), progress(0), r(r), g(g), b(b) {
+        generateTexture();
+    }
+
+    ~GlProgress() {
+        engine = nullptr;
+        glDeleteTextures(1, &textureId);
+    }
+
+    void UpdateProgress(int setProgress, bool force) {
+        if (setProgress == progress && !force) return;
+        progress = setProgress;
+        // ビットマップ取得
+        for (int index = 0; index < bmpImage8.size()/4; index++) {
+            bmpImage8[index * 4 + 0] = bmpImage8[index * 4 + 1] = bmpImage8[index * 4 + 2] = (index < progress || progress == 99) ? 255 : 0;
+            bmpImage8[index * 4 + 3] = 255;
+        }
+        glBindTexture(GL_TEXTURE_2D, textureId); checkGLError("glBindTexture G2");
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 100, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, bmpImage8.data());
+        checkGLError("glTexImage2D G3");
+        glBindTexture(GL_TEXTURE_2D, 0); checkGLError("glBindTexture G4");
+    }
+
+    void ReloadTexture() {
+        glBindTexture(GL_TEXTURE_2D, textureId); checkGLError("glTexImage2D G5");
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 100, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, bmpImage8.data());
+        checkGLError("glTexImage2D G6");
+    }
+
+    void Draw() {
+        vertex[0] = engine->screenInfo.leftEmuScreenOffset;   vertex[1]  = engine->screenInfo.topEmuProgressOffset;
+        vertex[3] = engine->screenInfo.rightEmuScreenOffset;  vertex[4]  = engine->screenInfo.topEmuProgressOffset;
+        vertex[6] = engine->screenInfo.leftEmuScreenOffset;   vertex[7]  = 1.0f;
+        vertex[9] = engine->screenInfo.rightEmuScreenOffset;  vertex[10] = 1.0f;
+#if defined(USE_SCREEN_FILTER)
+        int filter_type = config.filter_type = SCREEN_FILTER_NONE;
+#else
+        int filter_type = SCREEN_FILTER_NONE;
+#endif
+        glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram H0");
+        glBindTexture(GL_TEXTURE_2D, textureId); checkGLError("glBindTexture H1");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri H2");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri H3");
+        glActiveTexture(GL_TEXTURE0); checkGLError("glActiveTexture H6");
+        GLint textureLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "texture"); checkGLError("glGetUniformLocation H7");
+        if (textureLocation > -1) {
+            glUniform1i(textureLocation, 0); checkGLError("glUniform1i H8");
+        }
+        GLint colorLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "uColor"); checkGLError("glGetUniformLocation H9");
+        if (colorLocation > -1) {
+            glUniform3f(colorLocation, r, g, b); checkGLError("glUniform3f H10");
+        }
+        GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "screenWidth"); checkGLError("glGetUniformLocation H11");
+        if (screenWidthLocation > -1) {
+            glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f H12");
+        }
+        GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "screenHeight"); checkGLError("glGetUniformLocation H13");
+        if (screenHeightLocation > -1) {
+            glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f H14");
+        }
+        glEnableVertexAttribArray(0); checkGLError("glEnableVertexAttribArray H15");
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertex.data()); checkGLError("glVertexAttribPointer H16");
+        glEnableVertexAttribArray(1); checkGLError("glEnableVertexAttribArray H17");
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texCoords.data()); checkGLError("glVertexAttribPointer H18");
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices.data()); checkGLError("glDrawElements H19");
+        glDisableVertexAttribArray(0); checkGLError("glDisableVertexAttribArray H20");
+        glDisableVertexAttribArray(1); checkGLError("glDisableVertexAttribArray H21");
+        glBindTexture(GL_TEXTURE_2D, 0); checkGLError("glBindTexture H22");
+        glUseProgram(0); checkGLError("glUseProgram H23");
+    }
+};
 
 class GlIcon {
 private:
@@ -802,13 +901,14 @@ public:
                     vertex[6] = -1.0f;          vertex[7]  = yOffset;
                     vertex[9] = -1.0f + size;   vertex[10] = yOffset;
                 } else {
-                    distance = 1.0f - abs(engine->screenInfo.topEmuScreenOffset);
+                    float topY = engine->screenInfo.topOffsetProgress;
+                    distance = topY - abs(engine->screenInfo.topEmuScreenOffset);
                     size = distance * 0.9f;
                     xOffset = -1.0f + distance * id;
-                    vertex[0] = xOffset;        vertex[1]  = 1.0f;
-                    vertex[3] = xOffset + size; vertex[4]  = 1.0f;
-                    vertex[6] = xOffset;        vertex[7]  = 1.0f - size;
-                    vertex[9] = xOffset + size; vertex[10] = 1.0f - size;
+                    vertex[0] = xOffset;        vertex[1]  = topY;
+                    vertex[3] = xOffset + size; vertex[4]  = topY;
+                    vertex[6] = xOffset;        vertex[7]  = topY - size;
+                    vertex[9] = xOffset + size; vertex[10] = topY - size;
                 }
                 r = g = b = 0.3f;
                 uint32_t driveColor = 0;
@@ -982,6 +1082,7 @@ public:
 };
 
 std::vector<GlIcon> glIcons;
+GlProgress *glProgress = nullptr;
 
 #endif // _USE_OPENGL_ES20 || _USE_OPENGL_ES30
 
@@ -1205,6 +1306,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
         case APP_CMD_INIT_WINDOW:
         {
             if (engine->app->window != NULL) {
+                LOGI("APP_CMD_INIT_WINDOW");
 #if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
                 // OpenGL ES 2.0 / 3.0 の初期化
                 initializeOpenGL(engine);
@@ -1228,13 +1330,14 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
                 deviceInfo.width = ANativeWindow_getWidth(app->window);
                 deviceInfo.height = ANativeWindow_getHeight(app->window);
                 engine->animating = 1;
-                LOGI("APP_CMD_INIT_WINDOW");
                 LOGI("Screen size (%d, %d)", deviceInfo.width, deviceInfo.height);
             }
             break;
         }
         case APP_CMD_TERM_WINDOW:
         {
+            LOGI("APP_CMD_TERM_WINDOW");
+            engine->animating = 0;
 #if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
             // OpenGL ES 2.0 関連の終了処理
             terminateOpenGL(engine);
@@ -1253,8 +1356,6 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
             engine_draw_frame(engine);
             clear_screen(engine);
 #endif
-            engine->animating = 1;
-            LOGI("APP_CMD_TERM_WINDOW");
             deviceInfo.width = ANativeWindow_getWidth(app->window);
             deviceInfo.height = ANativeWindow_getHeight(app->window);
             LOGI("Screen size (%d, %d)", deviceInfo.width, deviceInfo.height);
@@ -1262,7 +1363,8 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
         }
         case APP_CMD_LOST_FOCUS:
         {
-            //engine->animating = 0;
+            LOGI("APP_CMD_LOST_FOCUS");
+            engine->animating = 0;
 #if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
 #else
             engine_draw_frame(engine);
@@ -1270,11 +1372,15 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
             break;
         }
         case APP_CMD_GAINED_FOCUS: {
+            LOGI("APP_CMD_GAINED_FOCUS");
+            engine->animating = 1;
             resumeStatusOpenGlIcon(engine);
             break;
         }
         case APP_CMD_CONFIG_CHANGED:
         {
+            LOGI("APP_CMD_CONFIG_CHANGED");
+            engine->animating = 1;
             // 設定変更時の処理
 #if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
             updateSurface(engine);
@@ -1291,6 +1397,8 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
         }
         case APP_CMD_DESTROY:
         {
+            LOGI("APP_CMD_DESTROY");
+            engine->animating = 0;
             // 強制排出
 #if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
             terminateOpenGL(engine);
@@ -1300,7 +1408,6 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
             LOGI("OpenGL ES 3.0 resources released.");
 #endif
 #endif
-            LOGI("APP_CMD_DESTROY");
             all_eject();
             sleep(1);
             exit(0);
@@ -1414,6 +1521,7 @@ void android_main(struct android_app *state) {
             break;
         }
     }
+    LOGI("F");
 
     // 権限付与待機ループ処理後のクリーンアップ
     globalAppState = nullptr;
@@ -1425,6 +1533,7 @@ void android_main(struct android_app *state) {
     setFileSelectIcon(&engine);
 #if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
     initializeGlIcons(&engine);
+    initializeGlProgress(&engine);
 #endif
 
     struct timespec now;
@@ -1605,6 +1714,9 @@ void android_main(struct android_app *state) {
             updateTextureOpenGlFrame(&engine);
             drawOpenGlFrame(&engine);
             drawOpenGlIcon(&engine);
+#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
+            drawOpenGlProgress(&engine, tape_position);
+#endif
             completeDrawOpenGlFrame(&engine);
 #else
             engine_draw_frame(&engine);
@@ -4679,6 +4791,10 @@ void initializeGlIcons(struct engine* engine) {
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_CONFIG, false, false);
 }
 
+void initializeGlProgress(struct engine* engine) {
+    glProgress = new GlProgress(engine, 0, 255, 0);
+}
+
 // カメラ行列を計算する関数
 void calculateLookAt(float* outViewMatrix, float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) {
     float forwardX = centerX - eyeX;
@@ -4761,6 +4877,7 @@ void calculateScreenInfo(struct engine* engine) {
 
     // 画面上余白
     engine->screenInfo.topOffsetSystem = config.screen_top_margin;
+    engine->screenInfo.topOffsetProgress = 5;
 
     if (deviceInfo.width > deviceInfo.height) {
         // 横向き時のアイコン余白ピクセル数をセット
@@ -4782,7 +4899,8 @@ void calculateScreenInfo(struct engine* engine) {
     engine->screenInfo.scrHeight = deviceInfo.height - engine->screenInfo.topOffsetSystem - engine->screenInfo.bottomOffsetSystem;
     // エミュレータ画面サイズにアイコン余白を足したもの
     engine->screenInfo.emuWidth = emu->get_osd()->get_vm_window_width() + engine->screenInfo.leftOffsetIcon + engine->screenInfo.rightOffsetIcon;
-    engine->screenInfo.emuHeight = emu->get_osd()->get_vm_window_height() + engine->screenInfo.topOffsetIcon + engine->screenInfo.bottomOffsetIcon;
+    engine->screenInfo.emuHeight = emu->get_osd()->get_vm_window_height() +
+            engine->screenInfo.topOffsetIcon + engine->screenInfo.bottomOffsetIcon + engine->screenInfo.topOffsetProgress;
     // アスペクト比
     engine->screenInfo.emuAspect = (float)engine->screenInfo.emuWidth / engine->screenInfo.emuHeight;
     engine->screenInfo.screenAspect = (float)deviceInfo.width / deviceInfo.height;
@@ -4804,18 +4922,27 @@ void calculateScreenInfo(struct engine* engine) {
 
     if (deviceInfo.width > deviceInfo.height) {
         // エミュレータ画面の左右にアイコン用の余白を空ける
-        engine->screenInfo.topEmuScreenOffset = 1.0f;
+        engine->screenInfo.topEmuProgressOffset =
+                1.0f - ((1.0f / (engine->screenInfo.emuHeight * 0.5f + engine->screenInfo.topOffsetIcon + engine->screenInfo.topOffsetProgress)) *
+                        + engine->screenInfo.topOffsetProgress);
+        engine->screenInfo.topEmuScreenOffset =
+                1.0f - ((1.0f / (engine->screenInfo.emuHeight * 0.5f + engine->screenInfo.topOffsetIcon + engine->screenInfo.topOffsetProgress)) *
+                        (engine->screenInfo.topOffsetIcon + engine->screenInfo.topOffsetProgress));
         engine->screenInfo.bottomEmuScreenOffset = -1.0f;
         engine->screenInfo.leftEmuScreenOffset =
                 -1.0f + ((1.0f / (engine->screenInfo.emuWidth * 0.5f + engine->screenInfo.leftOffsetIcon)) * engine->screenInfo.leftOffsetIcon);
         engine->screenInfo.rightEmuScreenOffset =
                 1.0f - ((1.0f / (engine->screenInfo.emuWidth * 0.5f + engine->screenInfo.rightOffsetIcon)) * engine->screenInfo.rightOffsetIcon);
     } else {
-        // エミュレータ画面の上下にアイコン用の余白を空ける
+        // エミュレータ画面の上下にアイコン用及びプログレスバーの余白を空ける
+        engine->screenInfo.topEmuProgressOffset =
+                1.0f - ((1.0f / (engine->screenInfo.emuHeight * 0.5f + engine->screenInfo.topOffsetIcon + engine->screenInfo.topOffsetProgress)) *
+                + engine->screenInfo.topOffsetProgress);
         engine->screenInfo.topEmuScreenOffset =
-                1.0f - ((1.0f / (engine->screenInfo.emuHeight * 0.5f + engine->screenInfo.topOffsetIcon)) * engine->screenInfo.topOffsetIcon);
+                1.0f - ((1.0f / (engine->screenInfo.emuHeight * 0.5f + engine->screenInfo.topOffsetIcon + engine->screenInfo.topOffsetProgress)) *
+                (engine->screenInfo.topOffsetIcon + engine->screenInfo.topOffsetProgress));
         engine->screenInfo.bottomEmuScreenOffset =
-                -1.0f + ((1.0f / (engine->screenInfo.emuHeight * 0.5f + engine->screenInfo.bottomOffsetIcon)) * engine->screenInfo.topOffsetIcon);
+                -1.0f + ((1.0f / (engine->screenInfo.emuHeight * 0.5f + engine->screenInfo.bottomOffsetIcon)) * engine->screenInfo.bottomOffsetIcon);
         engine->screenInfo.leftEmuScreenOffset = -1.0f;
         engine->screenInfo.rightEmuScreenOffset = 1.0f;
     }
@@ -4997,11 +5124,19 @@ void drawOpenGlIcon(struct engine* engine) {
     }
 }
 
+void drawOpenGlProgress(struct engine* engine, int progress) {
+    glProgress->UpdateProgress(progress, false);
+    glProgress->Draw();
+}
+
 void resumeStatusOpenGlIcon(struct engine* engine) {
     // アイコン再読み込み
     for (auto& icon : glIcons) {
         icon.ReloadTexture();
         icon.ResumeSoftKeyboardFlag(getSoftKeyboardShown(engine->app));
+    }
+    if (glProgress) {
+        glProgress->ReloadTexture();
     }
 }
 
@@ -6951,8 +7086,8 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_newFileCallback(JNIEnv *en
                 break;
             case CASETTE_TAPE:
 #ifdef USE_TAPE
-                // ファイル拡張子が大文字小文字を区別せず ".cas" または ".cmt" または ".mzt" の時か確認する
-                if (check_file_extension(path, ".cas") || check_file_extension(path, ".cmt") || check_file_extension(path, ".mzt")) {
+                // ファイル拡張子が大文字小文字を区別せず ".cas" または ".cmt" または ".mzt" または ".tap" の時か確認する
+                if (check_file_extension(path, ".tap") || check_file_extension(path, ".cas") || check_file_extension(path, ".cmt") || check_file_extension(path, ".mzt")) {
                     UPDATE_HISTORY(path, config.recent_tape_path[drv]);
                     LOGI("Selected file: %s", path);
                     LOGI("Drive: %d", drv);
