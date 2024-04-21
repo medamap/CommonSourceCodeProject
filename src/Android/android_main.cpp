@@ -1302,6 +1302,8 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
 #endif
             LOGI("APP_CMD_DESTROY");
             all_eject();
+            sleep(1);
+            exit(0);
             break;
         }
     }
