@@ -120,7 +120,10 @@ public class EmulatorActivity extends NativeActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                finish();
+                finishAffinity(); // API level 16+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    finishAndRemoveTask(); // API level 21+
+                }
             }
         });
     }
