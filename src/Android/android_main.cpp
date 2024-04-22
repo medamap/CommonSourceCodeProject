@@ -376,60 +376,17 @@ float viewMatrix[16];
 // プロジェクションマトリックス
 float projectionMatrix[16];
 
-// Vertex shader Color
-#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-const char *vertexShaderColor = R"glsl(
-#version 100
-attribute vec4 vertexPosition;
-attribute vec2 textureCoord;
-varying vec2 vTextureCoord;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
-
-void main() {
-    gl_Position = projectionMatrix * viewMatrix * vertexPosition;
-    vTextureCoord = textureCoord;
-}
-)glsl";
+#if defined(USE_SCREEN_FILTER)
+#define     SET_SCREEN_FILTER(FILTER_TYPE)               \
+int filter_type = config.filter_type
+#else
+#define     SET_SCREEN_FILTER(FILTER_TYPE)               \
+int filter_type = FILTER_TYPE
 #endif
 
-// Vertex shader Blur
+// Vertex shader Normal
 #if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-const char *vertexShaderBlur = R"glsl(
-#version 100
-attribute vec4 vertexPosition;
-attribute vec2 textureCoord;
-varying vec2 vTextureCoord;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
-
-void main() {
-    gl_Position = projectionMatrix * viewMatrix * vertexPosition;
-    vTextureCoord = textureCoord;
-}
-)glsl";
-#endif
-
-// Vertex shader TV
-#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-const char *vertexShaderTv = R"glsl(
-#version 100
-attribute vec4 vertexPosition;
-attribute vec2 textureCoord;
-varying vec2 vTextureCoord;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
-
-void main() {
-    gl_Position = projectionMatrix * viewMatrix * vertexPosition;
-    vTextureCoord = textureCoord;
-}
-)glsl";
-#endif
-
-// Vertex shader GreenDisplay
-#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-const char *vertexShaderGreenDisplay = R"glsl(
+const char *vertexShaderNormal = R"glsl(
 #version 100
 attribute vec4 vertexPosition;
 attribute vec2 textureCoord;
@@ -635,11 +592,7 @@ public:
         vertex[3] = engine->screenInfo.rightEmuScreenOffset;  vertex[4]  = engine->screenInfo.topEmuProgressOffset;
         vertex[6] = engine->screenInfo.leftEmuScreenOffset;   vertex[7]  = 1.0f;
         vertex[9] = engine->screenInfo.rightEmuScreenOffset;  vertex[10] = 1.0f;
-#if defined(USE_SCREEN_FILTER)
-        int filter_type = config.filter_type = SCREEN_FILTER_NONE;
-#else
-        int filter_type = SCREEN_FILTER_NONE;
-#endif
+        SET_SCREEN_FILTER(SCREEN_FILTER_NONE);
         glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram H0");
         glBindTexture(GL_TEXTURE_2D, textureId); checkGLError("glBindTexture H1");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri H2");
@@ -998,11 +951,7 @@ public:
             LOGI("Draw Icon : %d '%s' (%d, %d) width=%d height=%d", id, name.c_str(), iconType, iconType == SYSTEM_ICON ? systemIconType : FileSelectType, width, height);
             alreadyOutputLog = true;
         }
-#if defined(USE_SCREEN_FILTER)
-        int filter_type = config.filter_type = SCREEN_FILTER_NONE;
-#else
-        int filter_type = SCREEN_FILTER_NONE;
-#endif
+        SET_SCREEN_FILTER(SCREEN_FILTER_NONE);
         glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram A0");
         glBindTexture(GL_TEXTURE_2D, textureId); checkGLError("glBindTexture A1");
         if (filter_type == SCREEN_FILTER_DOT) {
@@ -4721,20 +4670,17 @@ void initializeShaders(struct engine* engine) {
 
     checkGLError("eglMakeCurrent");
 
-    GLuint vertexShaderColorId          = loadShader(GL_VERTEX_SHADER, vertexShaderColor);
-    GLuint vertexShaderBlurId           = loadShader(GL_VERTEX_SHADER, vertexShaderBlur);
-    GLuint vertexShaderTvId             = loadShader(GL_VERTEX_SHADER, vertexShaderTv);
-    GLuint vertexShaderGreenDisplayId   = loadShader(GL_VERTEX_SHADER, vertexShaderGreenDisplay);
+    GLuint vertexShaderNormalId         = loadShader(GL_VERTEX_SHADER, vertexShaderNormal);
     GLuint fragmentShaderColorId        = loadShader(GL_FRAGMENT_SHADER, fragmentShaderColor);
     GLuint fragmentShaderBlurId         = loadShader(GL_FRAGMENT_SHADER, fragmentShaderBlur);
     GLuint fragmentShaderTvId           = loadShader(GL_FRAGMENT_SHADER, fragmentShaderTv);
     GLuint fragmentShaderGreenDisplayId = loadShader(GL_FRAGMENT_SHADER, fragmentShaderGreenDisplay);
     std::vector<GLuint> shaders = {
-            vertexShaderColorId,        fragmentShaderColorId,
-            vertexShaderColorId,        fragmentShaderColorId,
-            vertexShaderBlurId,         fragmentShaderBlurId,
-            vertexShaderTvId,           fragmentShaderTvId,
-            vertexShaderGreenDisplayId, fragmentShaderGreenDisplayId
+            vertexShaderNormalId, fragmentShaderColorId,
+            vertexShaderNormalId, fragmentShaderColorId,
+            vertexShaderNormalId, fragmentShaderBlurId,
+            vertexShaderNormalId, fragmentShaderTvId,
+            vertexShaderNormalId, fragmentShaderGreenDisplayId
     };
 
     // シェーダプログラムの作成
@@ -4877,7 +4823,7 @@ void calculateScreenInfo(struct engine* engine) {
 
     // 画面上余白
     engine->screenInfo.topOffsetSystem = config.screen_top_margin;
-    engine->screenInfo.topOffsetProgress = 5;
+    engine->screenInfo.topOffsetProgress = 5; // プログレスバーの太さ
 
     if (deviceInfo.width > deviceInfo.height) {
         // 横向き時のアイコン余白ピクセル数をセット
@@ -4965,15 +4911,11 @@ void calculateScreenInfo(struct engine* engine) {
     vertexScreen[10] = engine->screenInfo.topEmuScreenOffset;
 }
 
+// カメラとプロジェクション行列を計算し、OpenGL にセットする
 void calculateCameraProjectionMatrix(struct engine* engine) {
     // シェーダー設定
-#if defined(USE_SCREEN_FILTER)
-    int filter_type = config.filter_type = SCREEN_FILTER_NONE;
-#else
-    int filter_type = SCREEN_FILTER_NONE;
-#endif
+    SET_SCREEN_FILTER(SCREEN_FILTER_NONE);
     glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram B1");
-
     // カメラと投影行列の計算
     calculateLookAt(viewMatrix, 0, 0, 1, 0, 0, 0, 0, 1, 0); // カメラ行列
     calculateOrtho(projectionMatrix, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f); // 並行透視投影
@@ -4986,9 +4928,9 @@ void calculateCameraProjectionMatrix(struct engine* engine) {
     glUseProgram(0); checkGLError("glUseProgram B6");
 }
 
+// シェーダープログラム選択（デバッグ時に使用し、本番では使用しないこと）
 void useShaderProgram(GLuint programId) {
     glUseProgram(programId); checkGLError("glUseProgram C1");
-
     // プログラムが有効かチェック
     GLint isValid;
     glValidateProgram(programId); checkGLError("glValidateProgram C2");
@@ -5002,7 +4944,6 @@ void useShaderProgram(GLuint programId) {
         // 適切なエラー処理
         return;
     }
-
     // エラーチェック
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
@@ -5012,25 +4953,27 @@ void useShaderProgram(GLuint programId) {
     }
 }
 
+// ビューポート更新
 void updateViewPort(struct engine* engine) {
     // ビューポートの設定
     int bottomOffset = deviceInfo.height - engine->screenInfo.topOffsetSystem - engine->screenInfo.realScreenHeight;
     glViewport(engine->screenInfo.leftOffset, bottomOffset, engine->screenInfo.realScreenWidth, engine->screenInfo.realScreenHeight); checkGLError("glViewport");
 }
 
+GLuint textureId2 = 0;
+
+// エミュレータ画面テクスチャ更新
 void updateTextureOpenGlFrame(struct engine* engine) {
     int emuWidth = emu->get_osd()->get_vm_window_width();
     int emuHeight = emu->get_osd()->get_vm_window_height();
 
-#if defined(USE_SCREEN_FILTER)
-    int filter_type = config.filter_type = SCREEN_FILTER_NONE;
-#else
-    int filter_type = SCREEN_FILTER_NONE;
-#endif
-
+    // シェーダ設定
+    SET_SCREEN_FILTER(SCREEN_FILTER_NONE);
     glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram D1");
-
+    // エミュレータ画面テクスチャ設定
+    if (engine->textureId.size() == 0) engine->textureId.resize(1);
     if (engine->textureId[0] == 0) {
+        // 初回設定時
         glGenTextures(1, engine->textureId.data()); checkGLError("glGenTextures D2");
         glBindTexture(GL_TEXTURE_2D, engine->textureId[0]); checkGLError("glBindTexture D3");
         if (filter_type == SCREEN_FILTER_DOT) {
@@ -5043,6 +4986,7 @@ void updateTextureOpenGlFrame(struct engine* engine) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri D8");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri D9");
     } else {
+        // 2回目以降
         glBindTexture(GL_TEXTURE_2D, engine->textureId[0]); checkGLError("glBindTexture D10");
         if (filter_type == SCREEN_FILTER_DOT) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri D11");
@@ -5071,17 +5015,13 @@ void updateTextureOpenGlFrame(struct engine* engine) {
     glUseProgram(0); checkGLError("glUseProgram D18");
 }
 
+// mark2
 void drawOpenGlFrame(struct engine* engine) {
-    // フィルタを強制的に無効化（まだ早い）
-#if defined(USE_SCREEN_FILTER)
-    int filter_type = config.filter_type = SCREEN_FILTER_NONE;
-#else
-    int filter_type = SCREEN_FILTER_NONE;
-#endif
+    SET_SCREEN_FILTER(SCREEN_FILTER_NONE);
     // シェーダーをセット
     glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram E1");
     // テクスチャをセット
-    glBindTexture(GL_TEXTURE_2D, engine->textureId[filter_type]); checkGLError("glBindTexture E2");
+    glBindTexture(GL_TEXTURE_2D, engine->textureId[0]); checkGLError("glBindTexture E2");
     glActiveTexture(GL_TEXTURE0);  checkGLError("glActiveTexture E3");
     GLint textureLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "texture"); checkGLError("glGetUniformLocation E4");
     if (textureLocation > -1) {
