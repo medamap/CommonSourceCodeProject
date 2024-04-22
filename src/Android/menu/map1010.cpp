@@ -12,7 +12,7 @@ Menu::Menu() {
     // Root メニューを作成
     int rootId = addNode(0, "Root", Category, -1);
     int controlId = addNode(rootId, "Control", Category, -1);
-    int cmtId = addNode(rootId, "CMT", Category, -1);
+    int cmtId = addNode(rootId, "CMT", Category, -1, MENU_TAPE0);
     int deviceId = addNode(rootId, "Device", Category, -1);
     int hostId = addNode(rootId, "Host", Category, -1);
 
@@ -53,7 +53,7 @@ Menu::Menu() {
     addNode(cmtId, "Recent", Property, ID_RECENT_TAPE1);
 
     // Device メニューを作成
-    int soundId = addNode(rootId, "Sound", Category, -1);
+    int soundId = addNode(deviceId, "Sound", Category, -1);
 
     // Sound メニューを作成
     addNode(soundId, "Play CMT Noise", Property, ID_VM_SOUND_NOISE_CMT);

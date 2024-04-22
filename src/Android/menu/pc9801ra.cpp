@@ -34,10 +34,10 @@ Menu::Menu() {
     addNode(controlId, "Close Debugger", Property, ID_CLOSE_DEBUGGER);
     addNode(controlId, "Exit", Property, ID_EXIT);
 
-    int fd1Id = addNode(rootId, "FD1", Category, -1);
-    int fd2Id = addNode(rootId, "FD2", Category, -1);
-    int hd1Id = addNode(rootId, "HD1", Category, -1);
-    int hd2Id = addNode(rootId, "HD2", Category, -1);
+    int fd1Id = addNode(rootId, "FD1", Category, -1, MENU_FDD0);
+    int fd2Id = addNode(rootId, "FD2", Category, -1, MENU_FDD1);
+    int hd1Id = addNode(rootId, "HD1", Category, -1, MENU_HDD0);
+    int hd2Id = addNode(rootId, "HD2", Category, -1, MENU_HDD1);
     int deviceId = addNode(rootId, "Device", Category, -1);
     int hostId = addNode(rootId, "Host", Category, -1);
 

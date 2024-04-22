@@ -12,7 +12,7 @@ Menu::Menu() {
     // Root メニューを作成
     int rootId = addNode(0, "Root", Category, -1);
     int controlId = addNode(rootId, "Control", Category, -1);
-    int cartId = addNode(rootId, "Cart", Category, -1);
+    int cartId = addNode(rootId, "Cart", Category, -1, MENU_CART0);
     int hostId = addNode(rootId, "Host", Category, -1);
 
     // Control メニューを作成

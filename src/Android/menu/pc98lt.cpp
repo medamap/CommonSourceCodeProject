@@ -12,7 +12,7 @@ Menu::Menu() {
     // Root メニューを作成
     int rootId = addNode(0, "Root", Category, -1);
     int controlId = addNode(rootId, "Control", Category, -1);
-    int fd1Id = addNode(rootId, "FD1", Category, -1);
+    int fd1Id = addNode(rootId, "FD1", Category, -1, MENU_FDD0);
     int device = addNode(rootId, "Device", Category, -1);
     int host = addNode(rootId, "Host", Category, -1);
 
@@ -51,7 +51,7 @@ Menu::Menu() {
     addNode(fd1Id, "Write Protected", Property, ID_WRITE_PROTECT_FD1);
     addNode(fd1Id, "Correct Timing", Property, ID_CORRECT_TIMING_FD1);
     addNode(fd1Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD1);
-    int recentId = addNode(fd1Id, "Recent", Category, -1);
+    addNode(fd1Id, "Recent", Property, ID_RECENT_FD1);
 
     // Device メニューを作成
     int soundId = addNode(device, "Sound", Category, -1);
