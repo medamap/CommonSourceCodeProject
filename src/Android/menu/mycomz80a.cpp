@@ -34,7 +34,7 @@ Menu::Menu() {
     addNode(controlId, "Close Debugger", Property, ID_CLOSE_DEBUGGER);
     addNode(controlId, "Exit", Property, ID_EXIT);
 
-    int cmtId = addNode(rootId, "CMT", Category, -1);
+    int cmtId = addNode(rootId, "CMT", Category, -1, MENU_TAPE0);
     addNode(cmtId, "Play", Property, ID_PLAY_TAPE1);
     addNode(cmtId, "Rec", Property, ID_REC_TAPE1);
     addNode(cmtId, "Eject", Property, ID_CLOSE_TAPE1);
@@ -45,7 +45,7 @@ Menu::Menu() {
     addNode(cmtId, "Waveform Shaper", Property, ID_USE_WAVE_SHAPER1);
     addNode(cmtId, "Recent", Property, ID_RECENT_TAPE1);
 
-    int fdId1 = addNode(rootId, "FD #1", Category, -1);
+    int fdId1 = addNode(rootId, "FD #1", Category, -1, MENU_FDD0);
     addNode(fdId1, "Insert", Property, ID_OPEN_FD1);
     addNode(fdId1, "Eject", Property, ID_CLOSE_FD1);
     addNode(fdId1, "Insert Blank 2D Disk", Property, ID_OPEN_BLANK_2D_FD1);
@@ -55,7 +55,7 @@ Menu::Menu() {
     addNode(fdId1, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD1);
     addNode(fdId1, "Recent", Property, ID_RECENT_FD1);
 
-    int fdId2 = addNode(rootId, "FD #2", Category, -1);
+    int fdId2 = addNode(rootId, "FD #2", Category, -1, MENU_FDD1);
     addNode(fdId2, "Insert", Property, ID_OPEN_FD2);
     addNode(fdId2, "Eject", Property, ID_CLOSE_FD2);
     addNode(fdId2, "Insert Blank 2D Disk", Property, ID_OPEN_BLANK_2D_FD2);
@@ -65,7 +65,7 @@ Menu::Menu() {
     addNode(fdId2, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD2);
     addNode(fdId2, "Recent", Property, ID_RECENT_FD2);
 
-    int fdId3 = addNode(rootId, "FD #3", Category, -1);
+    int fdId3 = addNode(rootId, "FD #3", Category, -1, MENU_FDD2);
     addNode(fdId3, "Insert", Property, ID_OPEN_FD3);
     addNode(fdId3, "Eject", Property, ID_CLOSE_FD3);
     addNode(fdId3, "Insert Blank 2D Disk", Property, ID_OPEN_BLANK_2D_FD3);
@@ -75,7 +75,7 @@ Menu::Menu() {
     addNode(fdId3, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD3);
     addNode(fdId3, "Recent", Property, ID_RECENT_FD3);
 
-    int fdId4 = addNode(rootId, "FD #4", Category, -1);
+    int fdId4 = addNode(rootId, "FD #4", Category, -1, MENU_FDD3);
     addNode(fdId4, "Insert", Property, ID_OPEN_FD4);
     addNode(fdId4, "Eject", Property, ID_CLOSE_FD4);
     addNode(fdId4, "Insert Blank 2D Disk", Property, ID_OPEN_BLANK_2D_FD4);

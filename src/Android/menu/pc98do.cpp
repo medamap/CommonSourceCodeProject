@@ -36,7 +36,7 @@ Menu::Menu() {
     addNode(controlId, "Close Debugger", Property, ID_CLOSE_DEBUGGER);
     addNode(controlId, "Exit", Property, ID_EXIT);
 
-    int pc98Fd1Id = addNode(rootId, "PC98-FD1", Category, -1);
+    int pc98Fd1Id = addNode(rootId, "PC98-FD1", Category, -1, MENU_FDD0);
     addNode(pc98Fd1Id, "Insert", Property, ID_OPEN_FD1);
     addNode(pc98Fd1Id, "Eject", Property, ID_CLOSE_FD1);
     addNode(pc98Fd1Id, "Insert Blank 2DD Disk", Property, ID_OPEN_BLANK_2DD_FD1);
@@ -46,7 +46,7 @@ Menu::Menu() {
     addNode(pc98Fd1Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD1);
     addNode(pc98Fd1Id, "Recent", Property, ID_RECENT_FD1);
 
-    int pc98Fd2Id = addNode(rootId, "PC98-FD2", Category, -1);
+    int pc98Fd2Id = addNode(rootId, "PC98-FD2", Category, -1, MENU_FDD1);
     addNode(pc98Fd2Id, "Insert", Property, ID_OPEN_FD2);
     addNode(pc98Fd2Id, "Eject", Property, ID_CLOSE_FD2);
     addNode(pc98Fd2Id, "Insert Blank 2DD Disk", Property, ID_OPEN_BLANK_2DD_FD2);
@@ -56,7 +56,7 @@ Menu::Menu() {
     addNode(pc98Fd2Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD2);
     addNode(pc98Fd2Id, "Recent", Property, ID_RECENT_FD2);
 
-    int pc88Fd1Id = addNode(rootId, "PC88-FD1", Category, -1);
+    int pc88Fd1Id = addNode(rootId, "PC88-FD1", Category, -1, MENU_FDD2);
     addNode(pc88Fd1Id, "Insert", Property, ID_OPEN_FD3);
     addNode(pc88Fd1Id, "Eject", Property, ID_CLOSE_FD3);
     addNode(pc88Fd1Id, "Insert Blank 2D Disk", Property, ID_OPEN_BLANK_2D_FD3);
@@ -66,7 +66,7 @@ Menu::Menu() {
     addNode(pc88Fd1Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD3);
     addNode(pc88Fd1Id, "Recent", Property, ID_RECENT_FD3);
 
-    int pc88Fd2Id = addNode(rootId, "PC88-FD2", Category, -1);
+    int pc88Fd2Id = addNode(rootId, "PC88-FD2", Category, -1, MENU_FDD3);
     addNode(pc88Fd2Id, "Insert", Property, ID_OPEN_FD4);
     addNode(pc88Fd2Id, "Eject", Property, ID_CLOSE_FD4);
     addNode(pc88Fd2Id, "Insert Blank 2D Disk", Property, ID_OPEN_BLANK_2D_FD4);
@@ -76,7 +76,7 @@ Menu::Menu() {
     addNode(pc88Fd2Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD4);
     addNode(pc88Fd2Id, "Recent", Property, ID_RECENT_FD4);
 
-    int pc88CmtId = addNode(rootId, "PC88-CMT", Category, -1);
+    int pc88CmtId = addNode(rootId, "PC88-CMT", Category, -1, MENU_TAPE0);
     addNode(pc88CmtId, "Play", Property, ID_PLAY_TAPE1);
     addNode(pc88CmtId, "Rec", Property, ID_REC_TAPE1);
     addNode(pc88CmtId, "Eject", Property, ID_CLOSE_TAPE1);

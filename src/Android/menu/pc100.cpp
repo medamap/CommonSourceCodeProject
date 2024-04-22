@@ -35,7 +35,7 @@ Menu::Menu() {
     addNode(controlId, "Close Debugger", Property, ID_CLOSE_DEBUGGER);
     addNode(controlId, "Exit", Property, ID_EXIT);
 
-    int fdId1 = addNode(rootId, "FD #1", Category, -1);
+    int fdId1 = addNode(rootId, "FD #1", Category, -1, MENU_FDD0);
     addNode(fdId1, "Insert", Property, ID_OPEN_FD1);
     addNode(fdId1, "Eject", Property, ID_CLOSE_FD1);
     addNode(fdId1, "Insert Blank 2D Disk", Property, ID_OPEN_BLANK_2D_FD1);
@@ -45,7 +45,7 @@ Menu::Menu() {
     addNode(fdId1, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD1);
     addNode(fdId1, "Recent", Property, ID_RECENT_FD1);
 
-    int fdId2 = addNode(rootId, "FD #2", Category, -1);
+    int fdId2 = addNode(rootId, "FD #2", Category, -1, MENU_FDD1);
     addNode(fdId2, "Insert", Property, ID_OPEN_FD2);
     addNode(fdId2, "Eject", Property, ID_CLOSE_FD2);
     addNode(fdId2, "Insert Blank 2D Disk", Property, ID_OPEN_BLANK_2D_FD2);

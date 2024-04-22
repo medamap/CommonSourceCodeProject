@@ -12,9 +12,9 @@ Menu::Menu() {
     // Root メニューを作成
     int rootId = addNode(0, "Root", Category, -1);
     int controlId = addNode(rootId, "Control", Category, -1);
-    int cart1Id = addNode(rootId, "Cart #1", Category, -1);
-    int cart2Id = addNode(rootId, "Cart #2", Category, -1);
-    int cmtId = addNode(rootId, "CMT", Category, -1);
+    int cart1Id = addNode(rootId, "Cart #1", Category, -1, MENU_CART0);
+    int cart2Id = addNode(rootId, "Cart #2", Category, -1, MENU_CART1);
+    int cmtId = addNode(rootId, "CMT", Category, -1, MENU_TAPE0);
     int laserDiscId = addNode(rootId, "Laser Disc", Category, -1);
     int deviceId = addNode(rootId, "Device", Category, -1);
     int hostId = addNode(rootId, "Host", Category, -1);

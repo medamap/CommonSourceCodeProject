@@ -35,7 +35,7 @@ Menu::Menu() {
     addNode(controlId, "Close Debugger", Property, ID_CLOSE_DEBUGGER);
     addNode(controlId, "Exit", Property, ID_EXIT);
 
-    int fd1Id = addNode(rootId, "FD1", Category, -1);
+    int fd1Id = addNode(rootId, "FD1", Category, -1, MENU_FDD0);
     addNode(fd1Id, "Insert", Property, ID_OPEN_FD1);
     addNode(fd1Id, "Eject", Property, ID_CLOSE_FD1);
     addNode(fd1Id, "Insert Blank 2D Disk", Property, ID_OPEN_BLANK_2D_FD1);
@@ -44,7 +44,7 @@ Menu::Menu() {
     addNode(fd1Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD1);
     addNode(fd1Id, "Recent", Property, ID_RECENT_FD1);
 
-    int fd2Id = addNode(rootId, "FD2", Category, -1);
+    int fd2Id = addNode(rootId, "FD2", Category, -1, MENU_FDD1);
     addNode(fd2Id, "Insert", Property, ID_OPEN_FD2);
     addNode(fd2Id, "Eject", Property, ID_CLOSE_FD2);
     addNode(fd2Id, "Insert Blank 2D Disk", Property, ID_OPEN_BLANK_2D_FD2);
@@ -53,7 +53,7 @@ Menu::Menu() {
     addNode(fd2Id, "Ignore CRC Errors", Property, ID_IGNORE_CRC_FD2);
     addNode(fd2Id, "Recent", Property, ID_RECENT_FD2);
 
-    int cmtId = addNode(rootId, "CMT", Category, -1);
+    int cmtId = addNode(rootId, "CMT", Category, -1, MENU_TAPE0);
     addNode(cmtId, "Play", Property, ID_PLAY_TAPE1);
     addNode(cmtId, "Rec", Property, ID_REC_TAPE1);
     addNode(cmtId, "Eject", Property, ID_CLOSE_TAPE1);
@@ -64,7 +64,7 @@ Menu::Menu() {
     addNode(cmtId, "Waveform Shaper", Property, ID_USE_WAVE_SHAPER1);
     addNode(cmtId, "Recent", Property, ID_RECENT_TAPE1);
 
-    int rampacId = addNode(rootId, "RAMPAC", Category, -1);
+    int rampacId = addNode(rootId, "RAMPAC", Category, -1, MENU_BIN0);
     addNode(rampacId, "Insert", Property, ID_LOAD_BINARY1);
     addNode(rampacId, "Recent", Property, ID_RECENT_BINARY1);
 

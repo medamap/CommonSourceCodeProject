@@ -13,8 +13,8 @@ Menu::Menu() {
     int rootId = addNode(0, "Root", Category, -1);
     int controlId = addNode(rootId, "Control", Category, -1);
 
-    int huCardId = addNode(rootId, "HuCARD", Category, -1);
-    int cdRomId = addNode(rootId, "CD-ROM^2", Category, -1);
+    int huCardId = addNode(rootId, "HuCARD", Category, -1, MENU_CART0);
+    int cdRomId = addNode(rootId, "CD-ROM^2", Category, -1, MENU_CD0);
     int deviceId = addNode(rootId, "Device", Category, -1);
     int hostId = addNode(rootId, "Host", Category, -1);
 

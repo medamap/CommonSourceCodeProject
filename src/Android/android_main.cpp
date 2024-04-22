@@ -1345,7 +1345,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
         case APP_CMD_LOST_FOCUS:
         {
             LOGI("APP_CMD_LOST_FOCUS");
-            engine->animating = 0;
+            engine->animating = 1;
 #if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
 #else
             engine_draw_frame(engine);
@@ -3241,10 +3241,10 @@ void update_vm_printer_menu(Menu *hMenu)
 #endif
 
 #ifdef USE_SERIAL_TYPE
-void update_vm_serial_menu(HMenu *hMenu)
+void update_vm_serial_menu(Menu *hMenu)
 {
 	if(config.serial_type >= 0 && config.serial_type < USE_SERIAL_TYPE) {
-		CheckMenuRadioItem(hMenu, ID_VM_SERIAL_TYPE0, ID_VM_SERIAL_TYPE0 + USE_SERIAL_TYPE - 1, ID_VM_SERIAL_TYPE0 + config.serial_type, MF_BYCOMMAND);
+        hMenu->CheckMenuRadioItem(ID_VM_SERIAL_TYPE0, ID_VM_SERIAL_TYPE0 + USE_SERIAL_TYPE - 1, ID_VM_SERIAL_TYPE0 + config.serial_type);
 	}
 }
 #endif

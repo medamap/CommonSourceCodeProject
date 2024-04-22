@@ -35,7 +35,7 @@ Menu::Menu() {
     addNode(controlId, "Close Debugger", Property, ID_CLOSE_DEBUGGER);
     addNode(controlId, "Exit", Property, ID_EXIT);
 
-    int cmtId = addNode(rootId, "CMT", Category, -1);
+    int cmtId = addNode(rootId, "CMT", Category, -1, MENU_TAPE0);
     addNode(cmtId, "Play", Property, ID_PLAY_TAPE1);
     addNode(cmtId, "Rec", Property, ID_REC_TAPE1);
     addNode(cmtId, "Eject", Property, ID_CLOSE_TAPE1);
