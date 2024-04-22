@@ -415,6 +415,7 @@ public class EmulatorActivity extends NativeActivity {
                     for (int i = 0; i < items.length; i++) {
                         Button button = new Button(EmulatorActivity.this);
                         button.setText(items[i]);
+                        button.setBackgroundColor(Color.argb(255, 200, 255, 255)); // ARGBで白に近い青
                         final int index = i;
                         button.setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -428,6 +429,13 @@ public class EmulatorActivity extends NativeActivity {
                                 lastClickTime[0] = clickTime;
                             }
                         });
+                        // マージンを設定
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                        );
+                        params.setMargins(1, 3, 1, 3); // left, top, right, bottom
+                        button.setLayoutParams(params);
                         buttonLayout.addView(button);
                     }
                 }
@@ -489,7 +497,16 @@ public class EmulatorActivity extends NativeActivity {
                     if (node[2].equals("0")) {
                         button.setBackgroundColor(Color.argb(255, 255, 255, 200)); // ARGBで白に近い黄色
                     } else {
-                        button.setBackgroundColor(Color.argb(255, 200, 255, 255)); // ARGBで白に近い青
+                        if (node[5].equals("1")) {
+                            button.setBackgroundColor(Color.argb(255, 150, 150, 255)); // ARGBで青
+                        } else {
+                            button.setBackgroundColor(Color.argb(255, 200, 255, 255)); // ARGBで白に近い青
+                        }
+                    }
+                    // ボタン押下許可
+                    button.setEnabled(node[6].equals("1"));
+                    if (node[6].equals("0")) {
+                        button.setBackgroundColor(Color.argb(255, 200, 200, 200)); // 灰色
                     }
                     // テキスト色を設定（ここでは黒を例としています）
                     button.setTextColor(Color.BLACK);

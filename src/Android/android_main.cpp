@@ -16,12 +16,13 @@
 
 #include <sys/time.h>
 #include <sys/stat.h>
-
 #include <algorithm>
 #include <chrono>
 #include <cstring>
+#include <ctime>
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <iconv.h>
 #include <iostream>
 #include <jni.h>
@@ -200,6 +201,37 @@ void hide_status_bar(HWND hWnd);
 int get_status_bar_height();
 void update_status_bar(HINSTANCE hInstance, LPDRAWITEMSTRUCT lpDrawItem);
 #endif
+
+void update_control_menu(Menu hMenu);
+void update_save_state_menu(Menu hMenu);
+void update_load_state_menu(Menu hMenu);
+void update_cart_menu(Menu hMenu, int drv, UINT ID_RECENT_CART, UINT ID_CLOSE_CART);
+void update_floppy_disk_menu(Menu hMenu, int drv, UINT ID_RECENT_FD, UINT ID_D88_FILE_PATH, UINT ID_SELECT_D88_BANK, UINT ID_EJECT_D88_BANK, UINT ID_CLOSE_FD, UINT ID_WRITE_PROTECT_FD, UINT ID_CORRECT_TIMING_FD, UINT ID_IGNORE_CRC_FD);
+void update_quick_disk_menu(Menu hMenu, int drv, UINT ID_RECENT_QD, UINT ID_CLOSE_QD);
+void update_hard_disk_menu(Menu hMenu, int drv, UINT ID_RECENT_HD, UINT ID_CLOSE_HD);
+void update_tape_menu(Menu hMenu, int drv, UINT ID_RECENT_TAPE, UINT ID_CLOSE_TAPE, UINT ID_PLAY_BUTTON, UINT ID_STOP_BUTTON, UINT ID_FAST_FORWARD, UINT ID_FAST_REWIND, UINT ID_APSS_FORWARD, UINT ID_APSS_REWIND, UINT ID_USE_WAVE_SHAPER, UINT ID_DIRECT_LOAD_MZT, UINT ID_TAPE_BAUD_LOW, UINT ID_TAPE_BAUD_HIGH);
+void update_compact_disc_menu(Menu hMenu, int drv, UINT ID_RECENT_COMPACT_DISC, UINT ID_CLOSE_COMPACT_DISC);
+void update_laser_disc_menu(Menu hMenu, int drv, UINT ID_RECENT_LASER_DISC, UINT ID_CLOSE_LASER_DISC);
+void update_binary_menu(Menu hMenu, int drv, UINT ID_RECENT_BINARY);
+void update_bubble_casette_menu(Menu hMenu, int drv, UINT ID_RECENT_BUBBLE);
+void update_vm_boot_menu(Menu hMenu);
+void update_vm_cpu_menu(Menu hMenu);
+void update_vm_dipswitch_menu(Menu hMenu);
+void update_vm_device_menu(Menu hMenu);
+void update_vm_drive_menu(Menu hMenu);
+void update_vm_keyboard_menu(Menu hMenu);
+void update_vm_mouse_menu(Menu hMenu);
+void update_vm_joystick_menu(Menu hMenu);
+void update_vm_sound_menu(Menu hMenu);
+void update_vm_monitor_menu(Menu hMenu);
+void update_vm_printer_menu(Menu hMenu);
+void update_host_menu(Menu hMenu);
+void update_host_screen_menu(Menu hMenu);
+void update_host_filter_menu(Menu hMenu);
+void update_host_sound_menu(Menu hMenu);
+void update_host_input_menu(Menu hMenu);
+void update_host_screen_margin_menu(Menu *hMenu);
+void update_popup_menu(Menu **hMenu);
 
 void switchPCG();
 void switchSound();
@@ -2943,6 +2975,579 @@ void EventProc(engine* engine, MenuNode menuNode)
 // ----------------------------------------------------------------------------
 // menu
 // ----------------------------------------------------------------------------
+
+void update_control_menu(Menu *hMenu)
+{
+    if(config.cpu_power >= 0 && config.cpu_power < 5) {
+        hMenu->CheckMenuRadioItem(ID_CPU_POWER0, ID_CPU_POWER4, ID_CPU_POWER0 + config.cpu_power);
+    }
+    hMenu->CheckMenuItem(ID_FULL_SPEED, config.full_speed);
+    hMenu->CheckMenuItem(ID_DRIVE_VM_IN_OPECODE, config.drive_vm_in_opecode);
+#ifdef USE_AUTO_KEY
+    bool now_paste = true, now_stop = true;
+    if(emu) {
+        now_paste = emu->is_auto_key_running();
+        now_stop = !now_paste;
+    }
+    hMenu->EnableMenuItem(ID_AUTOKEY_START, now_paste);
+    hMenu->EnableMenuItem(ID_AUTOKEY_STOP, now_stop);
+    hMenu->CheckMenuItem(ID_ROMAJI_TO_KANA, config.romaji_to_kana);
+#endif
+#ifdef USE_DEBUGGER
+    for(int i = 0; i < 8; i++) {
+        hMenu->EnableMenuItem(ID_OPEN_DEBUGGER0 + i, emu && !emu->now_debugging && emu->is_debugger_enabled(i));
+    }
+    hMenu->EnableMenuItem(ID_CLOSE_DEBUGGER, emu && emu->now_debugging);
+#endif
+}
+
+#ifdef USE_STATE
+void update_save_state_menu(Menu *hMenu)
+{
+    int fd;
+    struct stat fileInfo;
+    struct tm timeInfo;
+    char buf[64];
+    char dateBuf[64];
+
+    for(int i = 0; i < 10; i++) {
+        const char* filePath = emu->state_file_path(i);  // Get the file path
+        fd = open(filePath, O_RDONLY);
+        if(fd != -1) {
+            fstat(fd, &fileInfo);
+            localtime_r(&fileInfo.st_mtime, &timeInfo);  // Convert the last modified time considering the system's local timezone
+            strftime(dateBuf, sizeof(dateBuf), "%Y-%m-%d  %H:%M:%S", &timeInfo);  // Format the date/time string
+            snprintf(buf, sizeof(buf), "%d:  %s", i, dateBuf);  // Combine loop variable i and date/time string
+            close(fd);
+        } else {
+            snprintf(buf, sizeof(buf), "%d: (No Data)", i);  // File not found
+        }
+        hMenu->SetMenuItemInfo(ID_SAVE_STATE0 + i, buf);
+    }
+}
+
+void update_load_state_menu(Menu *hMenu)
+{
+    int fd;
+    struct stat fileInfo;
+    struct tm timeInfo;
+    char buf[64];
+    char dateBuf[64];
+
+    for(int i = 0; i < 10; i++) {
+        const char* filePath = emu->state_file_path(i);  // Get the file path
+        fd = open(filePath, O_RDONLY);
+        if(fd != -1) {
+            fstat(fd, &fileInfo);
+            localtime_r(&fileInfo.st_mtime, &timeInfo);  // Convert the last modified time considering the system's local timezone
+            strftime(dateBuf, sizeof(dateBuf), "%Y-%m-%d  %H:%M:%S", &timeInfo);  // Format the date/time string
+            snprintf(buf, sizeof(buf), "%d:  %s", i, dateBuf);  // Combine loop variable i and date/time string
+            close(fd);
+        } else {
+            snprintf(buf, sizeof(buf), "%d: (No Data)", i);  // File not found
+        }
+        hMenu->SetMenuItemInfo(ID_LOAD_STATE0 + i, buf);
+    }
+}
+#endif
+
+#ifdef USE_CART
+void update_cart_menu(Menu *hMenu, int drv, UINT ID_RECENT_CART, UINT ID_CLOSE_CART)
+{
+    hMenu->EnableMenuItem(ID_CLOSE_CART, emu->is_cart_inserted(drv));
+}
+#endif
+
+#ifdef USE_FLOPPY_DISK
+void update_floppy_disk_menu(Menu *hMenu, int drv, UINT ID_RECENT_FD, UINT ID_D88_FILE_PATH, UINT ID_SELECT_D88_BANK, UINT ID_EJECT_D88_BANK, UINT ID_CLOSE_FD, UINT ID_WRITE_PROTECT_FD, UINT ID_CORRECT_TIMING_FD, UINT ID_IGNORE_CRC_FD)
+{
+    hMenu->EnableMenuItem(ID_CLOSE_FD, emu->is_floppy_disk_inserted(drv) || (emu->d88_file[drv].bank_num > 1 && emu->d88_file[drv].cur_bank == -1));
+    hMenu->EnableMenuItem(ID_WRITE_PROTECT_FD, emu->is_floppy_disk_inserted(drv));
+    hMenu->CheckMenuItem(ID_WRITE_PROTECT_FD, emu->is_floppy_disk_protected(drv));
+    hMenu->CheckMenuItem(ID_CORRECT_TIMING_FD, config.correct_disk_timing[drv]);
+    hMenu->CheckMenuItem(ID_IGNORE_CRC_FD, config.ignore_disk_crc[drv]);
+}
+#endif
+
+#ifdef USE_QUICK_DISK
+void update_quick_disk_menu(Menu *hMenu, int drv, UINT ID_RECENT_QD, UINT ID_CLOSE_QD)
+{
+    hMenu->EnableMenuItem(ID_CLOSE_QD, emu->is_quick_disk_inserted(drv));
+}
+#endif
+
+#ifdef USE_HARD_DISK
+void update_hard_disk_menu(Menu *hMenu, int drv, UINT ID_RECENT_HD, UINT ID_CLOSE_HD)
+{
+    hMenu->EnableMenuItem(ID_CLOSE_HD, emu->is_hard_disk_inserted(drv));
+}
+#endif
+
+#ifdef USE_TAPE
+void update_tape_menu(Menu *hMenu, int drv, UINT ID_RECENT_TAPE, UINT ID_CLOSE_TAPE, UINT ID_PLAY_BUTTON, UINT ID_STOP_BUTTON, UINT ID_FAST_FORWARD, UINT ID_FAST_REWIND, UINT ID_APSS_FORWARD, UINT ID_APSS_REWIND, UINT ID_USE_WAVE_SHAPER, UINT ID_DIRECT_LOAD_MZT, UINT ID_TAPE_BAUD_LOW, UINT ID_TAPE_BAUD_HIGH)
+{
+    hMenu->EnableMenuItem(ID_CLOSE_TAPE, emu->is_tape_inserted(drv));
+    hMenu->EnableMenuItem(ID_PLAY_BUTTON, emu->is_tape_inserted(drv));
+    hMenu->EnableMenuItem(ID_STOP_BUTTON, emu->is_tape_inserted(drv));
+    hMenu->EnableMenuItem(ID_FAST_FORWARD, emu->is_tape_inserted(drv));
+    hMenu->EnableMenuItem(ID_FAST_REWIND, emu->is_tape_inserted(drv));
+    hMenu->EnableMenuItem(ID_APSS_FORWARD, emu->is_tape_inserted(drv));
+    hMenu->EnableMenuItem(ID_APSS_REWIND, emu->is_tape_inserted(drv));
+    hMenu->CheckMenuItem(ID_USE_WAVE_SHAPER, config.wave_shaper[drv]);
+    hMenu->CheckMenuItem(ID_DIRECT_LOAD_MZT, config.direct_load_mzt[drv]);
+    hMenu->CheckMenuRadioItem(ID_TAPE_BAUD_LOW, ID_TAPE_BAUD_HIGH, !config.baud_high[drv] ? ID_TAPE_BAUD_LOW : ID_TAPE_BAUD_HIGH);
+}
+#endif
+
+#ifdef USE_COMPACT_DISC
+void update_compact_disc_menu(Menu *hMenu, int drv, UINT ID_RECENT_COMPACT_DISC, UINT ID_CLOSE_COMPACT_DISC)
+{
+    hMenu->EnableMenuItem(ID_CLOSE_COMPACT_DISC, emu->is_compact_disc_inserted(drv));
+}
+#endif
+
+#ifdef USE_LASER_DISC
+void update_laser_disc_menu(Menu *hMenu, int drv, UINT ID_RECENT_LASER_DISC, UINT ID_CLOSE_LASER_DISC)
+{
+	hMenu->EnableMenuItem(ID_CLOSE_LASER_DISC, emu->is_laser_disc_inserted(drv));
+}
+#endif
+
+#ifdef USE_BINARY_FILE
+void update_binary_menu(Menu *hMenu, int drv, UINT ID_RECENT_BINARY)
+{
+}
+#endif
+
+#ifdef USE_BUBBLE
+void update_bubble_casette_menu(Menu *hMenu, int drv, UINT ID_RECENT_BUBBLE)
+{
+}
+#endif
+
+#ifdef USE_BOOT_MODE
+void update_vm_boot_menu(Menu *hMenu)
+{
+	if(config.boot_mode >= 0 && config.boot_mode < USE_BOOT_MODE) {
+        hMenu->CheckMenuRadioItem(ID_VM_BOOT_MODE0, ID_VM_BOOT_MODE0 + USE_BOOT_MODE - 1, ID_VM_BOOT_MODE0 + config.boot_mode);
+	}
+}
+#endif
+
+#ifdef USE_CPU_TYPE
+void update_vm_cpu_menu(Menu *hMenu)
+{
+	if(config.cpu_type >= 0 && config.cpu_type < USE_CPU_TYPE) {
+        hMenu->CheckMenuRadioItem(ID_VM_CPU_TYPE0, ID_VM_CPU_TYPE0 + USE_CPU_TYPE - 1, ID_VM_CPU_TYPE0 + config.cpu_type);
+	}
+}
+#endif
+
+#ifdef USE_DIPSWITCH
+void update_vm_dipswitch_menu(Menu *hMenu)
+{
+	for(int i = 0; i < 32; i++) {
+        hMenu->CheckMenuItem(ID_VM_DIPSWITCH0 + i, (config.dipswitch & (1 << i)));
+	}
+}
+#endif
+
+#ifdef USE_DEVICE_TYPE
+void update_vm_device_menu(Menu *hMenu)
+{
+	if(config.device_type >= 0 && config.device_type < USE_DEVICE_TYPE) {
+		hMenu->CheckMenuRadioItem(ID_VM_DEVICE_TYPE0, ID_VM_DEVICE_TYPE0 + USE_DEVICE_TYPE - 1, ID_VM_DEVICE_TYPE0 + config.device_type);
+	}
+}
+#endif
+
+#ifdef USE_DRIVE_TYPE
+void update_vm_drive_menu(Menu *hMenu)
+{
+    if(config.drive_type >= 0 && config.drive_type < USE_DRIVE_TYPE) {
+        hMenu->CheckMenuRadioItem(ID_VM_DRIVE_TYPE0, ID_VM_DRIVE_TYPE0 + USE_DRIVE_TYPE - 1, ID_VM_DRIVE_TYPE0 + config.drive_type);
+    }
+}
+#endif
+
+#ifdef USE_KEYBOARD_TYPE
+void update_vm_keyboard_menu(Menu *hMenu)
+{
+    if(config.keyboard_type >= 0 && config.keyboard_type < USE_KEYBOARD_TYPE) {
+        hMenu->CheckMenuRadioItem(ID_VM_KEYBOARD_TYPE0, ID_VM_KEYBOARD_TYPE0 + USE_KEYBOARD_TYPE - 1, ID_VM_KEYBOARD_TYPE0 + config.keyboard_type);
+    }
+}
+#endif
+
+#ifdef USE_MOUSE_TYPE
+void update_vm_mouse_menu(Menu *hMenu)
+{
+	if(config.mouse_type >= 0 && config.mouse_type < USE_MOUSE_TYPE) {
+		hMenu->CheckMenuRadioItem(ID_VM_MOUSE_TYPE0, ID_VM_MOUSE_TYPE0 + USE_MOUSE_TYPE - 1, ID_VM_MOUSE_TYPE0 + config.mouse_type);
+	}
+}
+#endif
+
+#ifdef USE_JOYSTICK_TYPE
+void update_vm_joystick_menu(Menu *hMenu)
+{
+	if(config.joystick_type >= 0 && config.joystick_type < USE_JOYSTICK_TYPE) {
+        hMenu->CheckMenuRadioItem(ID_VM_JOYSTICK_TYPE0, ID_VM_JOYSTICK_TYPE0 + USE_JOYSTICK_TYPE - 1, ID_VM_JOYSTICK_TYPE0 + config.joystick_type);
+	}
+}
+#endif
+
+#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE)
+void update_vm_sound_menu(Menu *hMenu)
+{
+#ifdef USE_SOUND_TYPE
+    if(config.sound_type >= 0 && config.sound_type < USE_SOUND_TYPE) {
+        hMenu->CheckMenuRadioItem(ID_VM_SOUND_TYPE0, ID_VM_SOUND_TYPE0 + USE_SOUND_TYPE - 1, ID_VM_SOUND_TYPE0 + config.sound_type);
+    }
+#endif
+#ifdef USE_FLOPPY_DISK
+    hMenu->CheckMenuItem(ID_VM_SOUND_NOISE_FDD, config.sound_noise_fdd);
+#endif
+#ifdef USE_TAPE
+    hMenu->CheckMenuItem(ID_VM_SOUND_NOISE_CMT, config.sound_noise_cmt);
+    hMenu->CheckMenuItem(ID_VM_SOUND_TAPE_SIGNAL, config.sound_tape_signal);
+    hMenu->CheckMenuItem(ID_VM_SOUND_TAPE_VOICE, config.sound_tape_voice);
+#endif
+}
+#endif
+
+#if defined(USE_MONITOR_TYPE) || defined(USE_SCANLINE)
+void update_vm_monitor_menu(Menu *hMenu)
+{
+#ifdef USE_MONITOR_TYPE
+    if(config.monitor_type >= 0 && config.monitor_type < USE_MONITOR_TYPE) {
+        hMenu->CheckMenuRadioItem(ID_VM_MONITOR_TYPE0, ID_VM_MONITOR_TYPE0 + USE_MONITOR_TYPE - 1, ID_VM_MONITOR_TYPE0 + config.monitor_type);
+    }
+#endif
+#ifdef USE_SCANLINE
+    hMenu->CheckMenuItem(ID_VM_MONITOR_SCANLINE, config.scan_line);
+    hMenu->CheckMenuItem(ID_VM_MONITOR_SCANLINE_AUTO, config.scan_line_auto);
+#endif
+}
+#endif
+
+#ifdef USE_PRINTER_TYPE
+void update_vm_printer_menu(Menu *hMenu)
+{
+    if(config.printer_type >= 0 && config.printer_type < USE_PRINTER_TYPE) {
+        hMenu->CheckMenuRadioItem(ID_VM_PRINTER_TYPE0, ID_VM_PRINTER_TYPE0 + USE_PRINTER_TYPE - 1, ID_VM_PRINTER_TYPE0 + config.printer_type);
+    }
+}
+#endif
+
+#ifdef USE_SERIAL_TYPE
+void update_vm_serial_menu(HMenu *hMenu)
+{
+	if(config.serial_type >= 0 && config.serial_type < USE_SERIAL_TYPE) {
+		CheckMenuRadioItem(hMenu, ID_VM_SERIAL_TYPE0, ID_VM_SERIAL_TYPE0 + USE_SERIAL_TYPE - 1, ID_VM_SERIAL_TYPE0 + config.serial_type, MF_BYCOMMAND);
+	}
+}
+#endif
+
+void update_host_menu(Menu *hMenu)
+{
+    bool now_rec = true, now_stop = true;
+    if(emu) {
+        now_rec = emu->is_video_recording() || emu->is_sound_recording();
+        now_stop = !now_rec;
+    }
+    hMenu->EnableMenuItem(ID_HOST_REC_MOVIE_60FPS, now_rec);
+    hMenu->EnableMenuItem(ID_HOST_REC_MOVIE_30FPS, now_rec);
+    hMenu->EnableMenuItem(ID_HOST_REC_MOVIE_15FPS, now_rec);
+    hMenu->EnableMenuItem(ID_HOST_REC_SOUND, now_rec);
+    hMenu->EnableMenuItem(ID_HOST_REC_STOP, now_stop);
+
+#ifdef SUPPORT_D2D1
+    hMenu->CheckMenuItem(ID_HOST_USE_D2D1, config.use_d2d1);
+#else
+    hMenu->EnableMenuItem(ID_HOST_USE_D2D1, false);
+#endif
+#ifdef SUPPORT_D3D9
+    hMenu->CheckMenuItem(ID_HOST_USE_D3D9, config.use_d3d9);
+	hMenu->CheckMenuItem(ID_HOST_WAIT_VSYNC, config.wait_vsync);
+	hMenu->EnableMenuItem(ID_HOST_WAIT_VSYNC, config.use_d3d9);
+#else
+    hMenu->EnableMenuItem(ID_HOST_USE_D3D9, false);
+    hMenu->EnableMenuItem(ID_HOST_WAIT_VSYNC, false);
+#endif
+
+#ifdef Win32
+    hMenu->CheckMenuItem(ID_HOST_USE_DINPUT, config.use_dinput);
+    hMenu->CheckMenuItem(ID_HOST_DISABLE_DWM, config.disable_dwm);
+    hMenu->EnableMenuItem(ID_HOST_DISABLE_DWM, win8_or_later);
+    hMenu->CheckMenuItem(ID_HOST_SHOW_STATUS_BAR, config.show_status_bar);
+#else
+    hMenu->EnableMenuItem(ID_HOST_USE_DINPUT, false);
+    hMenu->EnableMenuItem(ID_HOST_DISABLE_DWM, false);
+    hMenu->EnableMenuItem(ID_HOST_SHOW_STATUS_BAR, false);
+#endif
+}
+
+#ifndef ONE_BOARD_MICRO_COMPUTER
+void update_host_screen_menu(Menu *hMenu)
+{
+}
+#endif
+
+#ifdef USE_SCREEN_FILTER
+void update_host_filter_menu(Menu *hMenu)
+{
+    switch(config.filter_type) {
+        case SCREEN_FILTER_GREEN:
+            hMenu->CheckMenuRadioItem(ID_FILTER_NONE, ID_FILTER_GREEN, ID_FILTER_GREEN);
+            break;
+        case SCREEN_FILTER_RGB:
+            hMenu->CheckMenuRadioItem(ID_FILTER_NONE, ID_FILTER_GREEN, ID_FILTER_RGB);
+            break;
+        case SCREEN_FILTER_BLUR:
+            hMenu->CheckMenuRadioItem(ID_FILTER_NONE, ID_FILTER_GREEN, ID_FILTER_BLUR);
+            break;
+        case SCREEN_FILTER_DOT:
+            hMenu->CheckMenuRadioItem(ID_FILTER_NONE, ID_FILTER_GREEN, ID_FILTER_DOT);
+            break;
+        default:
+            hMenu->CheckMenuRadioItem(ID_FILTER_NONE, ID_FILTER_GREEN, ID_FILTER_NONE);
+            break;
+    }
+}
+#endif
+
+void update_host_sound_menu(Menu *hMenu)
+{
+    if(config.sound_frequency >= 0 && config.sound_frequency < 8) {
+        hMenu->CheckMenuRadioItem(ID_SOUND_FREQ0, ID_SOUND_FREQ7, ID_SOUND_FREQ0 + config.sound_frequency);
+    }
+    if(config.sound_latency >= 0 && config.sound_latency < 5) {
+        hMenu->CheckMenuRadioItem(ID_SOUND_LATE0, ID_SOUND_LATE4, ID_SOUND_LATE0 + config.sound_latency);
+    }
+    hMenu->CheckMenuRadioItem(ID_SOUND_STRICT_RENDER, ID_SOUND_LIGHT_RENDER, config.sound_strict_rendering ? ID_SOUND_STRICT_RENDER : ID_SOUND_LIGHT_RENDER);
+}
+
+void update_host_input_menu(Menu *hMenu)
+{
+}
+
+#ifdef USE_VIDEO_CAPTURE
+void update_host_capture_menu(HMenu *hMenu)
+{
+	int num_devs = emu->get_num_capture_devs();
+	int cur_index = emu->get_cur_capture_dev_index();
+
+	for(int i = 0; i < 8; i++) {
+		DeleteMenu(hMenu, ID_CAPTURE_DEVICE + i, MF_BYCOMMAND);
+	}
+	for(int i = 0; i < 8; i++) {
+		if(num_devs >= i + 1) {
+			AppendMenu(hMenu, MF_STRING, ID_CAPTURE_DEVICE + i, emu->get_capture_dev_name(i));
+		}
+	}
+	if(num_devs == 0) {
+		AppendMenu(hMenu, MF_GRAYED | MF_STRING, ID_CAPTURE_DEVICE, _T("None"));
+	}
+	if(cur_index != -1) {
+		CheckMenuRadioItem(hMenu, ID_CAPTURE_DEVICE, ID_CAPTURE_DEVICE + num_devs - 1, ID_CAPTURE_DEVICE + cur_index, MF_BYCOMMAND);
+	}
+	EnableMenuItem(hMenu, ID_CAPTURE_FILTER, (cur_index != -1) ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_CAPTURE_PIN, (cur_index != -1) ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_CAPTURE_SOURCE, (cur_index != -1) ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_CAPTURE_CLOSE, (cur_index != -1) ? MF_ENABLED : MF_GRAYED);
+}
+#endif
+
+void update_host_screen_margin_menu(Menu *hMenu)
+{
+    hMenu->CheckMenuRadioItem(ID_SCREEN_TOP_MARGIN_0, ID_SCREEN_TOP_MARGIN_270, ID_SCREEN_TOP_MARGIN_0 + config.screen_top_margin / 30);
+    hMenu->CheckMenuRadioItem(ID_SCREEN_BOTTOM_MARGIN_0, ID_SCREEN_BOTTOM_MARGIN_270, ID_SCREEN_BOTTOM_MARGIN_0 + config.screen_bottom_margin / 30);
+}
+
+void update_popup_menu(Menu *hMenu)
+{
+    update_control_menu(hMenu);
+#ifdef USE_STATE
+    update_save_state_menu(hMenu);
+    update_load_state_menu(hMenu);
+#endif
+#ifdef USE_CART
+#if USE_CART >= 1
+    update_cart_menu(hMenu, 0, ID_RECENT_CART1, ID_CLOSE_CART1);
+#endif
+#if USE_CART >= 2
+    update_cart_menu(hMenu, 1, ID_RECENT_CART2, ID_CLOSE_CART2);
+#endif
+#endif
+#ifdef USE_FLOPPY_DISK
+#if USE_FLOPPY_DISK >= 1
+    update_floppy_disk_menu(hMenu, 0, ID_RECENT_FD1, ID_D88_FILE_PATH1, ID_SELECT_D88_BANK1, ID_EJECT_D88_BANK1, ID_CLOSE_FD1, ID_WRITE_PROTECT_FD1, ID_CORRECT_TIMING_FD1, ID_IGNORE_CRC_FD1);
+#endif
+#if USE_FLOPPY_DISK >= 2
+    update_floppy_disk_menu(hMenu, 1, ID_RECENT_FD2, ID_D88_FILE_PATH2, ID_SELECT_D88_BANK2, ID_EJECT_D88_BANK2, ID_CLOSE_FD2, ID_WRITE_PROTECT_FD2, ID_CORRECT_TIMING_FD2, ID_IGNORE_CRC_FD2);
+#endif
+#if USE_FLOPPY_DISK >= 3
+    update_floppy_disk_menu(hMenu, 2, ID_RECENT_FD3, ID_D88_FILE_PATH3, ID_SELECT_D88_BANK3, ID_EJECT_D88_BANK3, ID_CLOSE_FD3, ID_WRITE_PROTECT_FD3, ID_CORRECT_TIMING_FD3, ID_IGNORE_CRC_FD3);
+#endif
+#if USE_FLOPPY_DISK >= 4
+    update_floppy_disk_menu(hMenu, 3, ID_RECENT_FD4, ID_D88_FILE_PATH4, ID_SELECT_D88_BANK4, ID_EJECT_D88_BANK4, ID_CLOSE_FD4, ID_WRITE_PROTECT_FD4, ID_CORRECT_TIMING_FD4, ID_IGNORE_CRC_FD4);
+#endif
+#if USE_FLOPPY_DISK >= 5
+    update_floppy_disk_menu(hMenu, 4, ID_RECENT_FD5, ID_D88_FILE_PATH5, ID_SELECT_D88_BANK5, ID_EJECT_D88_BANK5, ID_CLOSE_FD5, ID_WRITE_PROTECT_FD5, ID_CORRECT_TIMING_FD5, ID_IGNORE_CRC_FD5);
+#endif
+#if USE_FLOPPY_DISK >= 6
+    update_floppy_disk_menu(hMenu, 5, ID_RECENT_FD6, ID_D88_FILE_PATH6, ID_SELECT_D88_BANK6, ID_EJECT_D88_BANK6, ID_CLOSE_FD6, ID_WRITE_PROTECT_FD6, ID_CORRECT_TIMING_FD6, ID_IGNORE_CRC_FD6);
+#endif
+#if USE_FLOPPY_DISK >= 7
+    update_floppy_disk_menu(hMenu, 6, ID_RECENT_FD7, ID_D88_FILE_PATH7, ID_SELECT_D88_BANK7, ID_EJECT_D88_BANK7, ID_CLOSE_FD7, ID_WRITE_PROTECT_FD7, ID_CORRECT_TIMING_FD7, ID_IGNORE_CRC_FD7);
+#endif
+#if USE_FLOPPY_DISK >= 8
+    update_floppy_disk_menu(hMenu, 7, ID_RECENT_FD8, ID_D88_FILE_PATH8, ID_SELECT_D88_BANK8, ID_EJECT_D88_BANK8, ID_CLOSE_FD8, ID_WRITE_PROTECT_FD8, ID_CORRECT_TIMING_FD8, ID_IGNORE_CRC_FD8);
+#endif
+#endif
+#ifdef USE_QUICK_DISK
+#if USE_QUICK_DISK >= 1
+    update_quick_disk_menu(hMenu, 0, ID_RECENT_QD1, ID_CLOSE_QD1);
+#endif
+#if USE_QUICK_DISK >= 2
+    update_quick_disk_menu(hMenu, 1, ID_RECENT_QD2, ID_CLOSE_QD2);
+#endif
+#endif
+#ifdef USE_HARD_DISK
+#if USE_HARD_DISK >= 1
+    update_hard_disk_menu(hMenu, 0, ID_RECENT_HD1, ID_CLOSE_HD1);
+#endif
+#if USE_HARD_DISK >= 2
+    update_hard_disk_menu(hMenu, 1, ID_RECENT_HD2, ID_CLOSE_HD2);
+#endif
+#if USE_HARD_DISK >= 3
+    update_hard_disk_menu(hMenu, 2, ID_RECENT_HD3, ID_CLOSE_HD3);
+#endif
+#if USE_HARD_DISK >= 4
+    update_hard_disk_menu(hMenu, 3, ID_RECENT_HD4, ID_CLOSE_HD4);
+#endif
+#if USE_HARD_DISK >= 5
+    update_hard_disk_menu(hMenu, 4, ID_RECENT_HD5, ID_CLOSE_HD5);
+#endif
+#if USE_HARD_DISK >= 6
+    update_hard_disk_menu(hMenu, 5, ID_RECENT_HD6, ID_CLOSE_HD6);
+#endif
+#if USE_HARD_DISK >= 7
+    update_hard_disk_menu(hMenu, 6, ID_RECENT_HD7, ID_CLOSE_HD7);
+#endif
+#if USE_HARD_DISK >= 8
+    update_hard_disk_menu(hMenu, 7, ID_RECENT_HD8, ID_CLOSE_HD8);
+#endif
+#endif
+#ifdef USE_TAPE
+#if USE_TAPE >= 1
+    update_tape_menu(hMenu, 0, ID_RECENT_TAPE1, ID_CLOSE_TAPE1, ID_PLAY_BUTTON1, ID_STOP_BUTTON1, ID_FAST_FORWARD1, ID_FAST_REWIND1, ID_APSS_FORWARD1, ID_APSS_REWIND1, ID_USE_WAVE_SHAPER1, ID_DIRECT_LOAD_MZT1, ID_TAPE_BAUD_LOW1, ID_TAPE_BAUD_HIGH1);
+#endif
+#if USE_TAPE >= 2
+    update_tape_menu(hMenu, 1, ID_RECENT_TAPE2, ID_CLOSE_TAPE2, ID_PLAY_BUTTON2, ID_STOP_BUTTON2, ID_FAST_FORWARD2, ID_FAST_REWIND2, ID_APSS_FORWARD2, ID_APSS_REWIND2, ID_USE_WAVE_SHAPER2, ID_DIRECT_LOAD_MZT2, ID_TAPE_BAUD_LOW2, ID_TAPE_BAUD_HIGH2);
+#endif
+#endif
+#ifdef USE_COMPACT_DISC
+#if USE_COMPACT_DISC >= 1
+    update_compact_disc_menu(hMenu, 0, ID_RECENT_COMPACT_DISC1, ID_CLOSE_COMPACT_DISC1);
+#endif
+#if USE_COMPACT_DISC >= 2
+    update_compact_disc_menu(hMenu, 1, ID_RECENT_COMPACT_DISC2, ID_CLOSE_COMPACT_DISC2);
+#endif
+#endif
+#ifdef USE_LASER_DISC
+#if USE_LASER_DISC >= 1
+    update_laser_disc_menu(hMenu, 0, ID_RECENT_LASER_DISC1, ID_CLOSE_LASER_DISC1);
+#endif
+#if USE_LASER_DISC >= 2
+    update_laser_disc_menu(hMenu, 1, ID_RECENT_LASER_DISC2, ID_CLOSE_LASER_DISC2);
+#endif
+#endif
+#ifdef USE_BINARY_FILE
+#if USE_BINARY_FILE >= 1
+    update_binary_menu(hMenu, 0, ID_RECENT_BINARY1);
+#endif
+#if USE_BINARY_FILE >= 2
+    update_binary_menu(hMenu, 1, ID_RECENT_BINARY2);
+#endif
+#endif
+#ifdef USE_BUBBLE
+#if USE_BUBBLE >= 1
+    update_bubble_casette_menu(hMenu, 0, ID_RECENT_BUBBLE1);
+#endif
+#if USE_BUBBLE >= 2
+    update_bubble_casette_menu(hMenu, 1, ID_RECENT_BUBBLE2);
+#endif
+#endif
+#if defined(USE_BOOT_MODE) || defined(USE_DIPSWITCH)
+#ifdef USE_BOOT_MODE
+    update_vm_boot_menu(hMenu);
+#endif
+#ifdef USE_DIPSWITCH
+    // dipswitch may be in sound menu
+    update_vm_dipswitch_menu(hMenu);
+#endif
+#endif
+#ifdef USE_CPU_TYPE
+    update_vm_cpu_menu(hMenu);
+#endif
+#ifdef USE_DIPSWITCH
+    update_vm_dipswitch_menu(hMenu);
+#endif
+#ifdef USE_DEVICE_TYPE
+    update_vm_device_menu(hMenu);
+#endif
+#ifdef USE_DRIVE_TYPE
+    update_vm_drive_menu(hMenu);
+#endif
+#ifdef USE_KEYBOARD_TYPE
+    update_vm_keyboard_menu(hMenu);
+#endif
+#ifdef USE_MOUSE_TYPE
+    update_vm_mouse_menu(hMenu);
+#endif
+#ifdef USE_JOYSTICK_TYPE
+    update_vm_joystick_menu(hMenu);
+#endif
+#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE) || defined(USE_DIPSWITCH)
+#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE)
+    update_vm_sound_menu(hMenu);
+#endif
+#ifdef USE_DIPSWITCH
+    // dipswitch may be in sound menu
+    update_vm_dipswitch_menu(hMenu);
+#endif
+#endif
+#if defined(USE_MONITOR_TYPE) || defined(USE_SCANLINE) || defined(USE_DIPSWITCH)
+#if defined(USE_MONITOR_TYPE) || defined(USE_SCANLINE)
+    update_vm_monitor_menu(hMenu);
+#endif
+#ifdef USE_DIPSWITCH
+    // dipswitch may be in monitor menu
+    update_vm_dipswitch_menu(hMenu);
+#endif
+#endif
+#ifdef USE_PRINTER_TYPE
+    update_vm_printer_menu(hMenu);
+#endif
+#ifdef USE_SERIAL_TYPE
+    update_vm_serial_menu(hMenu);
+#endif
+    update_host_menu(hMenu);
+#ifndef ONE_BOARD_MICRO_COMPUTER
+    update_host_screen_menu(hMenu);
+#endif
+#ifdef USE_SCREEN_FILTER
+    update_host_filter_menu(hMenu);
+#endif
+    update_host_sound_menu(hMenu);
+    update_host_input_menu(hMenu);
+#ifdef USE_VIDEO_CAPTURE
+    update_host_capture_menu(hMenu);
+#endif
+    update_host_screen_margin_menu(hMenu);
+}
 
 void switchPCG() {
 #if defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700)
@@ -5929,6 +6534,8 @@ jint showExtendMenu(struct android_app *state, const char *title, const char *ex
 // 拡張メニュー生成と表示
 void extendMenu(struct android_app *app)
 {
+    // メニュー更新
+    update_popup_menu(menu);
     if (extendMenuDisplay) return;
     // メニュー文字列を取得する
     extendMenuString = menu->getExtendMenuString(1);
@@ -5939,6 +6546,8 @@ void extendMenu(struct android_app *app)
 
 void extendMenu(struct android_app *app, MenuNode node)
 {
+    // メニュー更新
+    update_popup_menu(menu);
     if (extendMenuDisplay) return;
     // メニュー文字列を取得する
     extendMenuString = menu->getExtendMenuString(node.getNodeId());
