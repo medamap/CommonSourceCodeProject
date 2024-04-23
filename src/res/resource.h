@@ -725,7 +725,43 @@
 #define ID_SCREEN_TOP_MARGIN_240        45198
 #define ID_SCREEN_TOP_MARGIN_270        45199
 
-#define ID_SOUND_ON                     45210
+#define ID_SCREEN_HS_ICON_SIZE_12       45200
+#define ID_SCREEN_HS_ICON_SIZE_19       45201
+#define ID_SCREEN_HS_ICON_SIZE_26       45202
+#define ID_SCREEN_HS_ICON_SIZE_33       45203
+#define ID_SCREEN_HS_ICON_SIZE_40       45204
+#define ID_SCREEN_HS_ICON_SIZE_47       45205
+#define ID_SCREEN_HS_ICON_SIZE_54       45206
+#define ID_SCREEN_HS_ICON_SIZE_61       45207
+
+#define ID_SCREEN_HF_ICON_SIZE_12       45300
+#define ID_SCREEN_HF_ICON_SIZE_19       45301
+#define ID_SCREEN_HF_ICON_SIZE_26       45302
+#define ID_SCREEN_HF_ICON_SIZE_33       45303
+#define ID_SCREEN_HF_ICON_SIZE_40       45304
+#define ID_SCREEN_HF_ICON_SIZE_47       45305
+#define ID_SCREEN_HF_ICON_SIZE_54       45306
+#define ID_SCREEN_HF_ICON_SIZE_61       45307
+
+#define ID_SCREEN_VS_ICON_SIZE_12       45400
+#define ID_SCREEN_VS_ICON_SIZE_19       45401
+#define ID_SCREEN_VS_ICON_SIZE_26       45402
+#define ID_SCREEN_VS_ICON_SIZE_33       45403
+#define ID_SCREEN_VS_ICON_SIZE_40       45404
+#define ID_SCREEN_VS_ICON_SIZE_47       45405
+#define ID_SCREEN_VS_ICON_SIZE_54       45406
+#define ID_SCREEN_VS_ICON_SIZE_61       45407
+
+#define ID_SCREEN_VF_ICON_SIZE_12       45500
+#define ID_SCREEN_VF_ICON_SIZE_19       45501
+#define ID_SCREEN_VF_ICON_SIZE_26       45502
+#define ID_SCREEN_VF_ICON_SIZE_33       45503
+#define ID_SCREEN_VF_ICON_SIZE_40       45504
+#define ID_SCREEN_VF_ICON_SIZE_47       45505
+#define ID_SCREEN_VF_ICON_SIZE_54       45506
+#define ID_SCREEN_VF_ICON_SIZE_61       45507
+
+#define ID_SOUND_ON                     45510
 #endif
 
 // Next default values for new objects
@@ -734,7 +770,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        215
 #if defined(__ANDROID__) // Medamap
-#define _APS_NEXT_COMMAND_VALUE         45230
+#define _APS_NEXT_COMMAND_VALUE         45600
 #else
 #define _APS_NEXT_COMMAND_VALUE         45155
 #endif

@@ -336,6 +336,10 @@ void load_config(const _TCHAR* config_path)
     #if defined(__ANDROID__)
         config.screen_top_margin = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenTopMargin"), config.screen_top_margin, config_path);
         config.screen_bottom_margin = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenBottomMargin"), config.screen_bottom_margin, config_path);
+        config.screen_vertical_system_iconsize = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenVerticalSystemIconSize"), 6, config_path);
+        config.screen_horizontal_system_iconsize = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenHorizontalSystemIconSize"), 6, config_path);
+        config.screen_vertical_file_iconsize = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenVerticalIconFileSize"), 6, config_path);
+        config.screen_horizontal_file_iconsize = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenHorizontalIconFileSize"), 6, config_path);
     #endif
 
 	// sound
@@ -588,6 +592,10 @@ void save_config(const _TCHAR* config_path)
     #if defined(__ANDROID__)
         MyWritePrivateProfileInt(_T("Screen"), _T("ScreenTopMargin"), config.screen_top_margin, config_path);
         MyWritePrivateProfileInt(_T("Screen"), _T("ScreenBottomMargin"), config.screen_bottom_margin, config_path);
+        MyWritePrivateProfileInt(_T("Screen"), _T("ScreenVerticalSystemIconSize"), config.screen_vertical_system_iconsize, config_path);
+        MyWritePrivateProfileInt(_T("Screen"), _T("ScreenHorizontalSystemIconSize"), config.screen_horizontal_system_iconsize, config_path);
+        MyWritePrivateProfileInt(_T("Screen"), _T("ScreenVerticalFileIconSize"), config.screen_vertical_file_iconsize, config_path);
+        MyWritePrivateProfileInt(_T("Screen"), _T("ScreenHorizontalFileIconSize"), config.screen_horizontal_file_iconsize, config_path);
     #endif
 
 	// sound
