@@ -1144,14 +1144,17 @@ void DISPLAY::draw_text(int yy)
 		prev_attr = attr;
 	}
 	// next raster for vertical doubled
-	if(cur_vert_double && (l&1)) {
-			raster++;
-	}
+	//if(cur_vert_double && (l&1)) {
+	//		raster++;
+	//}
 #ifdef _X1TURBO_FEATURE
-	raster &= 0x0f;
+	//raster &= 0x0f;
 #else
-	raster &= 0x07;
+	//raster &= 0x07;
 #endif
+    if ((cur_vert_double == 0) || (l & 1)) {
+        raster = (raster + 1) % ch_height;
+    }
 }
 
 void DISPLAY::draw_cg(int line, int plane)
