@@ -30,7 +30,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -65,6 +67,8 @@ public class EmulatorActivity extends NativeActivity {
             "android.permission.BLUETOOTH_CONNECT"
     };
 
+    private native void sendMouseClickEvent(int action, float x, float y, int pointerCount);
+    private native void sendMouseMovementEvent(float x, float y);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,12 +85,52 @@ public class EmulatorActivity extends NativeActivity {
         } else {
             initializeApp();
         }
+
+        setContentView(R.layout.activity_main);
+        View mouseView = findViewById(R.id.mouseView);
+        mouseView.setOnTouchListener(new View.OnTouchListener() { // この行でエラー
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getActionMasked();
+                int pointerCount = event.getPointerCount();
+                float x = event.getX();
+                float y = event.getY();
+                if (action == MotionEvent.ACTION_DOWN ||            // 0
+                    action == MotionEvent.ACTION_UP ||              // 1
+                    action == MotionEvent.ACTION_MOVE ||            // 2
+                    action == MotionEvent.ACTION_POINTER_DOWN ||    // 5
+                    action == MotionEvent.ACTION_POINTER_UP         // 6
+                ) {
+                    sendMouseClickEvent(action, x, y, pointerCount);
+                }
+                return true;
+            }
+        });
+
         System.loadLibrary("native-activity");
         enableImmersiveMode();
-        // 他のデバッグ時のみの初期化コード
-        if (BuildConfig.DEBUG) {
-            //System.loadLibrary("asan");
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        int action = event.getActionMasked();
+        //if (action == MotionEvent.ACTION_MOVE) {
+            float deltaX = event.getX() - event.getHistoricalX(0);
+            float deltaY = event.getY() - event.getHistoricalY(0);
+            sendMouseMovementEvent(deltaX, deltaY);
+        //}
+        return super.onTouchEvent(event);
+    }
+
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        if (event.isFromSource(InputDevice.SOURCE_MOUSE)) {
+            float deltaX = event.getAxisValue(MotionEvent.AXIS_X);
+            float deltaY = event.getAxisValue(MotionEvent.AXIS_Y);
+            // マウスカーソルの移動を検知してNDKに送信
+            sendMouseMovementEvent(deltaX, deltaY);
         }
+        return super.onGenericMotionEvent(event);
     }
 
     public void enableImmersiveMode() {
@@ -576,8 +620,6 @@ public class EmulatorActivity extends NativeActivity {
                         return R.drawable.exit;
                     case 1:
                         return R.drawable.reset;
-//                  case 1:
-//                      return R.drawable.screen;
                     case 2:
                         return R.drawable.sound;
                     case 3:
@@ -586,6 +628,8 @@ public class EmulatorActivity extends NativeActivity {
                         return R.drawable.config;
                     case 5:
                         return R.drawable.keyboard;
+                    case 6:
+                        return R.drawable.mouse;
 
              }
             case 1://mediaIcon

@@ -31,6 +31,11 @@ void OSD::initialize_input()
 #ifdef USE_MOUSE
 	memset(mouse_status, 0, sizeof(mouse_status));
 #endif
+#ifdef USE_MOUSE
+    // mouse emulation is disabled
+	mouse_enabled = false;
+#endif
+
 	key_shift_pressed = key_shift_released = false;
 	key_caps_locked = false;
 
@@ -45,7 +50,12 @@ void OSD::initialize_input()
 
 void OSD::release_input()
 {
-
+#ifdef USE_MOUSE
+    // release mouse
+    if(mouse_enabled) {
+        disable_mouse();
+    }
+#endif
 }
 
 void OSD::update_input()
@@ -74,6 +84,19 @@ void OSD::update_input()
 
 	// VK_$00 should be 0
 	key_status[0] = 0;
+
+#ifdef USE_MOUSE
+    // update mouse status
+    memset(mouse_status, 0, sizeof(mouse_status));
+
+    if(mouse_enabled) {
+        mouse_status[0]  = input_mouse_status[0];
+        mouse_status[1]  = input_mouse_status[1];
+        mouse_status[2]  = input_mouse_status[2];
+        input_mouse_status[0] = 0;
+        input_mouse_status[1] = 0;
+    }
+#endif
 }
 
 void OSD::key_down(int code, bool extended, bool repeat)
@@ -175,14 +198,21 @@ void OSD::key_up_native(int code)
 #ifdef USE_MOUSE
 void OSD::enable_mouse()
 {
+    mouse_enabled = true;
 }
 
 void OSD::disable_mouse()
 {
+    mouse_enabled = false;
 }
 
 void OSD::toggle_mouse()
 {
+    // toggle mouse enable / disable
+    if(mouse_enabled) {
+        disable_mouse();
+    } else {
+        enable_mouse();
+    }
 }
 #endif
-
