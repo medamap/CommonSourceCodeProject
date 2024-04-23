@@ -231,6 +231,7 @@ void update_host_filter_menu(Menu hMenu);
 void update_host_sound_menu(Menu hMenu);
 void update_host_input_menu(Menu hMenu);
 void update_host_screen_margin_menu(Menu *hMenu);
+void update_host_screen_iconsize_menu(Menu *hMenu);
 void update_popup_menu(Menu **hMenu);
 
 void switchPCG();
@@ -494,28 +495,17 @@ void main() {
     vec4 texColor = texture2D(texture, vTextureCoord);
 
     // テクスチャ座標をスクリーン座標に変換
-    int x = int(vTextureCoord.x * screenWidth*0.33);
-    int y = int(vTextureCoord.y * screenHeight*0.33);
+    int x = int(vTextureCoord.x * screenWidth*1.0);
+    int y = int(vTextureCoord.y * screenHeight*1.0);
     int channel = int(mod(float(x + int(mod(float(y), 3.0))), 3.0));
-
-    float offset = 1.0 / 700.0; // テクスチャの寸法に基づいてこの値を調整
-    vec4 blurColor = vec4(0.0);
-    // 周囲の複数点をサンプリング
-    for (int x = -1; x <= 1; x++) {
-        for (int y = -1; y <= 1; y++) {
-            vec2 sampleCoord = vTextureCoord + vec2(x, y) * offset;
-            blurColor += texture2D(texture, sampleCoord);
-        }
-    }
-    blurColor /= 9.0; // 9つのサンプルの色を平均
 
     vec3 color;
     if (channel == 0) {
-        color = vec3(blurColor.r * uColor.r * 3.0, blurColor.g * uColor.g * 0.5, blurColor.b * uColor.b * 0.5);  // 赤
+        color = vec3(texColor.r * uColor.r * 3.0, texColor.g * uColor.g * 0.5, texColor.b * uColor.b * 0.5);  // 赤
     } else if (channel == 1) {
-        color = vec3(blurColor.r * uColor.r * 0.5, blurColor.g * uColor.g * 3.0, blurColor.b * uColor.b * 0.5);  // 緑
+        color = vec3(texColor.r * uColor.r * 0.5, texColor.g * uColor.g * 3.0, texColor.b * uColor.b * 0.5);  // 緑
     } else {
-        color = vec3(blurColor.r * uColor.r * 0.5, blurColor.g * uColor.g * 0.5, blurColor.b * uColor.b * 3.0);  // 青
+        color = vec3(texColor.r * uColor.r * 0.5, texColor.g * uColor.g * 0.5, texColor.b * uColor.b * 3.0);  // 青
     }
 
     gl_FragColor = vec4(color, 1.0);
@@ -538,25 +528,22 @@ void main() {
     vec4 texColor = texture2D(texture, vTextureCoord);
 
     // テクスチャ座標をスクリーン座標に変換
-    float x = vTextureCoord.x * screenWidth * 0.33;
-    float y = vTextureCoord.y * screenHeight * 0.33;
+    int x = int(vTextureCoord.x * screenWidth*1.0);
+    int y = int(vTextureCoord.y * screenHeight*1.0);
+    int channel = int(mod(float(x + int(mod(float(y), 3.0))), 3.0));
 
-    float offset = 1.0 / 700.0; // テクスチャの寸法に基づいてこの値を調整
-    vec4 blurColor = vec4(0.0);
-    // 周囲の複数点をサンプリング
-    for (int dx = -1; dx <= 1; dx++) {
-        for (int dy = -1; dy <= 1; dy++) {
-            vec2 sampleCoord = vTextureCoord + vec2(dx, dy) * offset;
-            blurColor += texture2D(texture, sampleCoord);
-        }
-    }
-    blurColor /= 9.0; // 9つのサンプルの色を平均
+    vec3 color = vec3(0.0, 0.0, 0.0);
 
     // グレースケール変換
-    float gray = dot(blurColor.rgb, vec3(0.299, 0.587, 0.114));
+    float gray = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
 
-    // 最終的な色はグレースケール値を使って緑のみを強調
-    vec3 color = vec3(0.0, gray * uColor.g, 0.0);
+    if (channel == 0) {
+        color = vec3(0.0, gray * uColor.g * 0.7, 0.0);
+    } else if (channel <= 1) {
+        color = vec3(0.0, gray * uColor.g * 1.2, 0.0);
+    } else {
+        color = vec3(0.0, gray * uColor.g * 0.8, 0.0);
+    }
 
     gl_FragColor = vec4(color, 1.0);
 }
@@ -779,9 +766,6 @@ private:
         float top = vertex[1];
         float bottom = vertex[7];
 
-        if (systemIconType == SYSTEM_CONFIG) {
-            LOGI("nx=%f ny=%f l=%f r=%f t=%f b=%f vx=%f vy=%f vw=%f vh=%f", ndcX, ndcY, left, right, top, bottom, vx, vy, vw, vh);
-        }
         // 点が四角形内にあるか判定
         return (ndcX >= left && ndcX <= right && ndcY >= bottom && ndcY <= top);
     }
@@ -1471,6 +1455,11 @@ void android_main(struct android_app *state) {
         // 画面上下にマージンを設定する
         config.screen_top_margin = 90;
         config.screen_bottom_margin = 60;
+        // デフォルトアイコンサイズを設定する
+        config.screen_horizontal_system_iconsize = 6;  // 12 19 26 33 40 47 54 61
+        config.screen_horizontal_file_iconsize = 6;    // 12 19 26 33 40 47 54 61
+        config.screen_vertical_system_iconsize = 6;    // 12 19 26 33 40 47 54 61
+        config.screen_vertical_file_iconsize = 6;      // 12 19 26 33 40 47 54 61
         // コンフィグファイルを保存
         save_config(configPath);
         // ファイル名付きでコンフィグ新規作成ログ出力
@@ -2287,6 +2276,30 @@ void EventProc(engine* engine, MenuNode menuNode)
                     config.scan_line_auto = !config.scan_line_auto;
                     break;
 #endif
+                case ID_SCREEN_HS_ICON_SIZE_12: case ID_SCREEN_HS_ICON_SIZE_19: case ID_SCREEN_HS_ICON_SIZE_26: // Medamap
+                case ID_SCREEN_HS_ICON_SIZE_33: case ID_SCREEN_HS_ICON_SIZE_40: case ID_SCREEN_HS_ICON_SIZE_47:
+                case ID_SCREEN_HS_ICON_SIZE_54: case ID_SCREEN_HS_ICON_SIZE_61:
+                    config.screen_horizontal_system_iconsize = (LOWORD(wParam) - ID_SCREEN_HS_ICON_SIZE_12);
+                    break;
+
+                case ID_SCREEN_HF_ICON_SIZE_12: case ID_SCREEN_HF_ICON_SIZE_19: case ID_SCREEN_HF_ICON_SIZE_26: // Medamap
+                case ID_SCREEN_HF_ICON_SIZE_33: case ID_SCREEN_HF_ICON_SIZE_40: case ID_SCREEN_HF_ICON_SIZE_47:
+                case ID_SCREEN_HF_ICON_SIZE_54: case ID_SCREEN_HF_ICON_SIZE_61:
+                    config.screen_horizontal_file_iconsize = (LOWORD(wParam) - ID_SCREEN_HF_ICON_SIZE_12);
+                    break;
+
+                case ID_SCREEN_VS_ICON_SIZE_12: case ID_SCREEN_VS_ICON_SIZE_19: case ID_SCREEN_VS_ICON_SIZE_26: // Medamap
+                case ID_SCREEN_VS_ICON_SIZE_33: case ID_SCREEN_VS_ICON_SIZE_40: case ID_SCREEN_VS_ICON_SIZE_47:
+                case ID_SCREEN_VS_ICON_SIZE_54: case ID_SCREEN_VS_ICON_SIZE_61:
+                    config.screen_vertical_system_iconsize = (LOWORD(wParam) - ID_SCREEN_VS_ICON_SIZE_12);
+                    break;
+
+                case ID_SCREEN_VF_ICON_SIZE_12: case ID_SCREEN_VF_ICON_SIZE_19: case ID_SCREEN_VF_ICON_SIZE_26: // Medamap
+                case ID_SCREEN_VF_ICON_SIZE_33: case ID_SCREEN_VF_ICON_SIZE_40: case ID_SCREEN_VF_ICON_SIZE_47:
+                case ID_SCREEN_VF_ICON_SIZE_54: case ID_SCREEN_VF_ICON_SIZE_61:
+                    config.screen_vertical_file_iconsize = (LOWORD(wParam) - ID_SCREEN_VF_ICON_SIZE_12);
+                    break;
+
                 case ID_SCREEN_TOP_MARGIN_0: case ID_SCREEN_TOP_MARGIN_30: case ID_SCREEN_TOP_MARGIN_60: // Medamap
                 case ID_SCREEN_TOP_MARGIN_90: case ID_SCREEN_TOP_MARGIN_120: case ID_SCREEN_TOP_MARGIN_150:
                 case ID_SCREEN_TOP_MARGIN_180: case ID_SCREEN_TOP_MARGIN_210: case ID_SCREEN_TOP_MARGIN_240:
@@ -3365,6 +3378,14 @@ void update_host_screen_margin_menu(Menu *hMenu)
     hMenu->CheckMenuRadioItem(ID_SCREEN_BOTTOM_MARGIN_0, ID_SCREEN_BOTTOM_MARGIN_270, ID_SCREEN_BOTTOM_MARGIN_0 + config.screen_bottom_margin / 30);
 }
 
+void update_host_screen_iconsize_menu(Menu *hMenu)
+{
+    hMenu->CheckMenuRadioItem(ID_SCREEN_HS_ICON_SIZE_12, ID_SCREEN_HS_ICON_SIZE_61, ID_SCREEN_HS_ICON_SIZE_12 + config.screen_horizontal_system_iconsize);
+    hMenu->CheckMenuRadioItem(ID_SCREEN_HF_ICON_SIZE_12, ID_SCREEN_HF_ICON_SIZE_61, ID_SCREEN_HF_ICON_SIZE_12 + config.screen_horizontal_file_iconsize);
+    hMenu->CheckMenuRadioItem(ID_SCREEN_VS_ICON_SIZE_12, ID_SCREEN_VS_ICON_SIZE_61, ID_SCREEN_VS_ICON_SIZE_12 + config.screen_vertical_system_iconsize);
+    hMenu->CheckMenuRadioItem(ID_SCREEN_VF_ICON_SIZE_12, ID_SCREEN_VF_ICON_SIZE_61, ID_SCREEN_VF_ICON_SIZE_12 + config.screen_vertical_file_iconsize);
+}
+
 void update_popup_menu(Menu *hMenu)
 {
     update_control_menu(hMenu);
@@ -3547,6 +3568,7 @@ void update_popup_menu(Menu *hMenu)
     update_host_capture_menu(hMenu);
 #endif
     update_host_screen_margin_menu(hMenu);
+    update_host_screen_iconsize_menu(hMenu);
 }
 
 void switchPCG() {
@@ -5434,12 +5456,12 @@ void calculateScreenInfo(struct engine* engine) {
         // 横向き時のアイコン余白ピクセル数をセット
         engine->screenInfo.topOffsetIcon    = 0;
         engine->screenInfo.bottomOffsetIcon = 0;
-        engine->screenInfo.leftOffsetIcon   = 54; // ファイルアイコン
-        engine->screenInfo.rightOffsetIcon  = 54; // システムアイコン
+        engine->screenInfo.leftOffsetIcon   = config.screen_horizontal_file_iconsize * 7 + 12; // ファイルアイコン
+        engine->screenInfo.rightOffsetIcon  = config.screen_horizontal_system_iconsize * 7 + 12; // システムアイコン
     } else {
         // 縦向き時のアイコン余白ピクセル数をセット
-        engine->screenInfo.topOffsetIcon    = 54; // システムアイコン
-        engine->screenInfo.bottomOffsetIcon = 26; // ファイルアイコン
+        engine->screenInfo.topOffsetIcon    = config.screen_vertical_file_iconsize * 7 + 12; // システムアイコン
+        engine->screenInfo.bottomOffsetIcon = config.screen_vertical_system_iconsize * 7 + 12; // ファイルアイコン
         engine->screenInfo.leftOffsetIcon   = 0;
         engine->screenInfo.rightOffsetIcon  = 0;
     }
@@ -5740,6 +5762,13 @@ void clickOpenGlIcon(struct android_app *app, float x, float y) {
 // input
 // ----------------------------------------------------------------------------
 
+// トリプルタップを追跡するための変数
+static int tap_count = 0;
+static int64_t last_tap_time = 0;
+
+// トリプルタップと判定するまでの最大時間（ミリ秒）
+#define TRIPLE_TAP_TIMEOUT 500
+
 static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) {
     struct engine *engine = (struct engine *) app->userData;
     if (!engine->emu_initialized) return 0;
@@ -5749,8 +5778,26 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
             float x = AMotionEvent_getX(event, 0);
             float y = AMotionEvent_getY(event, 0);
 
+            // システムの起動時間を取得
+            struct timespec res;
+            clock_gettime(CLOCK_MONOTONIC, &res);
+            int64_t uptime_millis = res.tv_sec * 1000 + res.tv_nsec / 1000000;
+            // トリプルタップ判定
+            if (uptime_millis - last_tap_time <= TRIPLE_TAP_TIMEOUT) {
+                tap_count++;
+            } else {
+                tap_count = 1;
+            }
+            last_tap_time = uptime_millis;
+
+            if (tap_count == 3) {
+                // トリプルタップでコンフィグメニュー起動
+                tap_count = 0;
+                extendMenu(app);
+            }
+
 #if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-            LOGI("X:%f, Y:%f, Witdh:%d, Height:%d", x, y, deviceInfo.width, deviceInfo.height);
+            LOGI("X:%f, Y:%f, Witdh:%d, Height:%d Tap:%d", x, y, deviceInfo.width, deviceInfo.height, tap_count);
             // アイコンクリック判定
             clickOpenGlIcon(app, x, y);
 #else

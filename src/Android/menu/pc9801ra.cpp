@@ -129,18 +129,50 @@ Menu::Menu() {
     addNode(hostRecId, "Stop", Property, ID_HOST_REC_STOP);
     addNode(hostRecId, "Capture Screen", Property, ID_HOST_CAPTURE_SCREEN);
 
-    addNode(hostScreenId, "Window x1", Property, ID_SCREEN_WINDOW);
-    addNode(hostScreenId, "Fullscreen 640x400", Property, ID_SCREEN_FULLSCREEN);
-    addNode(hostScreenId, "Window Stretch 1", Property, ID_SCREEN_WINDOW_STRETCH);
-    addNode(hostScreenId, "Window Stretch 2", Property, ID_SCREEN_WINDOW_ASPECT);
-    addNode(hostScreenId, "Fullscreen Stretch 1", Property, ID_SCREEN_FULLSCREEN_DOTBYDOT);
-    addNode(hostScreenId, "Fullscreen Stretch 2", Property, ID_SCREEN_FULLSCREEN_STRETCH);
-    addNode(hostScreenId, "Fullscreen Stretch 3", Property, ID_SCREEN_FULLSCREEN_ASPECT);
-    addNode(hostScreenId, "Fullscreen Stretch 4", Property, ID_SCREEN_FULLSCREEN_FILL);
     addNode(hostScreenId, "Rotate 0deg", Property, ID_SCREEN_ROTATE_0);
     addNode(hostScreenId, "Rotate +90deg", Property, ID_SCREEN_ROTATE_90);
     addNode(hostScreenId, "Rotate 180deg", Property, ID_SCREEN_ROTATE_180);
     addNode(hostScreenId, "Rotate -90deg", Property, ID_SCREEN_ROTATE_270);
+
+    int iconSize1 = addNode(screenId, "H System Icon Size", Category, -1);
+    addNode(iconSize1, "12", Property, ID_SCREEN_HS_ICON_SIZE_12);
+    addNode(iconSize1, "19", Property, ID_SCREEN_HS_ICON_SIZE_19);
+    addNode(iconSize1, "26", Property, ID_SCREEN_HS_ICON_SIZE_26);
+    addNode(iconSize1, "33", Property, ID_SCREEN_HS_ICON_SIZE_33);
+    addNode(iconSize1, "40", Property, ID_SCREEN_HS_ICON_SIZE_40);
+    addNode(iconSize1, "47", Property, ID_SCREEN_HS_ICON_SIZE_47);
+    addNode(iconSize1, "54", Property, ID_SCREEN_HS_ICON_SIZE_54);
+    addNode(iconSize1, "61", Property, ID_SCREEN_HS_ICON_SIZE_61);
+
+    int iconSize2 = addNode(screenId, "H File Icon Size", Category, -1);
+    addNode(iconSize2, "12", Property, ID_SCREEN_HF_ICON_SIZE_12);
+    addNode(iconSize2, "19", Property, ID_SCREEN_HF_ICON_SIZE_19);
+    addNode(iconSize2, "26", Property, ID_SCREEN_HF_ICON_SIZE_26);
+    addNode(iconSize2, "33", Property, ID_SCREEN_HF_ICON_SIZE_33);
+    addNode(iconSize2, "40", Property, ID_SCREEN_HF_ICON_SIZE_40);
+    addNode(iconSize2, "47", Property, ID_SCREEN_HF_ICON_SIZE_47);
+    addNode(iconSize2, "54", Property, ID_SCREEN_HF_ICON_SIZE_54);
+    addNode(iconSize2, "61", Property, ID_SCREEN_HF_ICON_SIZE_61);
+
+    int iconSize3 = addNode(screenId, "V System Icon Size", Category, -1);
+    addNode(iconSize3, "12", Property, ID_SCREEN_VS_ICON_SIZE_12);
+    addNode(iconSize3, "19", Property, ID_SCREEN_VS_ICON_SIZE_19);
+    addNode(iconSize3, "26", Property, ID_SCREEN_VS_ICON_SIZE_26);
+    addNode(iconSize3, "33", Property, ID_SCREEN_VS_ICON_SIZE_33);
+    addNode(iconSize3, "40", Property, ID_SCREEN_VS_ICON_SIZE_40);
+    addNode(iconSize3, "47", Property, ID_SCREEN_VS_ICON_SIZE_47);
+    addNode(iconSize3, "54", Property, ID_SCREEN_VS_ICON_SIZE_54);
+    addNode(iconSize3, "61", Property, ID_SCREEN_VS_ICON_SIZE_61);
+
+    int iconSize4 = addNode(screenId, "V File Icon Size", Category, -1);
+    addNode(iconSize4, "12", Property, ID_SCREEN_VF_ICON_SIZE_12);
+    addNode(iconSize4, "19", Property, ID_SCREEN_VF_ICON_SIZE_19);
+    addNode(iconSize4, "26", Property, ID_SCREEN_VF_ICON_SIZE_26);
+    addNode(iconSize4, "33", Property, ID_SCREEN_VF_ICON_SIZE_33);
+    addNode(iconSize4, "40", Property, ID_SCREEN_VF_ICON_SIZE_40);
+    addNode(iconSize4, "47", Property, ID_SCREEN_VF_ICON_SIZE_47);
+    addNode(iconSize4, "54", Property, ID_SCREEN_VF_ICON_SIZE_54);
+    addNode(iconSize4, "61", Property, ID_SCREEN_VF_ICON_SIZE_61);
 
     int marginId1 = addNode(hostScreenId, "Screen Top Margin", Category, -1);
     addNode(marginId1, "0", Property, ID_SCREEN_TOP_MARGIN_0);

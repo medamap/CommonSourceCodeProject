@@ -85,6 +85,11 @@ Menu::Menu() {
     addNode(hostId, "Capture Screen", Property, ID_HOST_CAPTURE_SCREEN);
 
     int screenId = addNode(hostId, "Screen", Category, -1);
+    addNode(screenId, "Rotate 0deg", Property, ID_SCREEN_ROTATE_0);
+    addNode(screenId, "Rotate +90deg", Property, ID_SCREEN_ROTATE_90);
+    addNode(screenId, "Rotate 180deg", Property, ID_SCREEN_ROTATE_180);
+    addNode(screenId, "Rotate -90deg", Property, ID_SCREEN_ROTATE_270);
+
     addNode(screenId, "Window x1", Property, ID_SCREEN_WINDOW);
     addNode(screenId, "Fullscreen 640x400", Property, ID_SCREEN_FULLSCREEN);
     addNode(screenId, "Window Stretch 1", Property, ID_SCREEN_WINDOW_STRETCH);
@@ -93,10 +98,6 @@ Menu::Menu() {
     addNode(screenId, "Fullscreen Stretch 2", Property, ID_SCREEN_FULLSCREEN_STRETCH);
     addNode(screenId, "Fullscreen Stretch 3", Property, ID_SCREEN_FULLSCREEN_ASPECT);
     addNode(screenId, "Fullscreen Stretch 4", Property, ID_SCREEN_FULLSCREEN_FILL);
-    addNode(screenId, "Rotate 0deg", Property, ID_SCREEN_ROTATE_0);
-    addNode(screenId, "Rotate +90deg", Property, ID_SCREEN_ROTATE_90);
-    addNode(screenId, "Rotate 180deg", Property, ID_SCREEN_ROTATE_180);
-    addNode(screenId, "Rotate -90deg", Property, ID_SCREEN_ROTATE_270);
 
     int marginId1 = addNode(screenId, "Screen Top Margin", Category, -1);
     addNode(marginId1, "0", Property, ID_SCREEN_TOP_MARGIN_0);

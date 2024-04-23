@@ -181,6 +181,10 @@ typedef struct {
     #if defined(__ANDROID__) // Medamap
         int screen_top_margin;
         int screen_bottom_margin;
+        int screen_vertical_system_iconsize;
+        int screen_horizontal_system_iconsize;
+        int screen_vertical_file_iconsize;
+        int screen_horizontal_file_iconsize;
     #endif
 	
 	// sound
