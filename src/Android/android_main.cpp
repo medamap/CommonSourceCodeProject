@@ -100,6 +100,8 @@ typedef struct {
     int rightOffsetIcon;
     int scrWidth;
     int scrHeight;
+    int emuWidthBase;
+    int emuHeightBase;
     int emuWidth;
     int emuHeight;
     float emuAspect;
@@ -799,6 +801,7 @@ public:
                   : systemIconType == SYSTEM_PCG      ? "PCG"
                   : systemIconType == SYSTEM_CONFIG   ? "CONFIG"
                   : systemIconType == SYSTEM_KEYBOARD ? "KEYBOARD"
+                  : systemIconType == SYSTEM_MOUSE    ? "MOUSE"
                   : "Other"),
             iconType(SYSTEM_ICON),
             isValid(true),
@@ -1035,6 +1038,8 @@ public:
                     return SYSTEM_CONFIG;
                 case SYSTEM_KEYBOARD:
                     return SYSTEM_KEYBOARD;
+                case SYSTEM_MOUSE:
+                    return SYSTEM_MOUSE;
             }
         }
         return SYSTEM_NONE; // 四角形外
@@ -1152,6 +1157,10 @@ JavaVM* g_JavaVM = nullptr;
 jobject g_ActivityObject = nullptr;
 bool grantedStorage = false;
 static struct android_app* globalAppState = nullptr;
+
+int mouse_action;
+int mouse_x;
+int mouse_y;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Debug
@@ -5355,6 +5364,9 @@ void initializeGlIcons(struct engine* engine) {
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_EXIT, false, false);
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_RESET, false, false);
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_KEYBOARD, true, false);
+#ifdef USE_MOUSE
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_MOUSE, true, emu->get_osd()->is_mouse_enabled());
+#endif
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_SOUND, true, config.sound_on);
 #if defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700)
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_PCG, true, config.dipswitch & 1);
@@ -5470,6 +5482,9 @@ void calculateScreenInfo(struct engine* engine) {
     // 画面サイズからシステム余白を引いたもの
     engine->screenInfo.scrWidth = deviceInfo.width;
     engine->screenInfo.scrHeight = deviceInfo.height - engine->screenInfo.topOffsetSystem - engine->screenInfo.bottomOffsetSystem;
+    // エミュレータ画面size
+    engine->screenInfo.emuWidthBase =emu-> get_osd()->get_vm_window_width();
+    engine->screenInfo.emuHeightBase =emu-> get_osd()->get_vm_window_height();
     // エミュレータ画面サイズにアイコン余白を足したもの
     engine->screenInfo.emuWidth = emu->get_osd()->get_vm_window_width() + engine->screenInfo.leftOffsetIcon + engine->screenInfo.rightOffsetIcon;
     engine->screenInfo.emuHeight = emu->get_osd()->get_vm_window_height() +
@@ -5743,6 +5758,12 @@ void clickOpenGlIcon(struct android_app *app, float x, float y) {
             case SYSTEM_KEYBOARD:
                 toggle_soft_keyboard(app);
                 break;
+#ifdef USE_MOUSE
+            case SYSTEM_MOUSE:
+                emu->get_osd()->toggle_mouse();
+                icon.SetToggleValue(emu->get_osd()->is_mouse_enabled());
+                break;
+#endif
             case SYSTEM_NONE:
                 break;
             case SYSTEM_ICON_MAX:
@@ -7579,9 +7600,6 @@ std::vector<std::string> split(const std::string &s, char delimiter) {
     return tokens;
 }
 
-#include <sys/stat.h>
-#include <cstring>
-
 // const char *path の親フォルダを取得し、const char * で返す
 const char *get_parent_path(const char *path) {
     size_t len = strlen(path);
@@ -7964,6 +7982,45 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_exitSelectCallback(JNIEnv 
     }
     // doFinishメソッドを呼び出す
     env->CallVoidMethod(thiz, midDoFinish);
+}
+
+float oldX, oldY;
+
+JNIEXPORT void JNICALL
+Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendMouseClickEvent(JNIEnv *env, jobject thiz, jint action, jfloat x, jfloat y, jint pointerCount) {
+#ifdef USE_MOUSE
+    // action を使ってクリックの瞬間と終了を検知して処理
+    if (action == AMOTION_EVENT_ACTION_DOWN && pointerCount == 1) {
+        emu->get_osd()->get_input_mouse_buffer()[2] |= 0x01;
+    } else if (action == AMOTION_EVENT_ACTION_UP) {
+        emu->get_osd()->get_input_mouse_buffer()[2] &= ~0x01;
+    } else if (action == AMOTION_EVENT_ACTION_POINTER_DOWN && pointerCount == 1) {
+        emu->get_osd()->get_input_mouse_buffer()[2] |= 0x02;
+    } else if (action == AMOTION_EVENT_ACTION_POINTER_UP) {
+        emu->get_osd()->get_input_mouse_buffer()[2] &= ~0x02;
+    }
+    LOGI("Mouse Action:%d (%d, %d)", action, (int)x, (int)y);
+
+    if (action == AMOTION_EVENT_ACTION_MOVE) {
+        emu->get_osd()->get_input_mouse_buffer()[0] = (int)(x - oldX);
+        emu->get_osd()->get_input_mouse_buffer()[1] = (int)(y - oldY);
+    }  else {
+        emu->get_osd()->get_input_mouse_buffer()[0] = 0;
+        emu->get_osd()->get_input_mouse_buffer()[1] = 0;
+    }
+
+    oldX = x;
+    oldY = y;
+#endif
+}
+
+JNIEXPORT void JNICALL
+Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendMouseMovementEvent(JNIEnv *env, jobject thiz, jfloat deltaX, jfloat deltaY) {
+#ifdef USE_MOUSE
+    emu->get_osd()->get_input_mouse_buffer()[0] = (int32_t)deltaX;
+    emu->get_osd()->get_input_mouse_buffer()[1] = (int32_t)deltaY;
+    LOGI("Mouse Move (%d, %d)", (int)deltaX, (int)deltaY);
+#endif
 }
 
 } //extern"C"

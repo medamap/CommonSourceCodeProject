@@ -469,6 +469,7 @@ private:
 	
 #ifdef USE_MOUSE
 	int32_t mouse_status[3];	// x, y, button (b0 = left, b1 = right)
+    int32_t input_mouse_status[3];	// x, y, button (b0 = left, b1 = right)
 	bool mouse_enabled;
 #endif
 	
@@ -675,6 +676,10 @@ public:
 	{
 		return mouse_status;
 	}
+    int32_t* get_input_mouse_buffer()
+    {
+        return input_mouse_status;
+    }
 #endif
 #ifdef USE_AUTO_KEY
 	bool now_auto_key;
@@ -1573,6 +1578,7 @@ enum systemIconType {
     SYSTEM_PCG ,
     SYSTEM_CONFIG ,
     SYSTEM_KEYBOARD ,
+    SYSTEM_MOUSE ,
     SYSTEM_ICON_MAX
 };
 enum FileSelectType {
