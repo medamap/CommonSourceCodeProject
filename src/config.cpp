@@ -317,7 +317,12 @@ void load_config(const _TCHAR* config_path)
 			}
 		}
 	#endif
-	
+
+    // mouse
+#if defined(__ANDROID__)
+    config.mouse_sensitivity = MyGetPrivateProfileInt(_T("Mouse"), _T("MouseSensitivity"), 5, config_path);
+#endif
+
 	// screen
 	#ifndef ONE_BOARD_MICRO_COMPUTER
 		config.window_mode = MyGetPrivateProfileInt(_T("Screen"), _T("WindowMode"), config.window_mode, config_path);
@@ -334,6 +339,9 @@ void load_config(const _TCHAR* config_path)
 	#endif
 
     #if defined(__ANDROID__)
+        config.shader_type = MyGetPrivateProfileInt(_T("Screen"), _T("ShaderType"), config.shader_type, config_path);
+        config.shader_dot = MyGetPrivateProfileInt(_T("Screen"), _T("ShaderDot"), config.shader_dot, config_path);
+        config.shader_superimpose = MyGetPrivateProfileInt(_T("Screen"), _T("ShaderSuperImpose"), config.shader_superimpose, config_path);
         config.screen_top_margin = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenTopMargin"), config.screen_top_margin, config_path);
         config.screen_bottom_margin = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenBottomMargin"), config.screen_bottom_margin, config_path);
         config.screen_vertical_system_iconsize = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenVerticalSystemIconSize"), 6, config_path);
@@ -573,7 +581,12 @@ void save_config(const _TCHAR* config_path)
 			}
 		}
 	#endif
-	
+
+    // mouse
+#if defined(__ANDROID__)
+        MyWritePrivateProfileInt(_T("Mouse"), _T("MouseSensitivity"), config.mouse_sensitivity, config_path);
+#endif
+
 	// screen
 	#ifndef ONE_BOARD_MICRO_COMPUTER
 		MyWritePrivateProfileInt(_T("Screen"), _T("WindowMode"), config.window_mode, config_path);
@@ -590,6 +603,9 @@ void save_config(const _TCHAR* config_path)
     #endif
 
     #if defined(__ANDROID__)
+        MyWritePrivateProfileInt(_T("Screen"), _T("ShaderType"), config.shader_type, config_path);
+        MyWritePrivateProfileInt(_T("Screen"), _T("ShaderDot"), config.shader_dot, config_path);
+        MyWritePrivateProfileInt(_T("Screen"), _T("ShaderSuperImpose"), config.shader_superimpose, config_path);
         MyWritePrivateProfileInt(_T("Screen"), _T("ScreenTopMargin"), config.screen_top_margin, config_path);
         MyWritePrivateProfileInt(_T("Screen"), _T("ScreenBottomMargin"), config.screen_bottom_margin, config_path);
         MyWritePrivateProfileInt(_T("Screen"), _T("ScreenVerticalSystemIconSize"), config.screen_vertical_system_iconsize, config_path);

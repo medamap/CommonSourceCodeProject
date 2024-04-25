@@ -336,6 +336,11 @@ void EMU::reset()
 	osd->restart_record_sound();
 	osd->restart_record_video();
 #endif
+
+#ifdef USE_SPECIAL_DISPLAY
+    superimpose_mode = 0;
+#endif
+
 }
 
 #ifdef USE_SPECIAL_RESET
@@ -1589,6 +1594,37 @@ bool EMU::is_video_recording()
 {
 	return osd->now_record_video;
 }
+
+#ifdef USE_SPECIAL_DISPLAY
+// code = 0AH(SI) / 0FH(SI CD) / 1EH(SI CD) / 1FH(SI)
+void EMU::special_display_mode(int code)
+{
+    // vm->special_display_mode(code);
+    switch (code) {
+        case 0x0A:
+            superimpose_mode = 1;
+            break;
+        case 0x0F:
+            superimpose_mode = 2;
+            break;
+        case 0x1E:
+            superimpose_mode = 2;
+            break;
+        case 0x1F:
+            superimpose_mode = 1;
+            break;
+        default:
+            superimpose_mode = 0;
+            break;
+    }
+}
+
+// return 0 ... COM / 1 ... SI / 2 ... SI CD
+int EMU::is_superimpose_mode()
+{
+    return superimpose_mode;
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // sound

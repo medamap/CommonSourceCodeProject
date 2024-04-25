@@ -11,11 +11,12 @@
 
 #include "osd.h"
 
+#if defined(USE_SOCKET)
+
 void OSD::initialize_socket()
 {
-#if false
     // init winsock
-    WSADATA wsaData;
+    // WSADATA wsaData;
     //WSAStartup(0x0101, &wsaData);
 
     // init sockets
@@ -24,7 +25,6 @@ void OSD::initialize_socket()
         socket_delay[i] = 0;
         recv_r_ptr[i] = recv_w_ptr[i] = 0;
     }
-#endif
 }
 
 void OSD::release_socket()
@@ -250,3 +250,5 @@ void OSD::recv_socket_data(int ch) {
         recv_w_ptr[ch] += size;
     }
 }
+
+#endif
