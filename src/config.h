@@ -164,7 +164,12 @@ typedef struct {
 		_TCHAR initial_bubble_casette_dir[_MAX_PATH];
 		_TCHAR recent_bubble_casette_path[USE_BUBBLE_TMP][MAX_HISTORY][_MAX_PATH];
 	#endif
-	
+
+    // mouse
+#if defined(__ANDROID__) // Medamap
+    int mouse_sensitivity;
+#endif
+
 	// screen
 	int window_mode;
 	int window_stretch_type;
@@ -176,6 +181,12 @@ typedef struct {
 	// filter
 	#if defined(USE_SHARED_DLL) || defined(USE_SCREEN_FILTER)
 		int filter_type;
+    #endif
+
+    #if defined(__ANDROID__) // Medamap
+        int shader_type;
+        int shader_dot;
+        int shader_superimpose;
     #endif
 
     #if defined(__ANDROID__) // Medamap

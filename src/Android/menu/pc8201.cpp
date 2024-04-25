@@ -122,8 +122,9 @@ Menu::Menu() {
     addNode(filterId, "Green Filter", Property, ID_FILTER_GREEN);
     addNode(filterId, "RGB Filter", Property, ID_FILTER_RGB);
     addNode(filterId, "Blur Filter", Property, ID_FILTER_BLUR);
-    addNode(filterId, "DOT", Property, ID_FILTER_DOT);
     addNode(filterId, "None", Property, ID_FILTER_NONE);
+    addNode(filterId, "DOT Mode", Property, ID_FILTER_DOT);
+    addNode(filterId, "SuperImpose Mode", Property, ID_FILTER_SUPERIMPOSE);
 
     int soundId2 = addNode(hostId, "Sound", Category, -1);
     addNode(soundId2, "Switch On / Off", Property, ID_SOUND_ON);

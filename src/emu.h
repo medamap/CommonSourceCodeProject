@@ -332,7 +332,13 @@ public:
 	bool start_record_video(int fps);
 	void stop_record_video();
 	bool is_video_recording();
-	
+
+#ifdef USE_SPECIAL_DISPLAY
+    int superimpose_mode; // 0 ... COM / 1 ... SI / 2 ... SI CD
+    void special_display_mode(int code);
+    int is_superimpose_mode();
+#endif
+
 	// sound
 	int get_sound_rate()
 	{

@@ -65,77 +65,6 @@
 
 EMU *emu;
 
-#define     MAX_FRAME_STATS     200
-#define     MAX_PERIOD_MS       1500
-#define     LOWORD(l)           l
-
-/* simple stats management */
-typedef struct {
-    double renderTime;
-    double frameTime;
-} FrameStats;
-
-typedef struct {
-    double firstTime;
-    double lastTime;
-    double frameTime;
-
-    int firstFrame;
-    int numFrames;
-    FrameStats frames[MAX_FRAME_STATS];
-} Stats;
-
-#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-typedef struct {
-    int viewPortX;
-    int viewPortY;
-    int viewPortWidth;
-    int viewPortHeight;
-    int topOffsetSystem;
-    int bottomOffsetSystem;
-    int topOffsetProgress;
-    int topOffsetIcon;
-    int bottomOffsetIcon;
-    int leftOffsetIcon;
-    int rightOffsetIcon;
-    int scrWidth;
-    int scrHeight;
-    int emuWidthBase;
-    int emuHeightBase;
-    int emuWidth;
-    int emuHeight;
-    float emuAspect;
-    float screenAspect;
-    float widthRate;
-    float heightRate;
-    float screenRate;
-    int realScreenWidth;
-    int realScreenHeight;
-    int leftOffset;
-    float topEmuProgressOffset;
-    float topEmuScreenOffset;
-    float bottomEmuScreenOffset;
-    float leftEmuScreenOffset;
-    float rightEmuScreenOffset;
-} ScreenInfo;
-#endif
-
-struct engine {
-    struct android_app *app;
-    Stats stats;
-    int animating;
-    bool emu_initialized;
-#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-    EGLConfig eglConfig;
-    EGLDisplay eglDisplay;
-    EGLSurface eglSurface;
-    EGLContext eglContext;
-    std::vector<GLuint> shaderProgram;
-    std::vector<GLuint> textureId;
-    ScreenInfo screenInfo;
-#endif
-};
-
 static double now_ms(void);
 static uint16_t make565(int red, int green, int blue);
 static void stats_init(Stats *s);
@@ -233,6 +162,7 @@ void update_host_filter_menu(Menu hMenu);
 void update_host_sound_menu(Menu hMenu);
 void update_host_input_menu(Menu hMenu);
 void update_host_screen_margin_menu(Menu *hMenu);
+void update_host_mouse_sensitivity_menu(Menu *hMenu);
 void update_host_screen_iconsize_menu(Menu *hMenu);
 void update_popup_menu(Menu **hMenu);
 
@@ -382,179 +312,38 @@ GLuint loadShader(GLenum type, const char* shaderSource);
 void initializeShaders(struct engine* engine);
 void initializeGlIcons(struct engine* engine);
 void initializeGlProgress(struct engine* engine);
+void initializeGlWallPaper(struct engine* engine);
 void calculateLookAt(float* outViewMatrix, float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
 void calculateOrtho(float* outProjectionMatrix, float inLeft, float inRight, float inBottom, float inTop, float inNear, float inFar);
 void convertRGB565toRGBA(unsigned char* srcData, unsigned char* dstData, int width, int height);
 void beginOpenGlFrame(struct engine* engine);
 void calculateScreenInfo(struct engine *engine);
-void calculateCameraProjectionMatrix(struct engine* engine);
+void calculateCameraProjectionMatrix(struct engine* engine, int shader_type);
 void updateViewPort(struct engine* engine);
 void useShaderProgram(GLuint programId);
 void updateTextureOpenGlFrame(struct engine* engine);
+void enableAlphaBlending();
+void disableBlending();
 void drawOpenGlFrame(struct engine *engine);
 void drawOpenGlIcon(struct engine* engine);
 void drawOpenGlProgress(struct engine* engine, int progress);
+void drawOpenGlWallPaper(struct engine* engine, int shader_type);
 void resumeStatusOpenGlIcon(struct engine* engine);
 void completeDrawOpenGlFrame(struct engine* engine);
 void clickOpenGlIcon(struct android_app *app, float x, float y);
 
-#define EMULATOR_SCREEN_TYPE_DEFAULT     0
-#define EMULATOR_SCREEN_TYPE_RGB565      1
-#define EMULATOR_SCREEN_TYPE_RGBA8888    2
-uint16_t emulator_screen_type = EMULATOR_SCREEN_TYPE_DEFAULT;
-
 // エミュレータ画面ピクセルデータ
 std::vector<unsigned char> screenPixelData;
-
 // ビューマトリックス
 float viewMatrix[16];
 // プロジェクションマトリックス
 float projectionMatrix[16];
 
-#if defined(USE_SCREEN_FILTER)
-#define     SET_SCREEN_FILTER(FILTER_TYPE)               \
-int filter_type = config.filter_type
-#else
-#define     SET_SCREEN_FILTER(FILTER_TYPE)               \
-int filter_type = FILTER_TYPE
-#endif
-
-// Vertex shader Normal
-#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-const char *vertexShaderNormal = R"glsl(
-#version 100
-attribute vec4 vertexPosition;
-attribute vec2 textureCoord;
-varying vec2 vTextureCoord;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
-
-void main() {
-    gl_Position = projectionMatrix * viewMatrix * vertexPosition;
-    vTextureCoord = textureCoord;
-}
-)glsl";
-#endif
-
-// Fragment shader Color
-#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-const char *fragmentShaderColor = R"glsl(
-#version 100
-precision mediump float;
-varying vec2 vTextureCoord;
-uniform sampler2D texture;
-uniform vec3 uColor;
-
-void main() {
-    vec4 texColor = texture2D(texture, vTextureCoord);
-    gl_FragColor = vec4(texColor.r * uColor.r, texColor.g * uColor.g, texColor.b * uColor.b, 1.0);
-}
-)glsl";
-#endif
-
-// Fragment shader Blur
-#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-const char *fragmentShaderBlur = R"glsl(
-#version 100
-precision mediump float;
-varying vec2 vTextureCoord;
-uniform sampler2D texture;
-uniform vec3 uColor;
-
-void main() {
-    float offset = 1.0 / 600.0; // テクスチャの寸法に基づいてこの値を調整
-    vec4 blurColor = vec4(0.0);
-    // 周囲の複数点をサンプリング
-    for (int x = -1; x <= 1; x++) {
-        for (int y = -1; y <= 1; y++) {
-            vec2 sampleCoord = vTextureCoord + vec2(x, y) * offset;
-            blurColor += texture2D(texture, sampleCoord);
-        }
-    }
-    blurColor /= 9.0; // 9つのサンプルの色を平均
-
-    // 色フィルターを適用
-    blurColor.r *= uColor.r;
-    blurColor.g *= uColor.g;
-    blurColor.b *= uColor.b;
-    gl_FragColor = vec4(blurColor.rgb, 1.0);
-}
-)glsl";
-#endif
-
-// Fragment shader TV
-#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-const char *fragmentShaderTv = R"glsl(
-#version 100
-precision mediump float;
-varying vec2 vTextureCoord;
-uniform sampler2D texture;
-uniform vec3 uColor;
-uniform float screenWidth;
-uniform float screenHeight;
-
-void main() {
-    vec4 texColor = texture2D(texture, vTextureCoord);
-
-    // テクスチャ座標をスクリーン座標に変換
-    int x = int(vTextureCoord.x * screenWidth*1.0);
-    int y = int(vTextureCoord.y * screenHeight*1.0);
-    int channel = int(mod(float(x + int(mod(float(y), 3.0))), 3.0));
-
-    vec3 color;
-    if (channel == 0) {
-        color = vec3(texColor.r * uColor.r * 3.0, texColor.g * uColor.g * 0.5, texColor.b * uColor.b * 0.5);  // 赤
-    } else if (channel == 1) {
-        color = vec3(texColor.r * uColor.r * 0.5, texColor.g * uColor.g * 3.0, texColor.b * uColor.b * 0.5);  // 緑
-    } else {
-        color = vec3(texColor.r * uColor.r * 0.5, texColor.g * uColor.g * 0.5, texColor.b * uColor.b * 3.0);  // 青
-    }
-
-    gl_FragColor = vec4(color, 1.0);
-}
-)glsl";
-#endif
-
-// Fragment shader GreenDisplay
-#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
-const char *fragmentShaderGreenDisplay = R"glsl(
-#version 100
-precision mediump float;
-varying vec2 vTextureCoord;
-uniform sampler2D texture;
-uniform vec3 uColor;
-uniform float screenWidth;
-uniform float screenHeight;
-
-void main() {
-    vec4 texColor = texture2D(texture, vTextureCoord);
-
-    // テクスチャ座標をスクリーン座標に変換
-    int x = int(vTextureCoord.x * screenWidth*1.0);
-    int y = int(vTextureCoord.y * screenHeight*1.0);
-    int channel = int(mod(float(x + int(mod(float(y), 3.0))), 3.0));
-
-    vec3 color = vec3(0.0, 0.0, 0.0);
-
-    // グレースケール変換
-    float gray = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
-
-    if (channel == 0) {
-        color = vec3(0.0, gray * uColor.g * 0.7, 0.0);
-    } else if (channel <= 1) {
-        color = vec3(0.0, gray * uColor.g * 1.2, 0.0);
-    } else {
-        color = vec3(0.0, gray * uColor.g * 0.8, 0.0);
-    }
-
-    gl_FragColor = vec4(color, 1.0);
-}
-)glsl";
-#endif
-
 std::vector<GLfloat> vertexScreen = {-1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f};
 std::vector<GLuint> indices = {0, 1, 2, 1, 3, 2};
 std::vector<GLfloat> texCoords = {0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+
+uint16_t emulator_screen_type = EMULATOR_SCREEN_TYPE_DEFAULT;
 
 class GlProgress {
 private:
@@ -614,27 +403,99 @@ public:
         vertex[6] = engine->screenInfo.leftEmuScreenOffset;   vertex[7]  = 1.0f;
         vertex[9] = engine->screenInfo.rightEmuScreenOffset;  vertex[10] = 1.0f;
         SET_SCREEN_FILTER(SCREEN_FILTER_NONE);
-        glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram H0");
+        glUseProgram(engine->shaderProgram[shader_type]); checkGLError("glUseProgram H0");
         glBindTexture(GL_TEXTURE_2D, textureId); checkGLError("glBindTexture H1");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri H2");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri H3");
         glActiveTexture(GL_TEXTURE0); checkGLError("glActiveTexture H6");
-        GLint textureLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "texture"); checkGLError("glGetUniformLocation H7");
+        GLint textureLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "texture"); checkGLError("glGetUniformLocation H7");
         if (textureLocation > -1) {
             glUniform1i(textureLocation, 0); checkGLError("glUniform1i H8");
         }
-        GLint colorLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "uColor"); checkGLError("glGetUniformLocation H9");
+        GLint colorLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "uColor"); checkGLError("glGetUniformLocation H9");
         if (colorLocation > -1) {
             glUniform3f(colorLocation, r, g, b); checkGLError("glUniform3f H10");
         }
-        GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "screenWidth"); checkGLError("glGetUniformLocation H11");
+        GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenWidth"); checkGLError("glGetUniformLocation H11");
         if (screenWidthLocation > -1) {
             glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f H12");
         }
-        GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "screenHeight"); checkGLError("glGetUniformLocation H13");
+        GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenHeight"); checkGLError("glGetUniformLocation H13");
         if (screenHeightLocation > -1) {
             glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f H14");
         }
+        glEnableVertexAttribArray(0); checkGLError("glEnableVertexAttribArray H15");
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertex.data()); checkGLError("glVertexAttribPointer H16");
+        glEnableVertexAttribArray(1); checkGLError("glEnableVertexAttribArray H17");
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texCoords.data()); checkGLError("glVertexAttribPointer H18");
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices.data()); checkGLError("glDrawElements H19");
+        glDisableVertexAttribArray(0); checkGLError("glDisableVertexAttribArray H20");
+        glDisableVertexAttribArray(1); checkGLError("glDisableVertexAttribArray H21");
+        glBindTexture(GL_TEXTURE_2D, 0); checkGLError("glBindTexture H22");
+        glUseProgram(0); checkGLError("glUseProgram H23");
+    }
+};
+
+class GlWallPaper {
+private:
+    struct engine *engine;
+    GLuint textureId;
+    std::vector<uint8_t> bmpImage8;
+    std::vector<GLfloat> vertex = {-1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f};
+    std::vector<GLuint> indices = {0, 1, 2, 1, 3, 2};
+    std::vector<GLfloat> texCoords = {0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+    bool isValid = false;
+    int width, height;
+public:
+    GlWallPaper(struct engine* engine) : engine(engine) {
+        glGenTextures(1, &textureId); checkGLError("glGenTextures G1");
+    }
+
+    ~GlWallPaper() {
+        engine = nullptr;
+        glDeleteTextures(1, &textureId);
+    }
+
+    void UpdateTexture(std::vector<uint8_t> inputImage, int updateWidth, int updateHeight) {
+        width = updateWidth;
+        height = updateHeight;
+        LOGI("Update WallPaper Texture %d, %d", width, height);
+        bmpImage8 = inputImage;
+        glBindTexture(GL_TEXTURE_2D, textureId); checkGLError("glBindTexture G2");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); checkGLError("glTexParameteri G15");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); checkGLError("glTexParameteri G16");
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bmpImage8.data());
+        checkGLError("glTexImage2D G3");
+        glBindTexture(GL_TEXTURE_2D, 0); checkGLError("glBindTexture G4");
+        isValid = true;
+        // vertex の内容をダンプ（1回のダンプで x, y, z の要素をログに出すこと）
+        for (int i = 0; i < vertex.size(); i += 3) {
+            LOGI("vertex[%d] = (%f, %f, %f)", i, vertex[i], vertex[i + 1], vertex[i + 2]);
+        }
+    }
+
+    void ReloadTexture() {
+        if (!isValid) return;
+        glBindTexture(GL_TEXTURE_2D, textureId); checkGLError("glTexImage2D G5");
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bmpImage8.data());
+        checkGLError("glTexImage2D G6");
+    }
+
+    void Draw(int shader_type) {
+        if (!isValid) return;
+        glUseProgram(engine->shaderProgram[shader_type]); checkGLError("glUseProgram H0");
+        glBindTexture(GL_TEXTURE_2D, textureId); checkGLError("glBindTexture H1");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri H2");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri H3");
+        glActiveTexture(GL_TEXTURE0); checkGLError("glActiveTexture H6");
+        GLint textureLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "texture"); checkGLError("glGetUniformLocation H7");
+        if (textureLocation > -1) { glUniform1i(textureLocation, 0); checkGLError("glUniform1i H8"); }
+        GLint colorLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "uColor"); checkGLError("glGetUniformLocation H9");
+        if (colorLocation > -1) { glUniform3f(colorLocation, 1.0f, 1.0f, 1.0f); checkGLError("glUniform3f H10"); }
+        GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenWidth"); checkGLError("glGetUniformLocation H11");
+        if (screenWidthLocation > -1) { glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f H12"); }
+        GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenHeight"); checkGLError("glGetUniformLocation H13");
+        if (screenHeightLocation > -1) { glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f H14"); }
         glEnableVertexAttribArray(0); checkGLError("glEnableVertexAttribArray H15");
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertex.data()); checkGLError("glVertexAttribPointer H16");
         glEnableVertexAttribArray(1); checkGLError("glEnableVertexAttribArray H17");
@@ -726,18 +587,13 @@ private:
                 checkGLError("glTexImage2D F2");
                 break;
         }
-#ifdef USE_SCREEN_FILTER
-        if (config.filter_type == SCREEN_FILTER_DOT) {
+        if (config.shader_dot > 0) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri F3");
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri F4");
         } else {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); checkGLError("glTexParameteri F5");
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); checkGLError("glTexParameteri F6");
         }
-#else
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-#endif
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri F7");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); checkGLError("glTexParameteri F8");
         LOGI("Generate Icon : %d '%s' (%d, %d) width=%d height=%d", id, name.c_str(), iconTypeNumber, iconIndexNumber, width, height);
@@ -795,14 +651,15 @@ public:
     GlIcon(struct engine *engine, int id, enum systemIconType systemIconType, bool isTogglle, bool toggleValue) :
             engine(engine),
             id(id),
-            name(systemIconType == SYSTEM_EXIT     ? "EXIT"
-                  : systemIconType == SYSTEM_RESET    ? "RESET"
-                  : systemIconType == SYSTEM_SOUND    ? "SOUND"
-                  : systemIconType == SYSTEM_PCG      ? "PCG"
-                  : systemIconType == SYSTEM_CONFIG   ? "CONFIG"
-                  : systemIconType == SYSTEM_KEYBOARD ? "KEYBOARD"
-                  : systemIconType == SYSTEM_MOUSE    ? "MOUSE"
-                  : "Other"),
+            name(systemIconType == SYSTEM_EXIT      ? "EXIT"
+               : systemIconType == SYSTEM_RESET     ? "RESET"
+               : systemIconType == SYSTEM_SOUND     ? "SOUND"
+               : systemIconType == SYSTEM_PCG       ? "PCG"
+               : systemIconType == SYSTEM_CONFIG    ? "CONFIG"
+               : systemIconType == SYSTEM_KEYBOARD  ? "KEYBOARD"
+               : systemIconType == SYSTEM_MOUSE     ? "MOUSE"
+               : systemIconType == SYSTEM_WALLPAPER ? "WALLPAPER"
+               : "Other"),
             iconType(SYSTEM_ICON),
             isValid(true),
             FileSelectType(FILE_SELECT_NONE),
@@ -971,9 +828,9 @@ public:
             alreadyOutputLog = true;
         }
         SET_SCREEN_FILTER(SCREEN_FILTER_NONE);
-        glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram A0");
+        glUseProgram(engine->shaderProgram[shader_type]); checkGLError("glUseProgram A0");
         glBindTexture(GL_TEXTURE_2D, textureId); checkGLError("glBindTexture A1");
-        if (filter_type == SCREEN_FILTER_DOT) {
+        if (config.shader_dot > 0) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri A2");
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri A3");
         } else {
@@ -981,19 +838,19 @@ public:
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); checkGLError("glTexParameteri A5");
         }
         glActiveTexture(GL_TEXTURE0); checkGLError("glActiveTexture A6");
-        GLint textureLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "texture"); checkGLError("glGetUniformLocation A7");
+        GLint textureLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "texture"); checkGLError("glGetUniformLocation A7");
         if (textureLocation > -1) {
             glUniform1i(textureLocation, 0); checkGLError("glUniform1i A8");
         }
-        GLint colorLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "uColor"); checkGLError("glGetUniformLocation A9");
+        GLint colorLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "uColor"); checkGLError("glGetUniformLocation A9");
         if (colorLocation > -1) {
             glUniform3f(colorLocation, r, g, b); checkGLError("glUniform3f A10");
         }
-        GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "screenWidth"); checkGLError("glGetUniformLocation A11");
+        GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenWidth"); checkGLError("glGetUniformLocation A11");
         if (screenWidthLocation > -1) {
             glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f A12");
         }
-        GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "screenHeight"); checkGLError("glGetUniformLocation A13");
+        GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenHeight"); checkGLError("glGetUniformLocation A13");
         if (screenHeightLocation > -1) {
             glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f A14");
         }
@@ -1040,6 +897,8 @@ public:
                     return SYSTEM_KEYBOARD;
                 case SYSTEM_MOUSE:
                     return SYSTEM_MOUSE;
+                case SYSTEM_WALLPAPER:
+                    return SYSTEM_WALLPAPER;
             }
         }
         return SYSTEM_NONE; // 四角形外
@@ -1053,8 +912,146 @@ public:
 
 std::vector<GlIcon> glIcons;
 GlProgress *glProgress = nullptr;
+GlWallPaper *glWallPaper = nullptr;
 
 #endif // _USE_OPENGL_ES20 || _USE_OPENGL_ES30
+
+// Vertex shader Normal
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+const char *vertexShaderNormal = R"glsl(
+#version 100
+attribute vec4 vertexPosition;
+attribute vec2 textureCoord;
+varying vec2 vTextureCoord;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+void main() {
+    gl_Position = projectionMatrix * viewMatrix * vertexPosition;
+    vTextureCoord = textureCoord;
+}
+)glsl";
+#endif
+
+// Fragment shader Color
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+const char *fragmentShaderColor = R"glsl(
+#version 100
+precision mediump float;
+varying vec2 vTextureCoord;
+uniform sampler2D texture;
+uniform vec3 uColor;
+
+void main() {
+    vec4 texColor = texture2D(texture, vTextureCoord);
+    float alpha = (texColor.r <= 0.05 && texColor.g <= 0.05 && texColor.b <= 0.05) ? 0.0 : 1.0;
+    gl_FragColor = vec4(texColor.r * uColor.r, texColor.g * uColor.g, texColor.b * uColor.b, alpha);
+}
+)glsl";
+#endif
+
+// Fragment shader Blur
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+const char *fragmentShaderBlur = R"glsl(
+#version 100
+precision mediump float;
+varying vec2 vTextureCoord;
+uniform sampler2D texture;
+uniform vec3 uColor;
+
+void main() {
+    float offset = 1.0 / 600.0; // テクスチャの寸法に基づいてこの値を調整
+    vec4 blurColor = vec4(0.0);
+    // 周囲の複数点をサンプリング
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            vec2 sampleCoord = vTextureCoord + vec2(x, y) * offset;
+            blurColor += texture2D(texture, sampleCoord);
+        }
+    }
+    blurColor /= 9.0; // 9つのサンプルの色を平均
+
+    // 色フィルターを適用
+    blurColor.r *= uColor.r;
+    blurColor.g *= uColor.g;
+    blurColor.b *= uColor.b;
+    float alpha = (blurColor.r <= 0.05 && blurColor.g <= 0.05 && blurColor.b <= 0.05) ? 0.0 : 1.0;
+    gl_FragColor = vec4(blurColor.rgb, alpha);
+}
+)glsl";
+#endif
+
+// Fragment shader TV
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+const char *fragmentShaderTv = R"glsl(
+#version 100
+precision mediump float;
+varying vec2 vTextureCoord;
+uniform sampler2D texture;
+uniform vec3 uColor;
+uniform float screenWidth;
+uniform float screenHeight;
+
+void main() {
+    vec4 texColor = texture2D(texture, vTextureCoord);
+
+    // テクスチャ座標をスクリーン座標に変換
+    int x = int(vTextureCoord.x * screenWidth*1.0);
+    int y = int(vTextureCoord.y * screenHeight*1.0);
+    int channel = int(mod(float(x + int(mod(float(y), 3.0))), 3.0));
+
+    vec3 color;
+    if (channel == 0) {
+        color = vec3(texColor.r * uColor.r * 3.0, texColor.g * uColor.g * 0.5, texColor.b * uColor.b * 0.5);  // 赤
+    } else if (channel == 1) {
+        color = vec3(texColor.r * uColor.r * 0.5, texColor.g * uColor.g * 3.0, texColor.b * uColor.b * 0.5);  // 緑
+    } else {
+        color = vec3(texColor.r * uColor.r * 0.5, texColor.g * uColor.g * 0.5, texColor.b * uColor.b * 3.0);  // 青
+    }
+
+    float alpha = (texColor.r <= 0.05 && texColor.g <= 0.05 && texColor.b <= 0.05) ? 0.0 : 1.0;
+    gl_FragColor = vec4(color, alpha);
+}
+)glsl";
+#endif
+
+// Fragment shader GreenDisplay
+#if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+const char *fragmentShaderGreenDisplay = R"glsl(
+#version 100
+precision mediump float;
+varying vec2 vTextureCoord;
+uniform sampler2D texture;
+uniform vec3 uColor;
+uniform float screenWidth;
+uniform float screenHeight;
+
+void main() {
+    vec4 texColor = texture2D(texture, vTextureCoord);
+
+    // テクスチャ座標をスクリーン座標に変換
+    int x = int(vTextureCoord.x * screenWidth*1.0);
+    int y = int(vTextureCoord.y * screenHeight*1.0);
+    int channel = int(mod(float(x + int(mod(float(y), 3.0))), 3.0));
+
+    vec3 color = vec3(0.0, 0.0, 0.0);
+
+    // グレースケール変換
+    float gray = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+
+    if (channel == 0) {
+        color = vec3(0.0, gray * uColor.g * 0.7, 0.0);
+    } else if (channel <= 1) {
+        color = vec3(0.0, gray * uColor.g * 1.2, 0.0);
+    } else {
+        color = vec3(0.0, gray * uColor.g * 0.8, 0.0);
+    }
+
+    float alpha = (texColor.r <= 0.05 && texColor.g <= 0.05 && texColor.b <= 0.05) ? 0.0 : 1.0;
+    gl_FragColor = vec4(color, alpha);
+}
+)glsl";
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // input
@@ -1141,6 +1138,7 @@ static void toggle_soft_keyboard(struct android_app *app);
 void checkPermissionsAndInitialize(JNIEnv *env, jobject activity);
 std::vector<uint8_t> getClipboardText(struct android_app *app);
 static void callJavaFinish(struct android_app* app);
+void openFilePicker(struct android_app* app);
 
 #define SOFT_KEYBOARD_KEEP_COUNT  3
 int softKeyboardCount = 0;
@@ -1500,7 +1498,6 @@ void android_main(struct android_app *state) {
             break;
         }
     }
-    LOGI("F");
 
     // 権限付与待機ループ処理後のクリーンアップ
     globalAppState = nullptr;
@@ -1513,6 +1510,7 @@ void android_main(struct android_app *state) {
 #if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
     initializeGlIcons(&engine);
     initializeGlProgress(&engine);
+    initializeGlWallPaper(&engine);
 #endif
 
     struct timespec now;
@@ -1686,13 +1684,21 @@ void android_main(struct android_app *state) {
 
         if (engine.animating && needDraw) {
 #if defined(_USE_OPENGL_ES20) || defined(_USE_OPENGL_ES30)
+            SET_SCREEN_FILTER(SCREEN_FILTER_NONE);
             beginOpenGlFrame(&engine);
             calculateScreenInfo(&engine);
-            calculateCameraProjectionMatrix(&engine);
+            // 壁紙描画
+            int wall_shader_type = SCREEN_FILTER_NONE;
+            calculateCameraProjectionMatrix(&engine, wall_shader_type);
+            drawOpenGlWallPaper(&engine, wall_shader_type);
+            // エミュレータ画面描画
+            calculateCameraProjectionMatrix(&engine, shader_type);
             updateViewPort(&engine);
             updateTextureOpenGlFrame(&engine);
+            enableAlphaBlending();
             drawOpenGlFrame(&engine);
             drawOpenGlIcon(&engine);
+            disableBlending();
 #if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
             drawOpenGlProgress(&engine, tape_position);
 #endif
@@ -2261,6 +2267,13 @@ void EventProc(engine* engine, MenuNode menuNode)
                     config.sound_tape_voice = !config.sound_tape_voice;
                     break;
 #endif
+#ifdef USE_MOUSE
+                case ID_MOUSE_SENSITIVE_0: case ID_MOUSE_SENSITIVE_1: case ID_MOUSE_SENSITIVE_2: // Medamap
+                case ID_MOUSE_SENSITIVE_3: case ID_MOUSE_SENSITIVE_4: case ID_MOUSE_SENSITIVE_5: case ID_MOUSE_SENSITIVE_6:
+                case ID_MOUSE_SENSITIVE_7: case ID_MOUSE_SENSITIVE_8: case ID_MOUSE_SENSITIVE_9: case ID_MOUSE_SENSITIVE_10:
+                    config.mouse_sensitivity = (LOWORD(wParam) - ID_MOUSE_SENSITIVE_0);
+                    break;
+#endif
 #ifdef USE_MONITOR_TYPE
                 case ID_VM_MONITOR_TYPE0: case ID_VM_MONITOR_TYPE1: case ID_VM_MONITOR_TYPE2: case ID_VM_MONITOR_TYPE3:
                 case ID_VM_MONITOR_TYPE4: case ID_VM_MONITOR_TYPE5: case ID_VM_MONITOR_TYPE6: case ID_VM_MONITOR_TYPE7:
@@ -2465,23 +2478,24 @@ void EventProc(engine* engine, MenuNode menuNode)
                     break;
 //#endif
 #endif
-#ifdef USE_SCREEN_FILTER
                 case ID_FILTER_NONE:
-                    config.filter_type = SCREEN_FILTER_NONE;
-                    break;
-                case ID_FILTER_DOT:
-                    config.filter_type = SCREEN_FILTER_DOT;
+                    config.shader_type = SCREEN_FILTER_NONE;
                     break;
                 case ID_FILTER_BLUR:
-                    config.filter_type = SCREEN_FILTER_BLUR;
+                    config.shader_type = SCREEN_FILTER_BLUR;
                     break;
                 case ID_FILTER_RGB:
-                    config.filter_type = SCREEN_FILTER_RGB;
+                    config.shader_type = SCREEN_FILTER_RGB;
                     break;
                 case ID_FILTER_GREEN:
-                    config.filter_type = SCREEN_FILTER_GREEN;
+                    config.shader_type = SCREEN_FILTER_GREEN;
                     break;
-#endif
+                case ID_FILTER_DOT:
+                    config.shader_dot = 1 - config.shader_dot;
+                    break;
+                case ID_FILTER_SUPERIMPOSE:
+                    config.shader_superimpose = 1 - config.shader_superimpose;
+                    break;
                 case ID_SOUND_ON:
                     emu->get_osd()->reset_sound();
                     emu->get_osd()->soundEnable = !(emu->get_osd()->soundEnable);
@@ -3316,10 +3330,9 @@ void update_host_screen_menu(Menu *hMenu)
 }
 #endif
 
-#ifdef USE_SCREEN_FILTER
 void update_host_filter_menu(Menu *hMenu)
 {
-    switch(config.filter_type) {
+    switch(config.shader_type) {
         case SCREEN_FILTER_GREEN:
             hMenu->CheckMenuRadioItem(ID_FILTER_NONE, ID_FILTER_GREEN, ID_FILTER_GREEN);
             break;
@@ -3329,15 +3342,13 @@ void update_host_filter_menu(Menu *hMenu)
         case SCREEN_FILTER_BLUR:
             hMenu->CheckMenuRadioItem(ID_FILTER_NONE, ID_FILTER_GREEN, ID_FILTER_BLUR);
             break;
-        case SCREEN_FILTER_DOT:
-            hMenu->CheckMenuRadioItem(ID_FILTER_NONE, ID_FILTER_GREEN, ID_FILTER_DOT);
-            break;
         default:
             hMenu->CheckMenuRadioItem(ID_FILTER_NONE, ID_FILTER_GREEN, ID_FILTER_NONE);
             break;
     }
+    hMenu->CheckMenuItem(ID_FILTER_SUPERIMPOSE, config.shader_superimpose == 1);
+    hMenu->CheckMenuItem(ID_FILTER_DOT, config.shader_dot == 1);
 }
-#endif
 
 void update_host_sound_menu(Menu *hMenu)
 {
@@ -3385,6 +3396,11 @@ void update_host_screen_margin_menu(Menu *hMenu)
 {
     hMenu->CheckMenuRadioItem(ID_SCREEN_TOP_MARGIN_0, ID_SCREEN_TOP_MARGIN_270, ID_SCREEN_TOP_MARGIN_0 + config.screen_top_margin / 30);
     hMenu->CheckMenuRadioItem(ID_SCREEN_BOTTOM_MARGIN_0, ID_SCREEN_BOTTOM_MARGIN_270, ID_SCREEN_BOTTOM_MARGIN_0 + config.screen_bottom_margin / 30);
+}
+
+void update_host_mouse_sensitivity_menu(Menu *hMenu)
+{
+    hMenu->CheckMenuRadioItem(ID_MOUSE_SENSITIVE_0, ID_MOUSE_SENSITIVE_10, ID_MOUSE_SENSITIVE_0 + config.mouse_sensitivity);
 }
 
 void update_host_screen_iconsize_menu(Menu *hMenu)
@@ -3568,14 +3584,13 @@ void update_popup_menu(Menu *hMenu)
 #ifndef ONE_BOARD_MICRO_COMPUTER
     update_host_screen_menu(hMenu);
 #endif
-#ifdef USE_SCREEN_FILTER
     update_host_filter_menu(hMenu);
-#endif
     update_host_sound_menu(hMenu);
     update_host_input_menu(hMenu);
 #ifdef USE_VIDEO_CAPTURE
     update_host_capture_menu(hMenu);
 #endif
+    update_host_mouse_sensitivity_menu(hMenu);
     update_host_screen_margin_menu(hMenu);
     update_host_screen_iconsize_menu(hMenu);
 }
@@ -5313,10 +5328,9 @@ void initializeShaders(struct engine* engine) {
     GLuint fragmentShaderGreenDisplayId = loadShader(GL_FRAGMENT_SHADER, fragmentShaderGreenDisplay);
     std::vector<GLuint> shaders = {
             vertexShaderNormalId, fragmentShaderColorId,
-            vertexShaderNormalId, fragmentShaderColorId,
             vertexShaderNormalId, fragmentShaderBlurId,
             vertexShaderNormalId, fragmentShaderTvId,
-            vertexShaderNormalId, fragmentShaderGreenDisplayId
+            vertexShaderNormalId, fragmentShaderGreenDisplayId,
     };
 
     // シェーダプログラムの作成
@@ -5368,6 +5382,7 @@ void initializeGlIcons(struct engine* engine) {
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_MOUSE, true, emu->get_osd()->is_mouse_enabled());
 #endif
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_SOUND, true, config.sound_on);
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_WALLPAPER, false, false);
 #if defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700)
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_PCG, true, config.dipswitch & 1);
 #elif defined(SUPPORT_PC88_PCG8100)
@@ -5378,6 +5393,10 @@ void initializeGlIcons(struct engine* engine) {
 
 void initializeGlProgress(struct engine* engine) {
     glProgress = new GlProgress(engine, 0, 255, 0);
+}
+
+void initializeGlWallPaper(struct engine* engine) {
+    glWallPaper = new GlWallPaper(engine);
 }
 
 // カメラ行列を計算する関数
@@ -5554,18 +5573,17 @@ void calculateScreenInfo(struct engine* engine) {
 }
 
 // カメラとプロジェクション行列を計算し、OpenGL にセットする
-void calculateCameraProjectionMatrix(struct engine* engine) {
+void calculateCameraProjectionMatrix(struct engine* engine, int shader_type) {
     // シェーダー設定
-    SET_SCREEN_FILTER(SCREEN_FILTER_NONE);
-    glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram B1");
+    glUseProgram(engine->shaderProgram[shader_type]); checkGLError("glUseProgram B1");
     // カメラと投影行列の計算
     calculateLookAt(viewMatrix, 0, 0, 1, 0, 0, 0, 0, 1, 0); // カメラ行列
     calculateOrtho(projectionMatrix, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f); // 並行透視投影
     // viewMatrixを渡す
-    GLint viewMatrixLoc = glGetUniformLocation(engine->shaderProgram[filter_type], "viewMatrix"); checkGLError("glGetUniformLocation B2");
+    GLint viewMatrixLoc = glGetUniformLocation(engine->shaderProgram[shader_type], "viewMatrix"); checkGLError("glGetUniformLocation B2");
     glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, viewMatrix); checkGLError("glUniformMatrix4fv B3");
     // projectionMatrixを渡す
-    GLint projectionMatrixLoc = glGetUniformLocation(engine->shaderProgram[filter_type], "projectionMatrix");  checkGLError("glGetUniformLocation B4");
+    GLint projectionMatrixLoc = glGetUniformLocation(engine->shaderProgram[shader_type], "projectionMatrix");  checkGLError("glGetUniformLocation B4");
     glUniformMatrix4fv(projectionMatrixLoc, 1, GL_FALSE, projectionMatrix); checkGLError("glUniformMatrix4fv B5");
     glUseProgram(0); checkGLError("glUseProgram B6");
 }
@@ -5611,14 +5629,14 @@ void updateTextureOpenGlFrame(struct engine* engine) {
 
     // シェーダ設定
     SET_SCREEN_FILTER(SCREEN_FILTER_NONE);
-    glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram D1");
+    glUseProgram(engine->shaderProgram[shader_type]); checkGLError("glUseProgram D1");
     // エミュレータ画面テクスチャ設定
     if (engine->textureId.size() == 0) engine->textureId.resize(1);
     if (engine->textureId[0] == 0) {
         // 初回設定時
         glGenTextures(1, engine->textureId.data()); checkGLError("glGenTextures D2");
         glBindTexture(GL_TEXTURE_2D, engine->textureId[0]); checkGLError("glBindTexture D3");
-        if (filter_type == SCREEN_FILTER_DOT) {
+        if (config.shader_dot > 0) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri D4");
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri D5");
         } else {
@@ -5630,7 +5648,7 @@ void updateTextureOpenGlFrame(struct engine* engine) {
     } else {
         // 2回目以降
         glBindTexture(GL_TEXTURE_2D, engine->textureId[0]); checkGLError("glBindTexture D10");
-        if (filter_type == SCREEN_FILTER_DOT) {
+        if (config.shader_dot > 0) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); checkGLError("glTexParameteri D11");
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri D12");
         } else {
@@ -5657,30 +5675,42 @@ void updateTextureOpenGlFrame(struct engine* engine) {
     glUseProgram(0); checkGLError("glUseProgram D18");
 }
 
-// mark2
+void enableAlphaBlending() {
+    if (config.shader_superimpose > 0) {
+        glEnable(GL_BLEND); // ブレンドを有効にする
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // アルファ値に基づいたブレンディングを設定
+    } else {
+        glDisable(GL_BLEND); // ブレンドを無効にする
+    }
+}
+
+void disableBlending() {
+    glDisable(GL_BLEND); // ブレンドを無効にする
+}
+
 void drawOpenGlFrame(struct engine* engine) {
     SET_SCREEN_FILTER(SCREEN_FILTER_NONE);
     // シェーダーをセット
-    glUseProgram(engine->shaderProgram[filter_type]); checkGLError("glUseProgram E1");
+    glUseProgram(engine->shaderProgram[shader_type]); checkGLError("glUseProgram E1");
     // テクスチャをセット
     glBindTexture(GL_TEXTURE_2D, engine->textureId[0]); checkGLError("glBindTexture E2");
     glActiveTexture(GL_TEXTURE0);  checkGLError("glActiveTexture E3");
-    GLint textureLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "texture"); checkGLError("glGetUniformLocation E4");
+    GLint textureLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "texture"); checkGLError("glGetUniformLocation E4");
     if (textureLocation > -1) {
         glUniform1i(textureLocation, 0); checkGLError("glUniform1i E5");
     }
     // シェーダーパラメータ uColor を設定
-    GLint colorLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "uColor"); checkGLError("glGetUniformLocation E6");
+    GLint colorLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "uColor"); checkGLError("glGetUniformLocation E6");
     if (colorLocation > -1) {
         glUniform3f(colorLocation, 1.0f, 1.0f, 1.0f); checkGLError("glUniform3f E7");
     }
     // シェーダーに画面の横サイズをセット
-    GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "screenWidth"); checkGLError("glGetUniformLocation E8");
+    GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenWidth"); checkGLError("glGetUniformLocation E8");
     if (screenWidthLocation > -1) {
         glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f E9");
     }
     // シェーダーに画面の縦サイズをセット
-    GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[filter_type], "screenHeight"); checkGLError("glGetUniformLocation E10");
+    GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenHeight"); checkGLError("glGetUniformLocation E10");
     if (screenHeightLocation > -1) {
         glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f E11");
     }
@@ -5711,6 +5741,11 @@ void drawOpenGlProgress(struct engine* engine, int progress) {
     glProgress->Draw();
 }
 
+void drawOpenGlWallPaper(struct engine* engine, int shader_type) {
+    glViewport(0, 0, deviceInfo.width, deviceInfo.height);
+    glWallPaper->Draw(shader_type);
+}
+
 void resumeStatusOpenGlIcon(struct engine* engine) {
     // アイコン再読み込み
     for (auto& icon : glIcons) {
@@ -5719,6 +5754,9 @@ void resumeStatusOpenGlIcon(struct engine* engine) {
     }
     if (glProgress) {
         glProgress->ReloadTexture();
+    }
+    if (glWallPaper) {
+        glWallPaper->ReloadTexture();
     }
 }
 
@@ -5764,6 +5802,9 @@ void clickOpenGlIcon(struct android_app *app, float x, float y) {
                 icon.SetToggleValue(emu->get_osd()->is_mouse_enabled());
                 break;
 #endif
+            case SYSTEM_WALLPAPER:
+                openFilePicker(app);
+                break;
             case SYSTEM_NONE:
                 break;
             case SYSTEM_ICON_MAX:
@@ -7448,14 +7489,11 @@ BitmapData jniCreateBitmapFromString(struct android_app *state, const char *text
     state->activity->vm->AttachCurrentThread(&jni, NULL);
 
     jclass clazz = jni->GetObjectClass(state->activity->clazz);
-    jmethodID jCreateBitmapFromString = jni->GetMethodID(clazz, "createBitmapFromString",
-                                                         "(Ljava/lang/String;I)[I");
+    jmethodID jCreateBitmapFromString = jni->GetMethodID(clazz, "createBitmapFromString", "(Ljava/lang/String;I)[I");
 
     int width, height;
     jstring jtext = jni->NewStringUTF(text);
-    jintArray ja = (jintArray) (jni->CallObjectMethod(state->activity->clazz,
-                                                      jCreateBitmapFromString, jtext,
-                                                      fontSize));
+    jintArray ja = (jintArray) (jni->CallObjectMethod(state->activity->clazz, jCreateBitmapFromString, jtext, fontSize));
     int jasize = jni->GetArrayLength(ja);
     jint *arr1;
     arr1 = jni->GetIntArrayElements(ja, 0);
@@ -7547,19 +7585,28 @@ std::vector<uint8_t> getClipboardText(struct android_app *app) {
 static void callJavaFinish(struct android_app* app) {
     JNIEnv* jni;
     app->activity->vm->AttachCurrentThread(&jni, NULL);
-    // MainActivity クラスを取得
     jclass clazz = jni->GetObjectClass(app->activity->clazz);
-    // doFinish メソッドの ID を取得
     jmethodID methodID = jni->GetMethodID(clazz, "doFinish", "()V");
     if (methodID == nullptr) {
         __android_log_print(ANDROID_LOG_ERROR, "JNI", "Failed to find the doFinish method");
         return;
     }
-    // doFinish メソッドを呼び出す
     jni->CallVoidMethod(app->activity->clazz, methodID);
-    // リソースの解放
     jni->DeleteLocalRef(clazz);
-    // スレッドをデタッチ
+    app->activity->vm->DetachCurrentThread();
+}
+
+void openFilePicker(struct android_app* app) {
+    JNIEnv* jni;
+    app->activity->vm->AttachCurrentThread(&jni, NULL);
+    jclass clazz = jni->GetObjectClass(app->activity->clazz);
+    jmethodID methodID = jni->GetMethodID(clazz, "openFilePickerForImages", "()V");
+    if (methodID == nullptr) {
+        __android_log_print(ANDROID_LOG_ERROR, "JNI", "Failed to find the doFinish method");
+        return;
+    }
+    jni->CallVoidMethod(app->activity->clazz, methodID);
+    jni->DeleteLocalRef(clazz);
     app->activity->vm->DetachCurrentThread();
 }
 
@@ -8002,8 +8049,8 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendMouseClickEvent(JNIEnv
     LOGI("Mouse Action:%d (%d, %d)", action, (int)x, (int)y);
 
     if (action == AMOTION_EVENT_ACTION_MOVE) {
-        emu->get_osd()->get_input_mouse_buffer()[0] = (int)(x - oldX);
-        emu->get_osd()->get_input_mouse_buffer()[1] = (int)(y - oldY);
+        emu->get_osd()->get_input_mouse_buffer()[0] = (int)((x - oldX) * (((float)config.mouse_sensitivity * 0.1f) + 0.1f));
+        emu->get_osd()->get_input_mouse_buffer()[1] = (int)((y - oldY) * (((float)config.mouse_sensitivity * 0.1f) + 0.1f));
     }  else {
         emu->get_osd()->get_input_mouse_buffer()[0] = 0;
         emu->get_osd()->get_input_mouse_buffer()[1] = 0;
@@ -8022,6 +8069,60 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendMouseMovementEvent(JNI
     LOGI("Mouse Move (%d, %d)", (int)deltaX, (int)deltaY);
 #endif
 }
+
+JNIEXPORT void JNICALL
+Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendImageToNative(JNIEnv *env, jobject obj, jintArray pixels, jint width, jint height) {
+    jint *nativePixels = env->GetIntArrayElements(pixels, NULL);
+
+    // デバイスのフレームサイズを取得
+    int frameWidth = deviceInfo.width;
+    int frameHeight = deviceInfo.height;
+
+    // スケーリングファクターを計算（最小を選択してアスペクト比を保持）
+    float scaleWidth = static_cast<float>(frameWidth) / width;
+    float scaleHeight = static_cast<float>(frameHeight) / height;
+    float scale = std::min(scaleWidth, scaleHeight);
+
+    // 新しい幅と高さを計算
+    int newWidth = static_cast<int>(width * scale);
+    int newHeight = static_cast<int>(height * scale);
+
+    // オフセットを計算して中央に配置
+    int offsetX = (frameWidth - newWidth) / 2;
+    int offsetY = (frameHeight - newHeight) / 2;
+
+    // 処理用の画像バッファを初期化（黒で塗りつぶし）
+    std::vector<uint8_t> wallpaperImage(frameWidth * frameHeight * 4, 0);
+
+    for (int y = 0; y < newHeight; ++y) {
+        for (int x = 0; x < newWidth; ++x) {
+            // スケーリング後のソース座標を計算
+            int srcX = static_cast<int>(x / scale);
+            int srcY = static_cast<int>(y / scale);
+
+            if (srcX < width && srcY < height) {
+                int srcIndex = (srcY * width + srcX);
+                int destX = x + offsetX;
+                int destY = y + offsetY;
+                int destIndex = (destY * frameWidth + destX) * 4;
+
+                uint32_t pixel = nativePixels[srcIndex];
+                // 各ピクセル成分を割り当て（RGBA）
+                wallpaperImage[destIndex] = (pixel >> 16) & 0xFF;  // R
+                wallpaperImage[destIndex + 1] = (pixel >> 8) & 0xFF;  // G
+                wallpaperImage[destIndex + 2] = pixel & 0xFF;  // B
+                wallpaperImage[destIndex + 3] = (pixel >> 24) & 0xFF;  // A
+            }
+        }
+    }
+
+    // OpenGLテクスチャを更新
+    glWallPaper->UpdateTexture(wallpaperImage, frameWidth, frameHeight);
+
+    // JNI配列のリリース
+    env->ReleaseIntArrayElements(pixels, nativePixels, JNI_ABORT);
+}
+
 
 } //extern"C"
 

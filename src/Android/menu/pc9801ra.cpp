@@ -129,12 +129,25 @@ Menu::Menu() {
     addNode(hostRecId, "Stop", Property, ID_HOST_REC_STOP);
     addNode(hostRecId, "Capture Screen", Property, ID_HOST_CAPTURE_SCREEN);
 
+    int mouseId2 = addNode(hostId, "Mouse", Category, -1);
+    addNode(mouseId2, "Mouse Sensitive 10", Property, ID_MOUSE_SENSITIVE_10);
+    addNode(mouseId2, "Mouse Sensitive 9", Property, ID_MOUSE_SENSITIVE_9);
+    addNode(mouseId2, "Mouse Sensitive 8", Property, ID_MOUSE_SENSITIVE_8);
+    addNode(mouseId2, "Mouse Sensitive 7", Property, ID_MOUSE_SENSITIVE_7);
+    addNode(mouseId2, "Mouse Sensitive 6", Property, ID_MOUSE_SENSITIVE_6);
+    addNode(mouseId2, "Mouse Sensitive 5", Property, ID_MOUSE_SENSITIVE_5);
+    addNode(mouseId2, "Mouse Sensitive 4", Property, ID_MOUSE_SENSITIVE_4);
+    addNode(mouseId2, "Mouse Sensitive 3", Property, ID_MOUSE_SENSITIVE_3);
+    addNode(mouseId2, "Mouse Sensitive 2", Property, ID_MOUSE_SENSITIVE_2);
+    addNode(mouseId2, "Mouse Sensitive 1", Property, ID_MOUSE_SENSITIVE_1);
+    addNode(mouseId2, "Mouse Sensitive 0", Property, ID_MOUSE_SENSITIVE_0);
+
     addNode(hostScreenId, "Rotate 0deg", Property, ID_SCREEN_ROTATE_0);
     addNode(hostScreenId, "Rotate +90deg", Property, ID_SCREEN_ROTATE_90);
     addNode(hostScreenId, "Rotate 180deg", Property, ID_SCREEN_ROTATE_180);
     addNode(hostScreenId, "Rotate -90deg", Property, ID_SCREEN_ROTATE_270);
 
-    int iconSize1 = addNode(screenId, "H System Icon Size", Category, -1);
+    int iconSize1 = addNode(hostScreenId, "H System Icon Size", Category, -1);
     addNode(iconSize1, "12", Property, ID_SCREEN_HS_ICON_SIZE_12);
     addNode(iconSize1, "19", Property, ID_SCREEN_HS_ICON_SIZE_19);
     addNode(iconSize1, "26", Property, ID_SCREEN_HS_ICON_SIZE_26);
@@ -144,7 +157,7 @@ Menu::Menu() {
     addNode(iconSize1, "54", Property, ID_SCREEN_HS_ICON_SIZE_54);
     addNode(iconSize1, "61", Property, ID_SCREEN_HS_ICON_SIZE_61);
 
-    int iconSize2 = addNode(screenId, "H File Icon Size", Category, -1);
+    int iconSize2 = addNode(hostScreenId, "H File Icon Size", Category, -1);
     addNode(iconSize2, "12", Property, ID_SCREEN_HF_ICON_SIZE_12);
     addNode(iconSize2, "19", Property, ID_SCREEN_HF_ICON_SIZE_19);
     addNode(iconSize2, "26", Property, ID_SCREEN_HF_ICON_SIZE_26);
@@ -154,7 +167,7 @@ Menu::Menu() {
     addNode(iconSize2, "54", Property, ID_SCREEN_HF_ICON_SIZE_54);
     addNode(iconSize2, "61", Property, ID_SCREEN_HF_ICON_SIZE_61);
 
-    int iconSize3 = addNode(screenId, "V System Icon Size", Category, -1);
+    int iconSize3 = addNode(hostScreenId, "V System Icon Size", Category, -1);
     addNode(iconSize3, "12", Property, ID_SCREEN_VS_ICON_SIZE_12);
     addNode(iconSize3, "19", Property, ID_SCREEN_VS_ICON_SIZE_19);
     addNode(iconSize3, "26", Property, ID_SCREEN_VS_ICON_SIZE_26);
@@ -164,7 +177,7 @@ Menu::Menu() {
     addNode(iconSize3, "54", Property, ID_SCREEN_VS_ICON_SIZE_54);
     addNode(iconSize3, "61", Property, ID_SCREEN_VS_ICON_SIZE_61);
 
-    int iconSize4 = addNode(screenId, "V File Icon Size", Category, -1);
+    int iconSize4 = addNode(hostScreenId, "V File Icon Size", Category, -1);
     addNode(iconSize4, "12", Property, ID_SCREEN_VF_ICON_SIZE_12);
     addNode(iconSize4, "19", Property, ID_SCREEN_VF_ICON_SIZE_19);
     addNode(iconSize4, "26", Property, ID_SCREEN_VF_ICON_SIZE_26);
@@ -202,8 +215,9 @@ Menu::Menu() {
     addNode(filterId, "Green Filter", Property, ID_FILTER_GREEN);
     addNode(filterId, "RGB Filter", Property, ID_FILTER_RGB);
     addNode(filterId, "Blur Filter", Property, ID_FILTER_BLUR);
-    addNode(filterId, "DOT", Property, ID_FILTER_DOT);
     addNode(filterId, "None", Property, ID_FILTER_NONE);
+    addNode(filterId, "DOT Mode", Property, ID_FILTER_DOT);
+    addNode(filterId, "SuperImpose Mode", Property, ID_FILTER_SUPERIMPOSE);
 
     addNode(hostSoundId, "Switch On / Off", Property, ID_SOUND_ON);
     addNode(hostSoundId, "2000Hz", Property, ID_SOUND_FREQ0);

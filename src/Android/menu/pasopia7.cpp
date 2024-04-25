@@ -92,6 +92,19 @@ Menu::Menu() {
     addNode(hostId, "Stop", Property, ID_HOST_REC_STOP);
     addNode(hostId, "Capture Screen", Property, ID_HOST_CAPTURE_SCREEN);
 
+    int mouseId2 = addNode(hostId, "Mouse", Category, -1);
+    addNode(mouseId2, "Mouse Sensitive 10", Property, ID_MOUSE_SENSITIVE_10);
+    addNode(mouseId2, "Mouse Sensitive 9", Property, ID_MOUSE_SENSITIVE_9);
+    addNode(mouseId2, "Mouse Sensitive 8", Property, ID_MOUSE_SENSITIVE_8);
+    addNode(mouseId2, "Mouse Sensitive 7", Property, ID_MOUSE_SENSITIVE_7);
+    addNode(mouseId2, "Mouse Sensitive 6", Property, ID_MOUSE_SENSITIVE_6);
+    addNode(mouseId2, "Mouse Sensitive 5", Property, ID_MOUSE_SENSITIVE_5);
+    addNode(mouseId2, "Mouse Sensitive 4", Property, ID_MOUSE_SENSITIVE_4);
+    addNode(mouseId2, "Mouse Sensitive 3", Property, ID_MOUSE_SENSITIVE_3);
+    addNode(mouseId2, "Mouse Sensitive 2", Property, ID_MOUSE_SENSITIVE_2);
+    addNode(mouseId2, "Mouse Sensitive 1", Property, ID_MOUSE_SENSITIVE_1);
+    addNode(mouseId2, "Mouse Sensitive 0", Property, ID_MOUSE_SENSITIVE_0);
+
     int screenId = addNode(hostId, "Screen", Category, -1);
     addNode(screenId, "Rotate 0deg", Property, ID_SCREEN_ROTATE_0);
     addNode(screenId, "Rotate +90deg", Property, ID_SCREEN_ROTATE_90);
@@ -166,8 +179,9 @@ Menu::Menu() {
     addNode(filterId, "Green Filter", Property, ID_FILTER_GREEN);
     addNode(filterId, "RGB Filter", Property, ID_FILTER_RGB);
     addNode(filterId, "Blur Filter", Property, ID_FILTER_BLUR);
-    addNode(filterId, "DOT", Property, ID_FILTER_DOT);
     addNode(filterId, "None", Property, ID_FILTER_NONE);
+    addNode(filterId, "DOT Mode", Property, ID_FILTER_DOT);
+    addNode(filterId, "SuperImpose Mode", Property, ID_FILTER_SUPERIMPOSE);
 
     int soundId2 = addNode(hostId, "Sound", Category, -1);
     addNode(soundId2, "Switch On / Off", Property, ID_SOUND_ON);

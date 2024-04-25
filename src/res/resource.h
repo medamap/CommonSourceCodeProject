@@ -352,11 +352,12 @@
 #if defined(__ANDROID__)
 #define ID_FILTER_MENU_START            41401
 #define ID_FILTER_NONE                  41401
-#define ID_FILTER_DOT                   41402
-#define ID_FILTER_BLUR                  41403
-#define ID_FILTER_RGB                   41404
-#define ID_FILTER_GREEN                 41405
-#define ID_FILTER_MENU_END              41405
+#define ID_FILTER_BLUR                  41402
+#define ID_FILTER_RGB                   41403
+#define ID_FILTER_GREEN                 41404
+#define ID_FILTER_DOT                   41410
+#define ID_FILTER_SUPERIMPOSE           41411
+#define ID_FILTER_MENU_END              41412
 #else
 #define ID_FILTER_MENU_START            41401
 #define ID_FILTER_RGB                   41401
@@ -762,6 +763,19 @@
 #define ID_SCREEN_VF_ICON_SIZE_61       45507
 
 #define ID_SOUND_ON                     45510
+
+#define ID_MOUSE_SENSITIVE_0            45520
+#define ID_MOUSE_SENSITIVE_1            45521
+#define ID_MOUSE_SENSITIVE_2            45522
+#define ID_MOUSE_SENSITIVE_3            45523
+#define ID_MOUSE_SENSITIVE_4            45524
+#define ID_MOUSE_SENSITIVE_5            45525
+#define ID_MOUSE_SENSITIVE_6            45526
+#define ID_MOUSE_SENSITIVE_7            45527
+#define ID_MOUSE_SENSITIVE_8            45528
+#define ID_MOUSE_SENSITIVE_9            45529
+#define ID_MOUSE_SENSITIVE_10           45530
+
 #endif
 
 // Next default values for new objects

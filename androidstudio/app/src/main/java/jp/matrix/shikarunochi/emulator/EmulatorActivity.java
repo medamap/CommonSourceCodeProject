@@ -10,12 +10,14 @@ import android.app.NativeActivity;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -23,12 +25,15 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.ParcelFileDescriptor;
+import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -47,6 +52,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
@@ -55,6 +62,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class EmulatorActivity extends NativeActivity {
 
     private static final int PERMISSIONS_REQUEST_CODE = 1;
+    private static final int REQUEST_CODE_FILE_PICKER = 123;
     private volatile boolean permissionsGranted = false;
     private static final String[] PERMISSIONS_REQUIRED = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -191,6 +199,7 @@ public class EmulatorActivity extends NativeActivity {
     private native void nativeOnPermissionsGranted();
     private native void nativeOnPermissionsDenied();
 
+
     private boolean hasPermissions() {
         Log.i(TAG, "Checking permissions");
         // 基本的なファイルアクセス権限をチェック
@@ -242,6 +251,94 @@ public class EmulatorActivity extends NativeActivity {
                 }
             }
         });
+    }
+
+    public void openFilePickerForImages() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("*/*");  // この設定は後の EXTRA_MIME_TYPES により上書きされます。
+        String[] mimeTypes = {"image/jpeg", "image/png"};
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+        startActivityForResult(intent, REQUEST_CODE_FILE_PICKER);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_FILE_PICKER && resultCode == Activity.RESULT_OK) {
+            if (data != null) {
+                Uri uri = data.getData();
+                if (uri != null) {
+                    // 選択されたファイルに対する処理を行う
+                    handleSelectedFile(uri);
+                }
+            }
+        }
+    }
+
+    private Bitmap getBitmapFromUri(Uri uri) throws IOException {
+        ParcelFileDescriptor parcelFileDescriptor = getContentResolver().openFileDescriptor(uri, "r");
+        FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+        Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+        parcelFileDescriptor.close();
+        return image;
+    }
+
+    private void handleSelectedFile(Uri fileUri) {
+        try {
+            Bitmap bitmap = getBitmapFromUri(fileUri);
+            if (bitmap != null) {
+                int width = bitmap.getWidth();
+                int height = bitmap.getHeight();
+                int[] pixels = new int[width * height];
+                bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+                // NDKにピクセルデータを送る
+                sendImageToNative(pixels, width, height);
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "File select error", e);
+        }
+    }
+
+    private native void sendImageToNative(int[] pixels, int width, int height);
+
+    // URIから実際のファイルパスを取得するメソッド
+    private String getRealPathFromUri(Uri uri) {
+        String filePath = "";
+        if (DocumentsContract.isDocumentUri(this, uri)) {
+            String documentId = DocumentsContract.getDocumentId(uri);
+            if ("com.android.externalstorage.documents".equals(uri.getAuthority())) {
+                String[] split = documentId.split(":");
+                if (split.length >= 2) {
+                    String type = split[0];
+                    if ("primary".equalsIgnoreCase(type)) {
+                        filePath = getExternalFilesDir(null) + "/" + split[1];
+                    }
+                }
+            } else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())) {
+                Uri contentUri = ContentUris.withAppendedId(
+                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(documentId));
+                filePath = getDataColumn(this, contentUri, null, null);
+            }
+        } else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            filePath = getDataColumn(this, uri, null, null);
+        }
+        return filePath;
+    }
+
+    // URIからデータ列を取得するメソッド
+    private String getDataColumn(Context context, Uri uri, String selection, String[] selectionArgs) {
+        String column = "_data";
+        String[] projection = {column};
+        try (Cursor cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndexOrThrow(column);
+                return cursor.getString(columnIndex);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     // C++ 側からアクセス可能なメソッド
@@ -630,6 +727,8 @@ public class EmulatorActivity extends NativeActivity {
                         return R.drawable.keyboard;
                     case 6:
                         return R.drawable.mouse;
+                    case 7:
+                        return R.drawable.wallpaper;
 
              }
             case 1://mediaIcon
