@@ -1149,6 +1149,7 @@ bool romajiKeyCtrl = false;
 
 int softKeyCode = 0;
 bool softKeyDelayFlag = false;
+int softKeyAction = 0;
 
 // グローバル参照を保持するための変数
 JavaVM* g_JavaVM = nullptr;
@@ -1711,10 +1712,10 @@ void android_main(struct android_app *state) {
                 softKeyboardCount--;
                 if (softKeyboardCount == 0) {
                     if (softKeyCtrl == true) {
-                        emu->get_osd()->key_up(113, false);
+                        emu->get_osd()->key_up(AKEYCODE_CTRL_LEFT, false);
                     }
                     if (softKeyShift == true) {
-                        emu->get_osd()->key_up(59, false);
+                        emu->get_osd()->key_up(AKEYCODE_SHIFT_LEFT, false);
                     }
                     emu->get_osd()->key_up(softKeyCode, false);
                     softKeyShift = false;
@@ -5940,25 +5941,40 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
         }
         return 0;
     } else if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_KEY) {
-        LOGI("Key event: action=%d keyCode=%d metaState=0x%x flags=%d source=%d",
-             AKeyEvent_getAction(event),
-             AKeyEvent_getKeyCode(event),
-             AKeyEvent_getMetaState(event),
-             AKeyEvent_getFlags(event),
-             AInputEvent_getSource(event)
-        );
         int action = AKeyEvent_getAction(event);
         int code = AKeyEvent_getKeyCode(event);
-
+        int meta = AKeyEvent_getMetaState(event);
         int flags = AKeyEvent_getFlags(event);
         int source = AInputEvent_getSource(event);
+        //LOGI("Key event: action=%d keyCode=%d metaState=0x%x flags=%d source=%d", action, code, meta, flags, source);
+
+        if (source == AINPUT_SOURCE_JOYSTICK || source == AINPUT_SOURCE_GAMEPAD) {
+            switch (code) {
+                case AKEYCODE_DPAD_UP:          code = AKEYCODE_NUMPAD_8; break;
+                case AKEYCODE_DPAD_DOWN:        code = AKEYCODE_NUMPAD_2; break;
+                case AKEYCODE_DPAD_LEFT:        code = AKEYCODE_NUMPAD_4; break;
+                case AKEYCODE_DPAD_RIGHT:       code = AKEYCODE_NUMPAD_6; break;
+                case AKEYCODE_BUTTON_A:         code = AKEYCODE_Z;        break;
+                case AKEYCODE_BUTTON_B:         code = AKEYCODE_X;        break;
+                case AKEYCODE_BUTTON_X:         code = AKEYCODE_ENTER;    break;
+                case AKEYCODE_BUTTON_Y:         code = AKEYCODE_SPACE;    break;
+                case AKEYCODE_BUTTON_START:     code = AKEYCODE_ESCAPE;   break;
+                case AKEYCODE_BUTTON_SELECT:    code = AKEYCODE_TAB;     break;
+                case AKEYCODE_BUTTON_L1:        code = AKEYCODE_F1;       break;
+                case AKEYCODE_BUTTON_R1:        code = AKEYCODE_F2;       break;
+                case AKEYCODE_BUTTON_L2:        code = AKEYCODE_F3;       break;
+                case AKEYCODE_BUTTON_R2:        code = AKEYCODE_F4;       break;
+                case AKEYCODE_BUTTON_THUMBL:    code = AKEYCODE_F5;       break;
+                case AKEYCODE_BUTTON_THUMBR:    code = AKEYCODE_F6;       break;
+            }
+        }
 
         if (action == AKEY_EVENT_ACTION_DOWN) {
             if (code == AKEYCODE_BACK) {
                 return 1;
             }
             if ((flags & AKEY_EVENT_FLAG_FROM_SYSTEM) == 0) { //ソフトウェアキーボード
-                LOGI("SoftwareKeyboard:count:%d", softKeyboardCount);
+                //LOGI("SoftwareKeyboard:count:%d", softKeyboardCount);
                 if (softKeyboardCount > 0) {
                     return 1;
                 } else {
@@ -5973,7 +5989,6 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                         if (softKeyCtrl) {
                             emu->get_osd()->key_down(AKEYCODE_CTRL_LEFT, false, false);
                             softKeyDelayFlag = true;
-                            //emu->get_osd()->key_down(softKeyCode, false, false);
                             softKeyboardCount = SOFT_KEYBOARD_KEEP_COUNT;
                         }
                         if (softKeyShift) {
@@ -5985,7 +6000,6 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                                 softKeyShift = false;
                             }
                             softKeyDelayFlag = true;
-                            //emu->get_osd()->key_down(softKeyCode, false, false);
                             softKeyboardCount = SOFT_KEYBOARD_KEEP_COUNT;
                         } else {
                             softKeyCode = androidToAndroidToVk[code][1];
@@ -5996,12 +6010,12 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
                                 softKeyShift = false;
                             }
                             softKeyDelayFlag = true;
-                            //emu->get_osd()->key_down(softKeyCode, false, false);
+                            if (source != AINPUT_SOURCE_JOYSTICK && source != AINPUT_SOURCE_GAMEPAD) {
+                                softKeyboardCount = SOFT_KEYBOARD_KEEP_COUNT;
+                            }
                         }
-                        softKeyboardCount = SOFT_KEYBOARD_KEEP_COUNT;
                     }
                 }
-
             } else {
 #if defined(USE_AUTO_KEY)
                 if(config.romaji_to_kana){
@@ -6036,7 +6050,7 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
             if (AKEYCODE_BACK == AKeyEvent_getKeyCode(event)) {
                 //emu->get_osd()->key_up(111, false);
             } else if ((flags & AKEY_EVENT_FLAG_FROM_SYSTEM) == 0) { //ソフトウェアキーボード
-
+                emu->get_osd()->key_up(softKeyCode, false);
             } else {
                 emu->get_osd()->key_up(code, false);
             }
@@ -6905,6 +6919,14 @@ void openRecentCartDialog(struct android_app *state, int drv) {
             concatenatedPaths += config.recent_cart_path[drv][history];  // パスを追加
         }
     }
+    int offset = 0;
+    for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
+        if (fileSelectIconData[i].fileSelectType == CARTRIDGE) {
+            offset = i;
+            break;
+        }
+    }
+    selectingIconIndex = offset + drv;
     selectCart(state, drv, concatenatedPaths.c_str());
 #endif
 }
@@ -6923,6 +6945,14 @@ void openRecentFloppyDiskDialog(struct android_app *state, int drv) {
             concatenatedPaths += config.recent_floppy_disk_path[drv][history];  // パスを追加
         }
     }
+    int offset = 0;
+    for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
+        if (fileSelectIconData[i].fileSelectType == FLOPPY_DISK) {
+            offset = i;
+            break;
+        }
+    }
+    selectingIconIndex = offset + drv;
     selectFloppyDisk(state, drv, concatenatedPaths.c_str());
 #endif
 }
@@ -6941,6 +6971,14 @@ void openRecentQuickDiskDialog(struct android_app *state, int drv) {
             concatenatedPaths += config.recent_quick_disk_path[drv][history];  // パスを追加
         }
     }
+    int offset = 0;
+    for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
+        if (fileSelectIconData[i].fileSelectType == QUICK_DISK) {
+            offset = i;
+            break;
+        }
+    }
+    selectingIconIndex = offset + drv;
     selectQuickDisk(state, drv, concatenatedPaths.c_str());
 #endif
 }
@@ -6959,6 +6997,14 @@ void openRecentHardDiskDialog(struct android_app *state, int drv) {
             concatenatedPaths += config.recent_hard_disk_path[drv][history];  // パスを追加
         }
     }
+    int offset = 0;
+    for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
+        if (fileSelectIconData[i].fileSelectType == HARD_DISK) {
+            offset = i;
+            break;
+        }
+    }
+    selectingIconIndex = offset + drv;
     selectHardDisk(state, drv, concatenatedPaths.c_str());
 #endif
 }
@@ -6977,6 +7023,14 @@ std::wstring concatenatedPaths;  // Unicode 環境の場合
             concatenatedPaths += config.recent_compact_disc_path[drv][history];  // パスを追加
         }
     }
+    int offset = 0;
+    for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
+        if (fileSelectIconData[i].fileSelectType == COMPACT_DISC) {
+            offset = i;
+            break;
+        }
+    }
+    selectingIconIndex = offset + drv;
     selectCompactDisc(state, drv, concatenatedPaths.c_str());
 #endif
 }
@@ -6995,6 +7049,14 @@ void openRecentTapeDialog(struct android_app *state, int drv) {
             concatenatedPaths += config.recent_tape_path[drv][history];  // パスを追加
         }
     }
+    int offset = 0;
+    for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
+        if (fileSelectIconData[i].fileSelectType == CASETTE_TAPE) {
+            offset = i;
+            break;
+        }
+    }
+    selectingIconIndex = offset + drv;
     selectTape(state, drv, concatenatedPaths.c_str());
 #endif
 }
@@ -7013,6 +7075,14 @@ void openRecentBubbleCasetteDialog(struct android_app *state, int drv) {
             concatenatedPaths += config.recent_bubble_casette_path[drv][history];  // パスを追加
         }
     }
+    int offset = 0;
+    for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
+        if (fileSelectIconData[i].fileSelectType == BUBBLE_CASETTE) {
+            offset = i;
+            break;
+        }
+    }
+    selectingIconIndex = offset + drv;
     selectBubbleCasette(state, drv, concatenatedPaths.c_str());
 #endif
 }
@@ -7031,6 +7101,14 @@ void openRecentBinaryDialog(struct android_app *state, int drv) {
             concatenatedPaths += config.recent_binary_path[drv][history];  // パスを追加
         }
     }
+    int offset = 0;
+    for (int i = 0; i < MAX_FILE_SELECT_ICON; i++) {
+        if (fileSelectIconData[i].fileSelectType == BINARY) {
+            offset = i;
+            break;
+        }
+    }
+    selectingIconIndex = offset + drv;
     selectBinary(state, drv, concatenatedPaths.c_str());
 #endif
 }
@@ -8032,25 +8110,53 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_exitSelectCallback(JNIEnv 
 }
 
 float oldX, oldY;
+int pointerCountHistory[5] = {0, 0, 0, 0, 0};
 
 JNIEXPORT void JNICALL
-Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendMouseClickEvent(JNIEnv *env, jobject thiz, jint action, jfloat x, jfloat y, jint pointerCount) {
+Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendMouseClickEvent(JNIEnv *env, jobject thiz, jint action, jfloat x, jfloat y, jint pointerCount, jint buttonState) {
 #ifdef USE_MOUSE
-    // action を使ってクリックの瞬間と終了を検知して処理
-    if (action == AMOTION_EVENT_ACTION_DOWN && pointerCount == 1) {
-        emu->get_osd()->get_input_mouse_buffer()[2] |= 0x01;
-    } else if (action == AMOTION_EVENT_ACTION_UP) {
-        emu->get_osd()->get_input_mouse_buffer()[2] &= ~0x01;
-    } else if (action == AMOTION_EVENT_ACTION_POINTER_DOWN && pointerCount == 1) {
-        emu->get_osd()->get_input_mouse_buffer()[2] |= 0x02;
-    } else if (action == AMOTION_EVENT_ACTION_POINTER_UP) {
-        emu->get_osd()->get_input_mouse_buffer()[2] &= ~0x02;
+    pointerCountHistory[0] = pointerCountHistory[1];
+    pointerCountHistory[1] = pointerCountHistory[2];
+    pointerCountHistory[2] = pointerCountHistory[3];
+    pointerCountHistory[3] = pointerCountHistory[4];
+    pointerCountHistory[4] = pointerCount;
+    bool isDown = action == AMOTION_EVENT_ACTION_DOWN || action == AMOTION_EVENT_ACTION_POINTER_DOWN || action == AMOTION_EVENT_ACTION_MOVE;
+    bool isUp = action == AMOTION_EVENT_ACTION_UP || action == AMOTION_EVENT_ACTION_POINTER_UP || action == AMOTION_EVENT_ACTION_MOVE;
+
+    bool isLeftClick  = pointerCountHistory[0] <= 2 && pointerCountHistory[1] <= 2 && pointerCountHistory[2] <= 2 && pointerCountHistory[3] <= 2 && pointerCountHistory[4] == 2;
+    bool isRightClick = pointerCountHistory[0] <= 3 && pointerCountHistory[1] <= 3 && pointerCountHistory[2] <= 3 && pointerCountHistory[3] <= 3 && pointerCountHistory[4] == 3;
+
+    if ((isDown && isLeftClick) || (isDown && (buttonState & 1) > 0)) {
+        emu->get_osd()->get_input_mouse_buffer()[2] = 0x01;
     }
-    LOGI("Mouse Action:%d (%d, %d)", action, (int)x, (int)y);
+    else if ((isDown && isRightClick) || (isDown && (buttonState & 2) > 0)) {
+        emu->get_osd()->get_input_mouse_buffer()[2] = 0x02;
+    }
+    else if (isUp) {
+        emu->get_osd()->get_input_mouse_buffer()[2] = 0;
+    }
+    //LOGI("Mouse Action:%d (%d, %d) Pointer:%d Button:%d Click:%d History:[%d%d%d%d%d]",
+    //     action, (int)x, (int)y, pointerCount, buttonState, emu->get_osd()->get_input_mouse_buffer()[2]
+    //     , pointerCountHistory[0], pointerCountHistory[1], pointerCountHistory[2], pointerCountHistory[3], pointerCountHistory[4]);
+
+    float mouse_sensitivity = 1.0f;
+    switch (config.mouse_sensitivity) {
+        case 0: mouse_sensitivity = 0.1f; break;
+        case 1: mouse_sensitivity = 0.2f; break;
+        case 2: mouse_sensitivity = 0.3f; break;
+        case 3: mouse_sensitivity = 0.4f; break;
+        case 4: mouse_sensitivity = 0.5f; break;
+        case 5: mouse_sensitivity = 0.6f; break;
+        case 6: mouse_sensitivity = 0.7f; break;
+        case 7: mouse_sensitivity = 0.8f; break;
+        case 8: mouse_sensitivity = 0.9f; break;
+        case 9: mouse_sensitivity = 1.0f; break;
+        case 10: mouse_sensitivity = 1.1f; break;
+    }
 
     if (action == AMOTION_EVENT_ACTION_MOVE) {
-        emu->get_osd()->get_input_mouse_buffer()[0] = (int)((x - oldX) * (((float)config.mouse_sensitivity * 0.1f) + 0.1f));
-        emu->get_osd()->get_input_mouse_buffer()[1] = (int)((y - oldY) * (((float)config.mouse_sensitivity * 0.1f) + 0.1f));
+        emu->get_osd()->get_input_mouse_buffer()[0] = (int)((x - oldX) * mouse_sensitivity);
+        emu->get_osd()->get_input_mouse_buffer()[1] = (int)((y - oldY) * mouse_sensitivity);
     }  else {
         emu->get_osd()->get_input_mouse_buffer()[0] = 0;
         emu->get_osd()->get_input_mouse_buffer()[1] = 0;
@@ -8062,11 +8168,30 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendMouseClickEvent(JNIEnv
 }
 
 JNIEXPORT void JNICALL
-Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendMouseMovementEvent(JNIEnv *env, jobject thiz, jfloat deltaX, jfloat deltaY) {
+Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendMouseMovementEvent(JNIEnv *env, jobject thiz, jfloat x, jfloat y) {
 #ifdef USE_MOUSE
-    emu->get_osd()->get_input_mouse_buffer()[0] = (int32_t)deltaX;
-    emu->get_osd()->get_input_mouse_buffer()[1] = (int32_t)deltaY;
-    LOGI("Mouse Move (%d, %d)", (int)deltaX, (int)deltaY);
+
+    float mouse_sensitivity = 1.0f;
+    switch (config.mouse_sensitivity) {
+        case 0: mouse_sensitivity = 0.1f; break;
+        case 1: mouse_sensitivity = 0.2f; break;
+        case 2: mouse_sensitivity = 0.3f; break;
+        case 3: mouse_sensitivity = 0.4f; break;
+        case 4: mouse_sensitivity = 0.5f; break;
+        case 5: mouse_sensitivity = 0.6f; break;
+        case 6: mouse_sensitivity = 0.7f; break;
+        case 7: mouse_sensitivity = 0.8f; break;
+        case 8: mouse_sensitivity = 0.9f; break;
+        case 9: mouse_sensitivity = 1.0f; break;
+        case 10: mouse_sensitivity = 1.1f; break;
+    }
+
+    emu->get_osd()->get_input_mouse_buffer()[0] = (int32_t)((x - oldX) * mouse_sensitivity);
+    emu->get_osd()->get_input_mouse_buffer()[1] = (int32_t)((y - oldY) * mouse_sensitivity);
+    //LOGI("Mouse Move (%d, %d)", (int)((x - oldX) * mouse_sensitivity), (int)((y - oldY) * mouse_sensitivity));
+
+    oldX = x;
+    oldY = y;
 #endif
 }
 
@@ -8123,6 +8248,26 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendImageToNative(JNIEnv *
     env->ReleaseIntArrayElements(pixels, nativePixels, JNI_ABORT);
 }
 
+JNIEXPORT void JNICALL
+Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendJoypadInputToNative(JNIEnv *env, jobject obj, jint index, jfloat axisX, jfloat axisY, jint keyCode, jint action) {
+
+    switch (index) {
+        case 0:
+            if (action == 1) {
+                //LOGI("Pressed key: %d", keyCode);
+            } else {
+                //LOGI("Released key: %d", keyCode);
+            }
+            break;
+        case 1:
+            //LOGI("AxisX,Y = %f, %f", axisX, axisY);
+            break;
+        case 2:
+            //LOGI("AxisZ,RZ = %f, %f", axisX, axisY);
+            break;
+    }
+
+}
 
 } //extern"C"
 

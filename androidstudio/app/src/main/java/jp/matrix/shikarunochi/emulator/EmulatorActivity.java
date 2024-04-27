@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.NativeActivity;
+import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -63,6 +64,7 @@ public class EmulatorActivity extends NativeActivity {
 
     private static final int PERMISSIONS_REQUEST_CODE = 1;
     private static final int REQUEST_CODE_FILE_PICKER = 123;
+    private static final int REQUEST_ENABLE_BT = 1;
     private volatile boolean permissionsGranted = false;
     private static final String[] PERMISSIONS_REQUIRED = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -75,8 +77,10 @@ public class EmulatorActivity extends NativeActivity {
             "android.permission.BLUETOOTH_CONNECT"
     };
 
-    private native void sendMouseClickEvent(int action, float x, float y, int pointerCount);
+    private native void sendMouseClickEvent(int action, float x, float y, int pointerCount, int buttonState);
     private native void sendMouseMovementEvent(float x, float y);
+
+    private native void sendJoypadInputToNative(int index, float axisX, float axisY, int keyCode, int action);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,23 +98,24 @@ public class EmulatorActivity extends NativeActivity {
             initializeApp();
         }
 
+        // Bluetoothを有効にするIntentを発行
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter != null && !bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
         setContentView(R.layout.activity_main);
         View mouseView = findViewById(R.id.mouseView);
         mouseView.setOnTouchListener(new View.OnTouchListener() { // この行でエラー
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 int action = event.getActionMasked();
+                int buttonState = event.getButtonState();
                 int pointerCount = event.getPointerCount();
                 float x = event.getX();
                 float y = event.getY();
-                if (action == MotionEvent.ACTION_DOWN ||            // 0
-                    action == MotionEvent.ACTION_UP ||              // 1
-                    action == MotionEvent.ACTION_MOVE ||            // 2
-                    action == MotionEvent.ACTION_POINTER_DOWN ||    // 5
-                    action == MotionEvent.ACTION_POINTER_UP         // 6
-                ) {
-                    sendMouseClickEvent(action, x, y, pointerCount);
-                }
+                sendMouseClickEvent(action, x, y, pointerCount, buttonState);
                 return true;
             }
         });
@@ -122,11 +127,9 @@ public class EmulatorActivity extends NativeActivity {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         int action = event.getActionMasked();
-        //if (action == MotionEvent.ACTION_MOVE) {
-            float deltaX = event.getX() - event.getHistoricalX(0);
-            float deltaY = event.getY() - event.getHistoricalY(0);
-            sendMouseMovementEvent(deltaX, deltaY);
-        //}
+        if (action == MotionEvent.ACTION_MOVE) {
+            sendMouseMovementEvent(event.getX(), event.getY());
+        }
         return super.onTouchEvent(event);
     }
 
@@ -138,7 +141,43 @@ public class EmulatorActivity extends NativeActivity {
             // マウスカーソルの移動を検知してNDKに送信
             sendMouseMovementEvent(deltaX, deltaY);
         }
+        else if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) ||
+                event.isFromSource(InputDevice.SOURCE_GAMEPAD)) {
+            // ジョイパッドからの入力を処理
+            float axisX = event.getAxisValue(MotionEvent.AXIS_X);
+            float axisY = event.getAxisValue(MotionEvent.AXIS_Y);
+            // ここでジョイパッドの入力をログまたは処理
+            handleJoystickInput(axisX, axisY, event);
+        }
         return super.onGenericMotionEvent(event);
+    }
+
+    private void handleJoystickInput(float axisX, float axisY, MotionEvent event) {
+        sendJoypadInputToNative(1, axisX, axisY, 0, 0);
+
+        // 他のボタンやアナログスティックの状態もここでチェック
+        float axisZ = event.getAxisValue(MotionEvent.AXIS_Z);
+        float axisRZ = event.getAxisValue(MotionEvent.AXIS_RZ);
+        // その他の必要な軸のデータを追加
+        sendJoypadInputToNative(2, axisZ, axisRZ, 0, 0);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) ||
+                event.isFromSource(InputDevice.SOURCE_GAMEPAD)) {
+            sendJoypadInputToNative(0, 0, 0, keyCode, 1);
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) ||
+                event.isFromSource(InputDevice.SOURCE_GAMEPAD)) {
+            sendJoypadInputToNative(0, 0, 0, keyCode, 0);
+        }
+        return super.onKeyUp(keyCode, event);
     }
 
     public void enableImmersiveMode() {
@@ -272,6 +311,15 @@ public class EmulatorActivity extends NativeActivity {
                     // 選択されたファイルに対する処理を行う
                     handleSelectedFile(uri);
                 }
+            }
+        }
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (resultCode == RESULT_OK) {
+                // ユーザーが Bluetooth を有効にした場合の処理
+                // 例えば、Bluetooth デバイスのスキャンを開始するなど
+            } else {
+                // ユーザーが Bluetooth を有効にしなかった場合の処理
+                // 例えば、エラーメッセージを表示するなど
             }
         }
     }

@@ -1235,7 +1235,7 @@ enum ScreenSize {
     SCREEN_SIZE_SPECIAL = 4
 };
 
-#define MAX_FILE_SELECT_ICON 10
+#define MAX_FILE_SELECT_ICON 20
 struct FileSelectIconData{
 	FileSelectType fileSelectType;
 	int driveNo;
