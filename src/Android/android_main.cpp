@@ -57,16 +57,12 @@
 #include "Android/menu/BaseMenu.h"
 #include "res/resource.h"
 
-// ストレージ権限付与イベント
-#define PERMISSIONS_GRANTED_EVENT 1
-
 ////////////////////////////////////////////////////////////////////////////////
 // emulation core
 
 EMU *emu;
 
 static double now_ms(void);
-static uint16_t make565(int red, int green, int blue);
 static void stats_init(Stats *s);
 static void stats_startFrame(Stats *s);
 static void stats_endFrame(Stats *s);
@@ -152,6 +148,7 @@ void update_vm_device_menu(Menu hMenu);
 void update_vm_drive_menu(Menu hMenu);
 void update_vm_keyboard_menu(Menu hMenu);
 void update_vm_mouse_menu(Menu hMenu);
+void update_vm_joystick_basic_menu(Menu *hMenu);
 void update_vm_joystick_menu(Menu hMenu);
 void update_vm_sound_menu(Menu hMenu);
 void update_vm_monitor_menu(Menu hMenu);
@@ -659,6 +656,7 @@ public:
                : systemIconType == SYSTEM_KEYBOARD  ? "KEYBOARD"
                : systemIconType == SYSTEM_MOUSE     ? "MOUSE"
                : systemIconType == SYSTEM_WALLPAPER ? "WALLPAPER"
+               : systemIconType == SYSTEM_JOYSTICK  ? "JOYSTICK"
                : "Other"),
             iconType(SYSTEM_ICON),
             isValid(true),
@@ -899,6 +897,8 @@ public:
                     return SYSTEM_MOUSE;
                 case SYSTEM_WALLPAPER:
                     return SYSTEM_WALLPAPER;
+                case SYSTEM_JOYSTICK:
+                    return SYSTEM_JOYSTICK;
             }
         }
         return SYSTEM_NONE; // 四角形外
@@ -1139,6 +1139,7 @@ void checkPermissionsAndInitialize(JNIEnv *env, jobject activity);
 std::vector<uint8_t> getClipboardText(struct android_app *app);
 static void callJavaFinish(struct android_app* app);
 void openFilePicker(struct android_app* app);
+void callGetJoyPadInformation(struct android_app* app);
 
 #define SOFT_KEYBOARD_KEEP_COUNT  3
 int softKeyboardCount = 0;
@@ -1187,12 +1188,6 @@ static double now_ms(void) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_sec * 1000. + tv.tv_usec / 1000.;
-}
-
-static uint16_t make565(int red, int green, int blue) {
-    return (uint16_t) (((red << 8) & 0xf800) |
-                       ((green << 3) & 0x07e0) |
-                       ((blue >> 3) & 0x001f));
 }
 
 static void stats_init(Stats *s) {
@@ -1513,6 +1508,8 @@ void android_main(struct android_app *state) {
     initializeGlProgress(&engine);
     initializeGlWallPaper(&engine);
 #endif
+
+    callGetJoyPadInformation(state); // ジョイパッド情報取得用デバッグメソッド
 
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
@@ -2522,7 +2519,7 @@ void EventProc(engine* engine, MenuNode menuNode)
                     }
                     break;
 #if !defined(__ANDROID__)
-                    #ifdef USE_SOUND_VOLUME
+#ifdef USE_SOUND_VOLUME
                 case ID_SOUND_VOLUME:
                     // thanks Marukun (64bit)
                     DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_VOLUME), hWnd, reinterpret_cast<DLGPROC>(VolumeWndProc), 0);
@@ -2538,16 +2535,16 @@ void EventProc(engine* engine, MenuNode menuNode)
                     }
                     break;
                 case ID_INPUT_JOYTOKEY:
-                {
-                // thanks Marukun (64bit)
-                LONG index = 0;
-                DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_JOYTOKEY), hWnd, reinterpret_cast<DLGPROC>(JoyToKeyWndProc), (LPARAM)&index);
-                }
-                break;
+                    {
+                        // thanks Marukun (64bit)
+                        LONG index = 0;
+                        DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_JOYTOKEY), hWnd, reinterpret_cast<DLGPROC>(JoyToKeyWndProc), (LPARAM)&index);
+                    }
+                    break;
 #endif
 #endif
 #ifdef USE_VIDEO_CAPTURE
-                    case ID_CAPTURE_FILTER:
+                case ID_CAPTURE_FILTER:
                     if(emu) {
                         emu->show_capture_dev_filter();
                     }
@@ -2575,7 +2572,7 @@ void EventProc(engine* engine, MenuNode menuNode)
                     break;
 #endif
 #ifdef USE_CART
-                    #if USE_CART >= 1
+#if USE_CART >= 1
 #define CART_MENU_ITEMS(drv, ID_OPEN_CART, ID_CLOSE_CART, ID_RECENT_CART) \
                 case ID_OPEN_CART: \
                     if(emu) { \
@@ -3225,6 +3222,21 @@ void update_vm_mouse_menu(Menu *hMenu)
 }
 #endif
 
+#ifdef USE_JOYSTICK
+void update_vm_joystick_basic_menu(Menu *hMenu)
+{
+    hMenu->EnableMenuItem(ID_INPUT_JOYSTICK0, false);
+    hMenu->EnableMenuItem(ID_INPUT_JOYSTICK1, false);
+    hMenu->EnableMenuItem(ID_INPUT_JOYSTICK2, false);
+    hMenu->EnableMenuItem(ID_INPUT_JOYSTICK3, false);
+    hMenu->EnableMenuItem(ID_INPUT_JOYSTICK4, false);
+    hMenu->EnableMenuItem(ID_INPUT_JOYSTICK5, false);
+    hMenu->EnableMenuItem(ID_INPUT_JOYSTICK6, false);
+    hMenu->EnableMenuItem(ID_INPUT_JOYSTICK7, false);
+    hMenu->EnableMenuItem(ID_INPUT_JOYTOKEY, false);
+}
+#endif
+
 #ifdef USE_JOYSTICK_TYPE
 void update_vm_joystick_menu(Menu *hMenu)
 {
@@ -3553,6 +3565,9 @@ void update_popup_menu(Menu *hMenu)
 #endif
 #ifdef USE_MOUSE_TYPE
     update_vm_mouse_menu(hMenu);
+#endif
+#ifdef USE_JOYSTICK
+    update_vm_joystick_basic_menu(hMenu);
 #endif
 #ifdef USE_JOYSTICK_TYPE
     update_vm_joystick_menu(hMenu);
@@ -5379,6 +5394,7 @@ void initializeGlIcons(struct engine* engine) {
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_EXIT, false, false);
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_RESET, false, false);
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_KEYBOARD, true, false);
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_JOYSTICK, false, false);
 #ifdef USE_MOUSE
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_MOUSE, true, emu->get_osd()->is_mouse_enabled());
 #endif
@@ -5806,6 +5822,9 @@ void clickOpenGlIcon(struct android_app *app, float x, float y) {
             case SYSTEM_WALLPAPER:
                 openFilePicker(app);
                 break;
+            case SYSTEM_JOYSTICK:
+                callGetJoyPadInformation(app);
+                break;
             case SYSTEM_NONE:
                 break;
             case SYSTEM_ICON_MAX:
@@ -5946,33 +5965,18 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
         int meta = AKeyEvent_getMetaState(event);
         int flags = AKeyEvent_getFlags(event);
         int source = AInputEvent_getSource(event);
+
+        // Back ボタンは無効化
+        if (code == AKEYCODE_BACK) {
+            return 1;
+        }
+        // ジョイスティック入力は無視する
+        if ((source & AINPUT_SOURCE_JOYSTICK) == AINPUT_SOURCE_JOYSTICK || (source & AINPUT_SOURCE_GAMEPAD) == AINPUT_SOURCE_GAMEPAD) {
+            return (code >= AKEYCODE_BUTTON_A && code <= AKEYCODE_BUTTON_MODE) ? 0 : 1;
+        }
         //LOGI("Key event: action=%d keyCode=%d metaState=0x%x flags=%d source=%d", action, code, meta, flags, source);
 
-        if (source == AINPUT_SOURCE_JOYSTICK || source == AINPUT_SOURCE_GAMEPAD) {
-            switch (code) {
-                case AKEYCODE_DPAD_UP:          code = AKEYCODE_NUMPAD_8; break;
-                case AKEYCODE_DPAD_DOWN:        code = AKEYCODE_NUMPAD_2; break;
-                case AKEYCODE_DPAD_LEFT:        code = AKEYCODE_NUMPAD_4; break;
-                case AKEYCODE_DPAD_RIGHT:       code = AKEYCODE_NUMPAD_6; break;
-                case AKEYCODE_BUTTON_A:         code = AKEYCODE_Z;        break;
-                case AKEYCODE_BUTTON_B:         code = AKEYCODE_X;        break;
-                case AKEYCODE_BUTTON_X:         code = AKEYCODE_ENTER;    break;
-                case AKEYCODE_BUTTON_Y:         code = AKEYCODE_SPACE;    break;
-                case AKEYCODE_BUTTON_START:     code = AKEYCODE_ESCAPE;   break;
-                case AKEYCODE_BUTTON_SELECT:    code = AKEYCODE_TAB;     break;
-                case AKEYCODE_BUTTON_L1:        code = AKEYCODE_F1;       break;
-                case AKEYCODE_BUTTON_R1:        code = AKEYCODE_F2;       break;
-                case AKEYCODE_BUTTON_L2:        code = AKEYCODE_F3;       break;
-                case AKEYCODE_BUTTON_R2:        code = AKEYCODE_F4;       break;
-                case AKEYCODE_BUTTON_THUMBL:    code = AKEYCODE_F5;       break;
-                case AKEYCODE_BUTTON_THUMBR:    code = AKEYCODE_F6;       break;
-            }
-        }
-
         if (action == AKEY_EVENT_ACTION_DOWN) {
-            if (code == AKEYCODE_BACK) {
-                return 1;
-            }
             if ((flags & AKEY_EVENT_FLAG_FROM_SYSTEM) == 0) { //ソフトウェアキーボード
                 //LOGI("SoftwareKeyboard:count:%d", softKeyboardCount);
                 if (softKeyboardCount > 0) {
@@ -6116,48 +6120,48 @@ void start_auto_key(struct android_app *app)
 #ifdef USE_SOUND_VOLUME
 INT_PTR CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
-switch(iMsg) {
-case WM_CLOSE:
-EndDialog(hDlg, IDCANCEL);
-break;
-case WM_INITDIALOG:
-for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-SetDlgItemText(hDlg, IDC_VOLUME_CAPTION0 + i, sound_device_caption[i]);
-SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETTICFREQ, 5, 0);
-SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETTICFREQ, 5, 0);
-SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETRANGE, TRUE, MAKELPARAM(-40, 0));
-SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETRANGE, TRUE, MAKELPARAM(-40, 0));
-SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETPOS, TRUE, max(-40, min(0, config.sound_volume_l[i])));
-SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETPOS, TRUE, max(-40, min(0, config.sound_volume_r[i])));
-//			EnableWindow(GetDlgItem(hDlg, IDC_VOLUME_CAPTION0 + i), TRUE);
-//			EnableWindow(GetDlgItem(hDlg, IDC_VOLUME_PARAM_L0 + i), TRUE);
-//			EnableWindow(GetDlgItem(hDlg, IDC_VOLUME_PARAM_R0 + i), TRUE);
-}
-break;
-case WM_COMMAND:
-switch(LOWORD(wParam)) {
-case IDOK:
-for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-config.sound_volume_l[i] = (int)SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_GETPOS, 0, 0);
-config.sound_volume_r[i] = (int)SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_GETPOS, 0, 0);
-emu->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
-}
-EndDialog(hDlg, IDOK);
-break;
-case IDC_VOLUME_RESET:
-for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETPOS, TRUE, 0);
-SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETPOS, TRUE, 0);
-}
-break;
-default:
-return FALSE;
-}
-break;
-default:
-return FALSE;
-}
-return TRUE;
+    switch(iMsg) {
+        case WM_CLOSE:
+            EndDialog(hDlg, IDCANCEL);
+            break;
+        case WM_INITDIALOG:
+            for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+                SetDlgItemText(hDlg, IDC_VOLUME_CAPTION0 + i, sound_device_caption[i]);
+                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETTICFREQ, 5, 0);
+                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETTICFREQ, 5, 0);
+                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETRANGE, TRUE, MAKELPARAM(-40, 0));
+                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETRANGE, TRUE, MAKELPARAM(-40, 0));
+                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETPOS, TRUE, max(-40, min(0, config.sound_volume_l[i])));
+                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETPOS, TRUE, max(-40, min(0, config.sound_volume_r[i])));
+                //			EnableWindow(GetDlgItem(hDlg, IDC_VOLUME_CAPTION0 + i), TRUE);
+                //			EnableWindow(GetDlgItem(hDlg, IDC_VOLUME_PARAM_L0 + i), TRUE);
+                //			EnableWindow(GetDlgItem(hDlg, IDC_VOLUME_PARAM_R0 + i), TRUE);
+            }
+            break;
+        case WM_COMMAND:
+            switch(LOWORD(wParam)) {
+                case IDOK:
+                    for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+                        config.sound_volume_l[i] = (int)SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_GETPOS, 0, 0);
+                        config.sound_volume_r[i] = (int)SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_GETPOS, 0, 0);
+                        emu->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
+                    }
+                    EndDialog(hDlg, IDOK);
+                    break;
+                case IDC_VOLUME_RESET:
+                    for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+                        SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETPOS, TRUE, 0);
+                        SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETPOS, TRUE, 0);
+                    }
+                    break;
+                default:
+                    return FALSE;
+            }
+            break;
+        default:
+            return FALSE;
+    }
+    return TRUE;
 }
 #endif
 
@@ -6364,200 +6368,200 @@ void set_joy_button_text(int index)
 
 LRESULT CALLBACK JoySubProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
-int index = -1;
-for(int i = 0; i < 16; i++) {
-if(hWnd == hJoyEdit[i]) {
-index = i;
-break;
-}
-}
-if(index == -1) {
-return 0L;
-}
-switch(iMsg) {
-case WM_CHAR:
-return 0L;
-case WM_KEYDOWN:
-case WM_SYSKEYDOWN:
-if(joy_stick_index == -1 && LOBYTE(wParam) == VK_BACK) {
-joy_button_params[index] = 0;
-} else {
-joy_button_params[index] = -(int)LOBYTE(wParam);
-}
-set_joy_button_text(index);
-if(hJoyEdit[++index] == NULL) {
-index = 0;
-}
-SetFocus(hJoyEdit[index]);
-return 0L;
-case WM_SETFOCUS:
-joy_button_index = index;
-break;
-default:
-break;
-}
-return CallWindowProc(JoyOldProc[index], hWnd, iMsg, wParam, lParam);
+    int index = -1;
+    for(int i = 0; i < 16; i++) {
+        if(hWnd == hJoyEdit[i]) {
+            index = i;
+            break;
+        }
+    }
+    if(index == -1) {
+        return 0L;
+    }
+    switch(iMsg) {
+        case WM_CHAR:
+            return 0L;
+        case WM_KEYDOWN:
+        case WM_SYSKEYDOWN:
+            if(joy_stick_index == -1 && LOBYTE(wParam) == VK_BACK) {
+                joy_button_params[index] = 0;
+            } else {
+                joy_button_params[index] = -(int)LOBYTE(wParam);
+            }
+            set_joy_button_text(index);
+            if(hJoyEdit[++index] == NULL) {
+                index = 0;
+            }
+            SetFocus(hJoyEdit[index]);
+            return 0L;
+        case WM_SETFOCUS:
+            joy_button_index = index;
+            break;
+        default:
+            break;
+    }
+    return CallWindowProc(JoyOldProc[index], hWnd, iMsg, wParam, lParam);
 }
 
 INT_PTR CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
-switch(iMsg) {
-case WM_CLOSE:
-EndDialog(hDlg, IDCANCEL);
-break;
-case WM_INITDIALOG:
-hJoyDlg = hDlg;
-joy_stick_index = (int)(*(LONG*)lParam);
-SetWindowText(hDlg, create_string(_T("Joystick #%d"), joy_stick_index + 1));
-for(int i = 0; i < 16; i++) {
-joy_button_params[i] = config.joy_buttons[joy_stick_index][i];
-if((hJoyEdit[i] = GetDlgItem(hDlg, IDC_JOYSTICK_PARAM0 + i)) != NULL) {
+    switch(iMsg) {
+        case WM_CLOSE:
+            EndDialog(hDlg, IDCANCEL);
+            break;
+        case WM_INITDIALOG:
+            hJoyDlg = hDlg;
+            joy_stick_index = (int)(*(LONG*)lParam);
+            SetWindowText(hDlg, create_string(_T("Joystick #%d"), joy_stick_index + 1));
+            for(int i = 0; i < 16; i++) {
+                joy_button_params[i] = config.joy_buttons[joy_stick_index][i];
+                if((hJoyEdit[i] = GetDlgItem(hDlg, IDC_JOYSTICK_PARAM0 + i)) != NULL) {
 #ifdef USE_JOY_BUTTON_CAPTIONS
-if(i < array_length(joy_button_captions)) {
-					SetDlgItemText(hDlg, IDC_JOYSTICK_CAPTION0 + i, joy_button_captions[i]);
-				} else
+                    if(i < array_length(joy_button_captions)) {
+					    SetDlgItemText(hDlg, IDC_JOYSTICK_CAPTION0 + i, joy_button_captions[i]);
+				    } else
 #endif
-SetDlgItemText(hDlg, IDC_JOYSTICK_CAPTION0 + i, joy_button_names[i]);
-set_joy_button_text(i);
+                    SetDlgItemText(hDlg, IDC_JOYSTICK_CAPTION0 + i, joy_button_names[i]);
+                    set_joy_button_text(i);
 #ifdef _M_AMD64
-// thanks Marukun (64bit)
-				JoyOldProc[i] = (WNDPROC)GetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC);
-				SetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC, (LONG_PTR)JoySubProc);
+                    // thanks Marukun (64bit)
+				    JoyOldProc[i] = (WNDPROC)GetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC);
+				    SetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC, (LONG_PTR)JoySubProc);
 #else
-JoyOldProc[i] = (WNDPROC)GetWindowLong(hJoyEdit[i], GWL_WNDPROC);
-SetWindowLong(hJoyEdit[i], GWL_WNDPROC, (LONG)JoySubProc);
+                    JoyOldProc[i] = (WNDPROC)GetWindowLong(hJoyEdit[i], GWL_WNDPROC);
+                    SetWindowLong(hJoyEdit[i], GWL_WNDPROC, (LONG)JoySubProc);
 #endif
-}
-}
-memset(joy_status, 0, sizeof(joy_status));
-SetTimer(hDlg, 1, 100, NULL);
-break;
-case WM_COMMAND:
-switch(LOWORD(wParam)) {
-case IDOK:
-for(int i = 0; i < 16; i++) {
-config.joy_buttons[joy_stick_index][i] = joy_button_params[i];
-}
-EndDialog(hDlg, IDOK);
-break;
-case IDC_JOYSTICK_RESET:
-for(int i = 0; i < 16; i++) {
-joy_button_params[i] = (joy_stick_index << 5) | i;
-set_joy_button_text(i);
-}
-break;
-default:
-return FALSE;
-}
-break;
-case WM_TIMER:
-for(int i = 0; i < 4; i++) {
-uint32_t status = get_joy_status(i);
-for(int j = 0; j < 32; j++) {
-uint32_t bit = 1 << j;
-if((joy_status[i] & bit) && !(status & bit)) {
-joy_button_params[joy_button_index] = (i << 5) | j;
-set_joy_button_text(joy_button_index);
-if(hJoyEdit[++joy_button_index] == NULL) {
-joy_button_index = 0;
-}
-SetFocus(hJoyEdit[joy_button_index]);
-break;
-}
-}
-joy_status[i] = status;
-}
-break;
-default:
-return (INT_PTR)FALSE;
-}
-return (INT_PTR)TRUE;
+                }
+            }
+            memset(joy_status, 0, sizeof(joy_status));
+            SetTimer(hDlg, 1, 100, NULL);
+            break;
+        case WM_COMMAND:
+            switch(LOWORD(wParam)) {
+                case IDOK:
+                    for(int i = 0; i < 16; i++) {
+                        config.joy_buttons[joy_stick_index][i] = joy_button_params[i];
+                    }
+                    EndDialog(hDlg, IDOK);
+                    break;
+                case IDC_JOYSTICK_RESET:
+                    for(int i = 0; i < 16; i++) {
+                        joy_button_params[i] = (joy_stick_index << 5) | i;
+                        set_joy_button_text(i);
+                    }
+                    break;
+                default:
+                    return FALSE;
+            }
+            break;
+        case WM_TIMER:
+            for(int i = 0; i < 4; i++) {
+                uint32_t status = get_joy_status(i);
+                for(int j = 0; j < 32; j++) {
+                    uint32_t bit = 1 << j;
+                    if((joy_status[i] & bit) && !(status & bit)) {
+                        joy_button_params[joy_button_index] = (i << 5) | j;
+                        set_joy_button_text(joy_button_index);
+                        if(hJoyEdit[++joy_button_index] == NULL) {
+                            joy_button_index = 0;
+                        }
+                        SetFocus(hJoyEdit[joy_button_index]);
+                        break;
+                    }
+                }
+                joy_status[i] = status;
+            }
+            break;
+        default:
+            return (INT_PTR)FALSE;
+    }
+    return (INT_PTR)TRUE;
 }
 
 INT_PTR CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
-switch(iMsg) {
-case WM_CLOSE:
-EndDialog(hDlg, IDCANCEL);
-break;
-case WM_INITDIALOG:
-hJoyDlg = hDlg;
-joy_stick_index = -1;//(int)(*(LONG*)lParam);
-//		SetWindowText(hDlg, create_string(_T("Joystick To Keyboard #%d"), joy_stick_index + 1));
-SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_CHECK0), BM_SETCHECK, (WPARAM)config.use_joy_to_key, 0L);
-SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO0), BM_SETCHECK, (WPARAM)(config.joy_to_key_type == 0), 0L);
-SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO1), BM_SETCHECK, (WPARAM)(config.joy_to_key_type == 1), 0L);
-SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO2), BM_SETCHECK, (WPARAM)(config.joy_to_key_type == 2), 0L);
-SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_CHECK1), BM_SETCHECK, (WPARAM)config.joy_to_key_numpad5, 0L);
-for(int i = 0; i < 16; i++) {
-joy_button_params[i] = config.joy_to_key_buttons[i];
-if((hJoyEdit[i] = GetDlgItem(hDlg, IDC_JOYSTICK_PARAM0 + i)) != NULL) {
-set_joy_button_text(i);
+    switch(iMsg) {
+        case WM_CLOSE:
+            EndDialog(hDlg, IDCANCEL);
+            break;
+        case WM_INITDIALOG:
+            hJoyDlg = hDlg;
+            joy_stick_index = -1;//(int)(*(LONG*)lParam);
+//		    SetWindowText(hDlg, create_string(_T("Joystick To Keyboard #%d"), joy_stick_index + 1));
+            SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_CHECK0), BM_SETCHECK, (WPARAM)config.use_joy_to_key, 0L);
+            SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO0), BM_SETCHECK, (WPARAM)(config.joy_to_key_type == 0), 0L);
+            SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO1), BM_SETCHECK, (WPARAM)(config.joy_to_key_type == 1), 0L);
+            SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO2), BM_SETCHECK, (WPARAM)(config.joy_to_key_type == 2), 0L);
+            SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_CHECK1), BM_SETCHECK, (WPARAM)config.joy_to_key_numpad5, 0L);
+            for(int i = 0; i < 16; i++) {
+                joy_button_params[i] = config.joy_to_key_buttons[i];
+                if((hJoyEdit[i] = GetDlgItem(hDlg, IDC_JOYSTICK_PARAM0 + i)) != NULL) {
+                    set_joy_button_text(i);
 #ifdef _M_AMD64
 // thanks Marukun (64bit)
-				JoyOldProc[i] = (WNDPROC)GetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC);
-				SetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC, (LONG_PTR)JoySubProc);
+			    	JoyOldProc[i] = (WNDPROC)GetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC);
+				    SetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC, (LONG_PTR)JoySubProc);
 #else
-JoyOldProc[i] = (WNDPROC)GetWindowLong(hJoyEdit[i], GWL_WNDPROC);
-SetWindowLong(hJoyEdit[i], GWL_WNDPROC, (LONG)JoySubProc);
+                    JoyOldProc[i] = (WNDPROC)GetWindowLong(hJoyEdit[i], GWL_WNDPROC);
+                    SetWindowLong(hJoyEdit[i], GWL_WNDPROC, (LONG)JoySubProc);
 #endif
-}
-}
-memset(joy_status, 0, sizeof(joy_status));
-SetTimer(hDlg, 1, 100, NULL);
-break;
-case WM_COMMAND:
-switch(LOWORD(wParam)) {
-case IDOK:
-config.use_joy_to_key = (IsDlgButtonChecked(hDlg, IDC_JOYTOKEY_CHECK0) == BST_CHECKED);
-if(IsDlgButtonChecked(hDlg, IDC_JOYTOKEY_RADIO0) == BST_CHECKED) {
-config.joy_to_key_type = 0;
-} else if(IsDlgButtonChecked(hDlg, IDC_JOYTOKEY_RADIO1) == BST_CHECKED) {
-config.joy_to_key_type = 1;
-} else {
-config.joy_to_key_type = 2;
-}
-config.joy_to_key_numpad5 = (IsDlgButtonChecked(hDlg, IDC_JOYTOKEY_CHECK1) == BST_CHECKED);
-for(int i = 0; i < 16; i++) {
-config.joy_to_key_buttons[i] = joy_button_params[i];
-}
-EndDialog(hDlg, IDOK);
-break;
-case IDC_JOYSTICK_RESET:
-SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_CHECK0), BM_SETCHECK, (WPARAM)false, 0L);
-SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO0), BM_SETCHECK, (WPARAM)false, 0L);
-SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO1), BM_SETCHECK, (WPARAM)false, 0L);
-SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO2), BM_SETCHECK, (WPARAM)true,  0L);
-SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_CHECK1), BM_SETCHECK, (WPARAM)false, 0L);
-for(int i = 0; i < 16; i++) {
-joy_button_params[i] = (i == 0) ? -('Z') : (i == 1) ? -('X') : 0;
-set_joy_button_text(i);
-}
-break;
-default:
-return (INT_PTR)FALSE;
-}
-break;
-case WM_TIMER:
-for(int i = 0; i < 1; i++) {
-uint32_t status = get_joy_status(i);
-for(int j = 0; j < 16; j++) {
-uint32_t bit = 1 << (j + 4);
-if((joy_status[i] & bit) && !(status & bit)) {
-if(hJoyEdit[j] != NULL) {
-joy_button_index = j;
-SetFocus(hJoyEdit[joy_button_index]);
-}
-break;
-}
-}
-joy_status[i] = status;
-}
-break;
-default:
-return (INT_PTR)FALSE;
-}
-return (INT_PTR)TRUE;
+                }
+            }
+            memset(joy_status, 0, sizeof(joy_status));
+            SetTimer(hDlg, 1, 100, NULL);
+            break;
+        case WM_COMMAND:
+            switch(LOWORD(wParam)) {
+                case IDOK:
+                    config.use_joy_to_key = (IsDlgButtonChecked(hDlg, IDC_JOYTOKEY_CHECK0) == BST_CHECKED);
+                    if(IsDlgButtonChecked(hDlg, IDC_JOYTOKEY_RADIO0) == BST_CHECKED) {
+                        config.joy_to_key_type = 0;
+                    } else if(IsDlgButtonChecked(hDlg, IDC_JOYTOKEY_RADIO1) == BST_CHECKED) {
+                        config.joy_to_key_type = 1;
+                    } else {
+                        config.joy_to_key_type = 2;
+                    }
+                    config.joy_to_key_numpad5 = (IsDlgButtonChecked(hDlg, IDC_JOYTOKEY_CHECK1) == BST_CHECKED);
+                    for(int i = 0; i < 16; i++) {
+                        config.joy_to_key_buttons[i] = joy_button_params[i];
+                    }
+                    EndDialog(hDlg, IDOK);
+                    break;
+                case IDC_JOYSTICK_RESET:
+                    SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_CHECK0), BM_SETCHECK, (WPARAM)false, 0L);
+                    SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO0), BM_SETCHECK, (WPARAM)false, 0L);
+                    SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO1), BM_SETCHECK, (WPARAM)false, 0L);
+                    SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_RADIO2), BM_SETCHECK, (WPARAM)true,  0L);
+                    SendMessage(GetDlgItem(hDlg, IDC_JOYTOKEY_CHECK1), BM_SETCHECK, (WPARAM)false, 0L);
+                    for(int i = 0; i < 16; i++) {
+                        joy_button_params[i] = (i == 0) ? -('Z') : (i == 1) ? -('X') : 0;
+                        set_joy_button_text(i);
+                    }
+                    break;
+                default:
+                    return (INT_PTR)FALSE;
+            }
+            break;
+        case WM_TIMER:
+            for(int i = 0; i < 1; i++) {
+                uint32_t status = get_joy_status(i);
+                for(int j = 0; j < 16; j++) {
+                    uint32_t bit = 1 << (j + 4);
+                    if((joy_status[i] & bit) && !(status & bit)) {
+                        if(hJoyEdit[j] != NULL) {
+                            joy_button_index = j;
+                            SetFocus(hJoyEdit[joy_button_index]);
+                        }
+                        break;
+                    }
+                }
+                joy_status[i] = status;
+            }
+            break;
+        default:
+            return (INT_PTR)FALSE;
+    }
+    return (INT_PTR)TRUE;
 }
 #endif
 #endif
@@ -7688,6 +7692,41 @@ void openFilePicker(struct android_app* app) {
     app->activity->vm->DetachCurrentThread();
 }
 
+void callGetJoyPadInformation(struct android_app* app) {
+    JNIEnv* jni;
+    app->activity->vm->AttachCurrentThread(&jni, NULL);
+    jclass clazz = jni->GetObjectClass(app->activity->clazz);
+    // Javaメソッドのシグネチャは戻り値がfloat[]で引数がないため、"()[F"となります。
+    jmethodID methodID = jni->GetMethodID(clazz, "getJoyPadInformation", "()[F");
+    if (methodID == nullptr) {
+        __android_log_print(ANDROID_LOG_ERROR, "JNI", "Failed to find the printDeviceInformation method");
+        jni->DeleteLocalRef(clazz);
+        app->activity->vm->DetachCurrentThread();
+        return;
+    }
+
+    jfloatArray resultArray = (jfloatArray)jni->CallObjectMethod(app->activity->clazz, methodID);
+    if (resultArray != nullptr) {
+        // オプショナル: Javaの配列をC++の配列にコピー
+        jsize length = jni->GetArrayLength(resultArray);
+        std::vector<float> cArray(length);
+        jni->GetFloatArrayRegion(resultArray, 0, length, &cArray[0]);
+
+        float *joy_info = emu->get_osd()->get_input_joy_info();
+        // 配列の長さまでまたは、4*31までコピー
+        for (int i = 0; i < length && i < 4 * 31; i++) {
+            joy_info[i] = cArray[i];
+        }
+
+        emu->get_osd()->initialize_joystick();
+
+        jni->DeleteLocalRef(resultArray);
+    }
+
+    jni->DeleteLocalRef(clazz);
+    app->activity->vm->DetachCurrentThread();
+}
+
 // ----------------------------------------------------------------------------
 // jni export
 // ----------------------------------------------------------------------------
@@ -8109,6 +8148,7 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_exitSelectCallback(JNIEnv 
     env->CallVoidMethod(thiz, midDoFinish);
 }
 
+int lastMouseMethod = 0;
 float oldX, oldY;
 int pointerCountHistory[5] = {0, 0, 0, 0, 0};
 
@@ -8154,6 +8194,12 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendMouseClickEvent(JNIEnv
         case 10: mouse_sensitivity = 1.1f; break;
     }
 
+    if (lastMouseMethod == 1) {
+        oldX = x;
+        oldY = y;
+        lastMouseMethod = 0;
+    }
+
     if (action == AMOTION_EVENT_ACTION_MOVE) {
         emu->get_osd()->get_input_mouse_buffer()[0] = (int)((x - oldX) * mouse_sensitivity);
         emu->get_osd()->get_input_mouse_buffer()[1] = (int)((y - oldY) * mouse_sensitivity);
@@ -8184,6 +8230,12 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendMouseMovementEvent(JNI
         case 8: mouse_sensitivity = 0.9f; break;
         case 9: mouse_sensitivity = 1.0f; break;
         case 10: mouse_sensitivity = 1.1f; break;
+    }
+
+    if (lastMouseMethod == 0) {
+        oldX = x;
+        oldY = y;
+        lastMouseMethod = 1;
     }
 
     emu->get_osd()->get_input_mouse_buffer()[0] = (int32_t)((x - oldX) * mouse_sensitivity);
@@ -8249,21 +8301,69 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendImageToNative(JNIEnv *
 }
 
 JNIEXPORT void JNICALL
-Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendJoypadInputToNative(JNIEnv *env, jobject obj, jint index, jfloat axisX, jfloat axisY, jint keyCode, jint action) {
+Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendJoypadInputToNative(JNIEnv *env, jobject obj, jint deviceId, jint index, jfloat axisX, jfloat axisY, jint keyCode, jint action) {
 
+    float* joy_info = emu->get_osd()->get_input_joy_info();
+    float* joy_status = emu->get_osd()->get_input_joy_status();
+    uint32_t* joy_button = emu->get_osd()->get_input_joy_button();
+
+    // デバイスIDから何番目のジョイパッドかを調査する、デバイスIDは joy_info[32*4] のそれぞれの 32バイト目に格納されている
+    int joyPadIndex = -1;
+    for (int i = 0; i < 4; i++) {
+        if (joy_info[i * 32 + 31] == deviceId) {
+            joyPadIndex = i;
+            break;
+        }
+    }
+    if (joyPadIndex == -1) {
+        return;
+    }
+
+    uint32_t button = 0;
     switch (index) {
         case 0:
+            // bit0-3	up,down,left,right
+            // bit4-19	button #1-#16
+            // bit20-21	z-axis pos
+            // bit22-23	r-axis pos
+            // bit24-25	u-axis pos
+            // bit26-27	v-axis pos
+            // bit28-31	pov pos
+            switch (keyCode) {
+                case AKEYCODE_BUTTON_A:      button = 0x00000010; break;
+                case AKEYCODE_BUTTON_B:      button = 0x00000020; break;
+                case AKEYCODE_BUTTON_C:      button = 0x00000040; break;
+                case AKEYCODE_BUTTON_X:      button = 0x00000080; break;
+                case AKEYCODE_BUTTON_Y:      button = 0x00000100; break;
+                case AKEYCODE_BUTTON_Z:      button = 0x00000200; break;
+                case AKEYCODE_BUTTON_START:  button = 0x00000400; break;
+                case AKEYCODE_BUTTON_SELECT: button = 0x00000800; break;
+                case AKEYCODE_BUTTON_L1:     button = 0x00001000; break;
+                case AKEYCODE_BUTTON_R1:     button = 0x00002000; break;
+                case AKEYCODE_BUTTON_L2:     button = 0x00004000; break;
+                case AKEYCODE_BUTTON_R2:     button = 0x00008000; break;
+                case AKEYCODE_BUTTON_THUMBL: button = 0x00010000; break;
+                case AKEYCODE_BUTTON_THUMBR: button = 0x00020000; break;
+                case AKEYCODE_BUTTON_MODE:   button = 0x00040000; break;
+                case AKEYCODE_DPAD_RIGHT:    button = 0x00080000; break;
+            }
             if (action == 1) {
-                //LOGI("Pressed key: %d", keyCode);
+                joy_button[joyPadIndex] |= button;
+                //LOGI("[%d][%d] Pressed key: %d", deviceId, joyPadIndex, keyCode);
             } else {
-                //LOGI("Released key: %d", keyCode);
+                joy_button[joyPadIndex] &= ~button;
+                //LOGI("[%d][%d] Released key: %d", deviceId, joyPadIndex, keyCode);
             }
             break;
         case 1:
-            //LOGI("AxisX,Y = %f, %f", axisX, axisY);
+            //LOGI("[%d][%d] AxisX,Y = %f, %f", deviceId, joyPadIndex, axisX, axisY);
+            joy_status[joyPadIndex * 6 + 0] = axisX;
+            joy_status[joyPadIndex * 6 + 1] = axisY;
             break;
         case 2:
-            //LOGI("AxisZ,RZ = %f, %f", axisX, axisY);
+            //LOGI("[%d][%d] AxisZ,RZ = %f, %f", deviceId, joyPadIndex, axisX, axisY);
+            joy_status[joyPadIndex * 6 + 2] = axisX;
+            joy_status[joyPadIndex * 6 + 3] = axisY;
             break;
     }
 

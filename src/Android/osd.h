@@ -241,18 +241,22 @@ private:
 	uint32_t joy_status[4];
 	int joy_num;
 	struct {
+        UINT device_id;
 		UINT wNumAxes;
-		DWORD dwXposLo, dwXposHi;
-		DWORD dwYposLo, dwYposHi;
-		DWORD dwZposLo, dwZposHi;
-		DWORD dwRposLo, dwRposHi;
-		DWORD dwUposLo, dwUposHi;
-		DWORD dwVposLo, dwVposHi;
+		float dwXposLo, dwXposHi;
+		float dwYposLo, dwYposHi;
+		float dwZposLo, dwZposHi;
+		float dwRposLo, dwRposHi;
+		float dwUposLo, dwUposHi;
+		float dwVposLo, dwVposHi;
 		DWORD dwButtonsMask;
 	} joy_caps[4];
 	bool joy_to_key_status[256];
+    float input_joy_info[32*4];
+    float input_joy_status[6*4];
+    uint32_t input_joy_button[4];
 #endif
-	
+
 #ifdef USE_MOUSE
 	int32_t mouse_status[3];	// x, y, button (b0 = left, b1 = right)
     int32_t input_mouse_status[3];	// x, y, button (b0 = left, b1 = right)
@@ -427,8 +431,11 @@ public:
 	bool is_console_key_pressed(int vk);
     bool is_console_closed();
 	void close_debugger_console();
-	
-	// common input
+
+    // input
+    void initialize_joystick();
+
+    // common input
 	void update_input();
 	void key_down(int code, bool extended, bool repeat);
 	void key_up(int code, bool extended);
@@ -456,6 +463,18 @@ public:
 	{
 		return joy_status;
 	}
+    float* get_input_joy_info()
+    {
+        return input_joy_info;
+    }
+    float* get_input_joy_status()
+    {
+        return input_joy_status;
+    }
+    uint32_t* get_input_joy_button()
+    {
+        return input_joy_button;
+    }
 #endif
 #ifdef USE_MOUSE
 	int32_t* get_mouse_buffer()
@@ -1206,6 +1225,7 @@ enum systemIconType {
     SYSTEM_KEYBOARD ,
     SYSTEM_MOUSE ,
     SYSTEM_WALLPAPER ,
+    SYSTEM_JOYSTICK ,
     SYSTEM_ICON_MAX
 };
 enum FileSelectType {

@@ -16,9 +16,9 @@
 
 #define get_joy_range(min_value, max_value, lo_value, hi_value) \
 { \
-	uint64_t center = ((uint64_t)min_value + (uint64_t)max_value) / 2; \
-	lo_value = (DWORD)((center + (uint64_t)min_value) / 2); \
-	hi_value = (DWORD)((center + (uint64_t)max_value) / 2); \
+	float center = (min_value + max_value) / 2.0f; \
+	lo_value = ((center + min_value) / 2.0f); \
+	hi_value = ((center + max_value) / 2.0f); \
 }
 
 void OSD::initialize_input()
@@ -31,6 +31,7 @@ void OSD::initialize_input()
 #ifdef USE_MOUSE
 	memset(mouse_status, 0, sizeof(mouse_status));
 #endif
+
 #ifdef USE_MOUSE
     // mouse emulation is disabled
 	mouse_enabled = false;
@@ -46,6 +47,59 @@ void OSD::initialize_input()
     androidToAndroidToVk[111][0] = 8; //ESC → BS([BREAK]KEY in MZ-700/1500Emulator)
 #endif
 
+}
+
+void OSD::initialize_joystick() {
+#ifdef USE_JOYSTICK
+    // initialize joysticks
+    joy_num = 4; //joyGetNumDevs();
+    for(int i = 0; i < joy_num && i < 4; i++) {
+        joy_caps[i].wNumAxes = 0;
+        int axisNum = 0;
+        for (int j = 0; j < 10; j++) {
+            if (input_joy_info[i*32 + j*3 + 1] < 0.0f && input_joy_info[i*32 + j*3 + 2] > 0.0f) {
+                joy_caps[i].wNumAxes++;
+                switch (axisNum) {
+                    case 0:
+                    get_joy_range(input_joy_info[i*32 + j*3 + 1], input_joy_info[i*32 + j*3 + 2], joy_caps[i].dwXposLo, joy_caps[i].dwXposHi);
+                        LOGI("joy%d: X axis range: %f ... %f", i, joy_caps[i].dwXposLo, joy_caps[i].dwXposHi);
+                        break;
+                    case 1:
+                    get_joy_range(input_joy_info[i*32 + j*3 + 1], input_joy_info[i*32 + j*3 + 2], joy_caps[i].dwYposLo, joy_caps[i].dwYposHi);
+                        LOGI("joy%d: Y axis range: %f ... %f", i, joy_caps[i].dwYposLo, joy_caps[i].dwYposHi);
+                        break;
+                    case 2:
+                    get_joy_range(input_joy_info[i*32 + j*3 + 1], input_joy_info[i*32 + j*3 + 2], joy_caps[i].dwZposLo, joy_caps[i].dwZposHi);
+                        LOGI("joy%d: Z axis range: %f ... %f", i, joy_caps[i].dwZposLo, joy_caps[i].dwZposHi);
+                        break;
+                    case 3:
+                    get_joy_range(input_joy_info[i*32 + j*3 + 1], input_joy_info[i*32 + j*3 + 2], joy_caps[i].dwRposLo, joy_caps[i].dwRposHi);
+                        LOGI("joy%d: R axis range: %f ... %f", i, joy_caps[i].dwRposLo, joy_caps[i].dwRposHi);
+                        break;
+                    case 4:
+                    get_joy_range(input_joy_info[i*32 + j*3 + 1], input_joy_info[i*32 + j*3 + 2], joy_caps[i].dwUposLo, joy_caps[i].dwUposHi);
+                        LOGI("joy%d: U axis range: %f ... %f", i, joy_caps[i].dwUposLo, joy_caps[i].dwUposHi);
+                        break;
+                    case 5:
+                    get_joy_range(input_joy_info[i*32 + j*3 + 1], input_joy_info[i*32 + j*3 + 2], joy_caps[i].dwVposLo, joy_caps[i].dwVposHi);
+                        LOGI("joy%d: V axis range: %f ... %f", i, joy_caps[i].dwVposLo, joy_caps[i].dwVposHi);
+                        break;
+                }
+                axisNum++;
+            }
+        }
+        joy_caps[i].dwButtonsMask = (1 << min(16, 16)) - 1; // ボタン数を16で固定する
+        joy_caps[i].device_id = input_joy_info[i*32 + 31]; // デバイスID
+        LOGI("joy%d: %d axes, %d buttons, device_id=%d", i, joy_caps[i].wNumAxes, joy_caps[i].dwButtonsMask, joy_caps[i].device_id);
+        LOGI("  X: %f...%f, Y: %f...%f, Z: %f...%f, R: %f...%f, U: %f...%f, V: %f...%f",
+             joy_caps[i].dwXposLo, joy_caps[i].dwXposHi,
+             joy_caps[i].dwYposLo, joy_caps[i].dwYposHi,
+             joy_caps[i].dwZposLo, joy_caps[i].dwZposHi,
+             joy_caps[i].dwRposLo, joy_caps[i].dwRposHi,
+             joy_caps[i].dwUposLo, joy_caps[i].dwUposHi,
+             joy_caps[i].dwVposLo, joy_caps[i].dwVposHi);
+    }
+#endif
 }
 
 void OSD::release_input()
@@ -84,6 +138,109 @@ void OSD::update_input()
 
 	// VK_$00 should be 0
 	key_status[0] = 0;
+
+#ifdef USE_JOYSTICK
+    // update joystick status
+    memset(joy_status, 0, sizeof(joy_status));
+
+    for(int i = 0; i < joy_num && i < 4; i++) {
+        joy_status[i] = 0;
+
+        if(joy_caps[i].wNumAxes >= 2) {
+            if(input_joy_status[i*6 + 1] < joy_caps[i].dwYposLo) joy_status[i] |= 0x00000001;	// up
+            if(input_joy_status[i*6 + 1] > joy_caps[i].dwYposHi) joy_status[i] |= 0x00000002;	// down
+        }
+        if(joy_caps[i].wNumAxes >= 1) {
+            if(input_joy_status[i*6 + 0] < joy_caps[i].dwXposLo) joy_status[i] |= 0x00000004;	// left
+            if(input_joy_status[i*6 + 0] > joy_caps[i].dwXposHi) joy_status[i] |= 0x00000008;	// right
+        }
+        if(joy_caps[i].wNumAxes >= 3) {
+            if(input_joy_status[i*6 + 2] < joy_caps[i].dwZposLo) joy_status[i] |= 0x00100000;
+            if(input_joy_status[i*6 + 2] > joy_caps[i].dwZposHi) joy_status[i] |= 0x00200000;
+        }
+        if(joy_caps[i].wNumAxes >= 4) {
+            if(input_joy_status[i*6 + 3] < joy_caps[i].dwRposLo) joy_status[i] |= 0x00400000;
+            if(input_joy_status[i*6 + 3] > joy_caps[i].dwRposHi) joy_status[i] |= 0x00800000;
+        }
+        if(joy_caps[i].wNumAxes >= 5) {
+            if(input_joy_status[i*6 + 4] < joy_caps[i].dwUposLo) joy_status[i] |= 0x01000000;
+            if(input_joy_status[i*6 + 4] > joy_caps[i].dwUposHi) joy_status[i] |= 0x02000000;
+        }
+        if(joy_caps[i].wNumAxes >= 6) {
+            if(input_joy_status[i*6 + 5] < joy_caps[i].dwVposLo) joy_status[i] |= 0x04000000;
+            if(input_joy_status[i*6 + 5] > joy_caps[i].dwVposHi) joy_status[i] |= 0x08000000;
+        }
+        joy_status[i] |= input_joy_button[i];
+        //if (joy_status[i] > 0) { LOGI("joy_status[%d] = %08x", i, joy_status[i]); }
+    }
+    if(config.use_joy_to_key) {
+        int status[256] = {0};
+        if(config.joy_to_key_type == 0) {
+            // cursor key
+            static const int vk[] = {VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT};
+            for(int i = 0; i < 4; i++) {
+                if(joy_status[0] & (1 << i)) {
+                    status[vk[i]] = 1;
+                }
+            }
+        } else if(config.joy_to_key_type == 1) {
+            // numpad key (4-directions)
+            static const int vk[] = {VK_NUMPAD8, VK_NUMPAD2, VK_NUMPAD4, VK_NUMPAD6};
+            for(int i = 0; i < 4; i++) {
+                if(joy_status[0] & (1 << i)) {
+                    status[vk[i]] = 1;
+                }
+            }
+        } else if(config.joy_to_key_type == 2) {
+            // numpad key (8-directions)
+            switch(joy_status[0] & 0x0f) {
+                case 0x02 + 0x04: status[VK_NUMPAD1] = 1; break; // down-left
+                case 0x02       : status[VK_NUMPAD2] = 1; break; // down
+                case 0x02 + 0x08: status[VK_NUMPAD3] = 1; break; // down-right
+                case 0x00 + 0x04: status[VK_NUMPAD4] = 1; break; // left
+//			case 0x00       : status[VK_NUMPAD5] = 1; break;
+                case 0x00 + 0x08: status[VK_NUMPAD6] = 1; break; // right
+                case 0x01 + 0x04: status[VK_NUMPAD7] = 1; break; // up-left
+                case 0x01       : status[VK_NUMPAD8] = 1; break; // up
+                case 0x01 + 0x08: status[VK_NUMPAD9] = 1; break; // up-right
+            }
+        }
+        if(config.joy_to_key_type == 1 || config.joy_to_key_type == 2) {
+            // numpad key
+            if(config.joy_to_key_numpad5 && !(joy_status[0] & 0x0f)) {
+                status[VK_NUMPAD5] = 1;
+            }
+        }
+        for(int i = 0; i < 16; i++) {
+            if(joy_status[0] & (1 << (i + 4))) {
+                if(config.joy_to_key_buttons[i] < 0 && -config.joy_to_key_buttons[i] < 256) {
+                    status[-config.joy_to_key_buttons[i]] = 1;
+                }
+            }
+        }
+        for(int i = 0; i < 256; i++) {
+            if(status[i]) {
+                if(!joy_to_key_status[i]) {
+                    if(!(key_status[i] & 0x80)) {
+                        key_down_native(i, false);
+                        // do not keep key pressed
+                        if(config.joy_to_key_numpad5 && (i >= VK_NUMPAD1 && i <= VK_NUMPAD9)) {
+                            key_status[i] = KEY_KEEP_FRAMES;
+                        }
+                    }
+                    joy_to_key_status[i] = true;
+                }
+            } else {
+                if(joy_to_key_status[i]) {
+                    if(key_status[i]) {
+                        key_up_native(i);
+                    }
+                    joy_to_key_status[i] = false;
+                }
+            }
+        }
+    }
+#endif
 
 #ifdef USE_MOUSE
     // update mouse status
