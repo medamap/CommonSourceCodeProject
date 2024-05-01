@@ -77,10 +77,12 @@ public class EmulatorActivity extends NativeActivity {
             "android.permission.BLUETOOTH_CONNECT"
     };
 
+    private DeviceManager deviceManager;
+
     private native void sendMouseClickEvent(int action, float x, float y, int pointerCount, int buttonState);
     private native void sendMouseMovementEvent(float x, float y);
 
-    private native void sendJoypadInputToNative(int index, float axisX, float axisY, int keyCode, int action);
+    private native void sendJoypadInputToNative(int deviceId, int index, float axisX, float axisY, int keyCode, int action);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +99,10 @@ public class EmulatorActivity extends NativeActivity {
         } else {
             initializeApp();
         }
+
+        // ジョイパッドを管理するデバイスマネージャを初期化
+        deviceManager = new DeviceManager(this);
+        deviceManager.registerInputDeviceListener();
 
         // Bluetoothを有効にするIntentを発行
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -144,29 +150,30 @@ public class EmulatorActivity extends NativeActivity {
         else if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) ||
                 event.isFromSource(InputDevice.SOURCE_GAMEPAD)) {
             // ジョイパッドからの入力を処理
+            int deviceId = event.getDeviceId();
             float axisX = event.getAxisValue(MotionEvent.AXIS_X);
             float axisY = event.getAxisValue(MotionEvent.AXIS_Y);
             // ここでジョイパッドの入力をログまたは処理
-            handleJoystickInput(axisX, axisY, event);
+            handleJoystickInput(deviceId, axisX, axisY, event);
         }
         return super.onGenericMotionEvent(event);
     }
 
-    private void handleJoystickInput(float axisX, float axisY, MotionEvent event) {
-        sendJoypadInputToNative(1, axisX, axisY, 0, 0);
+    private void handleJoystickInput(int deviceId, float axisX, float axisY, MotionEvent event) {
+        sendJoypadInputToNative(deviceId, 1, axisX, axisY, 0, 0);
 
         // 他のボタンやアナログスティックの状態もここでチェック
         float axisZ = event.getAxisValue(MotionEvent.AXIS_Z);
         float axisRZ = event.getAxisValue(MotionEvent.AXIS_RZ);
         // その他の必要な軸のデータを追加
-        sendJoypadInputToNative(2, axisZ, axisRZ, 0, 0);
+        sendJoypadInputToNative(deviceId, 2, axisZ, axisRZ, 0, 0);
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) ||
                 event.isFromSource(InputDevice.SOURCE_GAMEPAD)) {
-            sendJoypadInputToNative(0, 0, 0, keyCode, 1);
+            sendJoypadInputToNative(event.getDeviceId(), 0, 0, 0, keyCode, 1);
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -175,7 +182,7 @@ public class EmulatorActivity extends NativeActivity {
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) ||
                 event.isFromSource(InputDevice.SOURCE_GAMEPAD)) {
-            sendJoypadInputToNative(0, 0, 0, keyCode, 0);
+            sendJoypadInputToNative(event.getDeviceId(), 0, 0, 0, keyCode, 0);
         }
         return super.onKeyUp(keyCode, event);
     }
@@ -402,6 +409,7 @@ public class EmulatorActivity extends NativeActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
+        deviceManager.unregisterInputDeviceListener();
     }
 
     // ネイティブメソッドの宣言
@@ -410,6 +418,59 @@ public class EmulatorActivity extends NativeActivity {
     // コールバック用のインターフェースを定義
     interface NewFileCallback {
         void onNewFileSelected(String filename, String mediaInfo, String addPath);
+    }
+
+    // 接続されたジョイパッドの軸情報及びボタン情報を取得し返す
+    public float[] getJoyPadInformation() {
+        int[] deviceIds = InputDevice.getDeviceIds();
+        // ジョイパッドごとに32個の情報を格納するために配列のサイズを調整
+        float[] values = new float[deviceIds.length * 32];
+        // values を 0 で埋める
+        Arrays.fill(values, 0);
+        int deviceCount = 0;
+
+        for (int deviceId : deviceIds) {
+            InputDevice device = InputDevice.getDevice(deviceId);
+            if ((device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
+                    (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
+                // デバイス情報の取得
+                String deviceName = device.getName();
+                String manufacturer = device.getDescriptor();
+                int productId = device.getProductId();
+                int vendorId = device.getVendorId();
+
+                // 軸情報とボタン情報の取得
+                List<InputDevice.MotionRange> ranges = device.getMotionRanges();
+                int buttonCount = 0;
+                int rangeIndex = 0;
+                for (InputDevice.MotionRange range : ranges) {
+                    if ((range.getSource() & InputDevice.SOURCE_CLASS_BUTTON) == InputDevice.SOURCE_CLASS_BUTTON) {
+                        buttonCount++;
+                    } else if ((range.getSource() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
+                            (range.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
+                        if (rangeIndex < 10) { // 最大10軸までの情報を保持
+                            values[deviceCount * 32 + rangeIndex * 3] = range.getAxis();
+                            values[deviceCount * 32 + rangeIndex * 3 + 1] = range.getMin();
+                            values[deviceCount * 32 + rangeIndex * 3 + 2] = range.getMax();
+                            rangeIndex++;
+                        }
+                    }
+                }
+                // デバイスごとの最後の要素にボタンの数を格納
+                values[deviceCount * 31 + 30] = buttonCount;
+                values[deviceCount * 31 + 31] = deviceId;
+
+                // デバイス情報のログ出力
+                Log.i("DeviceInfo", "Device Name: " + deviceName);
+                Log.i("DeviceInfo", "Device Id: " + deviceId);
+                Log.i("DeviceInfo", "Manufacturer: " + manufacturer);
+                Log.i("DeviceInfo", "Product ID: " + productId);
+                Log.i("DeviceInfo", "Vendor ID: " + vendorId);
+                Log.i("DeviceInfo", "Button Count: " + buttonCount);
+                deviceCount++;
+            }
+        }
+        return values;
     }
 
     // NDK から呼び出せるクリップボード取得メソッド
@@ -777,7 +838,8 @@ public class EmulatorActivity extends NativeActivity {
                         return R.drawable.mouse;
                     case 7:
                         return R.drawable.wallpaper;
-
+                    case 8:
+                        return R.drawable.joystick;
              }
             case 1://mediaIcon
                 switch(iconId) {
