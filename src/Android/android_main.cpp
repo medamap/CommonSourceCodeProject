@@ -342,6 +342,8 @@ std::vector<GLfloat> texCoords = {0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f
 
 uint16_t emulator_screen_type = EMULATOR_SCREEN_TYPE_DEFAULT;
 
+float screenAlpha = 0.0f;
+
 class GlProgress {
 private:
     struct engine *engine;
@@ -406,21 +408,15 @@ public:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); checkGLError("glTexParameteri H3");
         glActiveTexture(GL_TEXTURE0); checkGLError("glActiveTexture H6");
         GLint textureLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "texture"); checkGLError("glGetUniformLocation H7");
-        if (textureLocation > -1) {
-            glUniform1i(textureLocation, 0); checkGLError("glUniform1i H8");
-        }
+        if (textureLocation > -1) { glUniform1i(textureLocation, 0); checkGLError("glUniform1i H8"); }
         GLint colorLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "uColor"); checkGLError("glGetUniformLocation H9");
-        if (colorLocation > -1) {
-            glUniform3f(colorLocation, r, g, b); checkGLError("glUniform3f H10");
-        }
+        if (colorLocation > -1) { glUniform3f(colorLocation, r, g, b); checkGLError("glUniform3f H10"); }
         GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenWidth"); checkGLError("glGetUniformLocation H11");
-        if (screenWidthLocation > -1) {
-            glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f H12");
-        }
+        if (screenWidthLocation > -1) { glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f H12"); }
         GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenHeight"); checkGLError("glGetUniformLocation H13");
-        if (screenHeightLocation > -1) {
-            glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f H14");
-        }
+        if (screenHeightLocation > -1) { glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f H14"); }
+        GLint alphaLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "alpha"); checkGLError("glGetUniformLocation H13b");
+        if (alphaLocation > -1) { glUniform1f(alphaLocation, (GLfloat)screenAlpha); checkGLError("glUniform1f H14b"); }
         glEnableVertexAttribArray(0); checkGLError("glEnableVertexAttribArray H15");
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertex.data()); checkGLError("glVertexAttribPointer H16");
         glEnableVertexAttribArray(1); checkGLError("glEnableVertexAttribArray H17");
@@ -493,6 +489,8 @@ public:
         if (screenWidthLocation > -1) { glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f H12"); }
         GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenHeight"); checkGLError("glGetUniformLocation H13");
         if (screenHeightLocation > -1) { glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f H14"); }
+        GLint alphaLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "alpha"); checkGLError("glGetUniformLocation H13b");
+        if (alphaLocation > -1) { glUniform1f(alphaLocation, (GLfloat)screenAlpha); checkGLError("glUniform1f H14b"); }
         glEnableVertexAttribArray(0); checkGLError("glEnableVertexAttribArray H15");
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertex.data()); checkGLError("glVertexAttribPointer H16");
         glEnableVertexAttribArray(1); checkGLError("glEnableVertexAttribArray H17");
@@ -837,21 +835,15 @@ public:
         }
         glActiveTexture(GL_TEXTURE0); checkGLError("glActiveTexture A6");
         GLint textureLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "texture"); checkGLError("glGetUniformLocation A7");
-        if (textureLocation > -1) {
-            glUniform1i(textureLocation, 0); checkGLError("glUniform1i A8");
-        }
+        if (textureLocation > -1) { glUniform1i(textureLocation, 0); checkGLError("glUniform1i A8"); }
         GLint colorLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "uColor"); checkGLError("glGetUniformLocation A9");
-        if (colorLocation > -1) {
-            glUniform3f(colorLocation, r, g, b); checkGLError("glUniform3f A10");
-        }
+        if (colorLocation > -1) { glUniform3f(colorLocation, r, g, b); checkGLError("glUniform3f A10"); }
         GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenWidth"); checkGLError("glGetUniformLocation A11");
-        if (screenWidthLocation > -1) {
-            glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f A12");
-        }
+        if (screenWidthLocation > -1) { glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f A12"); }
         GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenHeight"); checkGLError("glGetUniformLocation A13");
-        if (screenHeightLocation > -1) {
-            glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f A14");
-        }
+        if (screenHeightLocation > -1) { glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f A14"); }
+        GLint alphaLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "alpha"); checkGLError("glGetUniformLocation A13b");
+        if (alphaLocation > -1) { glUniform1f(alphaLocation, (GLfloat)screenAlpha); checkGLError("glUniform1f A14b"); }
         glEnableVertexAttribArray(0); checkGLError("glEnableVertexAttribArray A15");
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertex.data()); checkGLError("glVertexAttribPointer A16");
         glEnableVertexAttribArray(1); checkGLError("glEnableVertexAttribArray A17");
@@ -941,11 +933,12 @@ precision mediump float;
 varying vec2 vTextureCoord;
 uniform sampler2D texture;
 uniform vec3 uColor;
+uniform float alpha;
 
 void main() {
     vec4 texColor = texture2D(texture, vTextureCoord);
-    float alpha = (texColor.r <= 0.05 && texColor.g <= 0.05 && texColor.b <= 0.05) ? 0.0 : 1.0;
-    gl_FragColor = vec4(texColor.r * uColor.r, texColor.g * uColor.g, texColor.b * uColor.b, alpha);
+    float outAlpha = (texColor.r <= 0.05 && texColor.g <= 0.05 && texColor.b <= 0.05) ? alpha : 1.0;
+    gl_FragColor = vec4(texColor.r * uColor.r, texColor.g * uColor.g, texColor.b * uColor.b, outAlpha);
 }
 )glsl";
 #endif
@@ -958,6 +951,7 @@ precision mediump float;
 varying vec2 vTextureCoord;
 uniform sampler2D texture;
 uniform vec3 uColor;
+uniform float alpha;
 
 void main() {
     float offset = 1.0 / 600.0; // テクスチャの寸法に基づいてこの値を調整
@@ -975,8 +969,8 @@ void main() {
     blurColor.r *= uColor.r;
     blurColor.g *= uColor.g;
     blurColor.b *= uColor.b;
-    float alpha = (blurColor.r <= 0.05 && blurColor.g <= 0.05 && blurColor.b <= 0.05) ? 0.0 : 1.0;
-    gl_FragColor = vec4(blurColor.rgb, alpha);
+    float outAlpha = (blurColor.r <= 0.05 && blurColor.g <= 0.05 && blurColor.b <= 0.05) ? alpha : 1.0;
+    gl_FragColor = vec4(blurColor.rgb, outAlpha);
 }
 )glsl";
 #endif
@@ -991,6 +985,7 @@ uniform sampler2D texture;
 uniform vec3 uColor;
 uniform float screenWidth;
 uniform float screenHeight;
+uniform float alpha;
 
 void main() {
     vec4 texColor = texture2D(texture, vTextureCoord);
@@ -1009,8 +1004,8 @@ void main() {
         color = vec3(texColor.r * uColor.r * 0.5, texColor.g * uColor.g * 0.5, texColor.b * uColor.b * 3.0);  // 青
     }
 
-    float alpha = (texColor.r <= 0.05 && texColor.g <= 0.05 && texColor.b <= 0.05) ? 0.0 : 1.0;
-    gl_FragColor = vec4(color, alpha);
+    float outAlpha = (texColor.r <= 0.05 && texColor.g <= 0.05 && texColor.b <= 0.05) ? alpha : 1.0;
+    gl_FragColor = vec4(color, outAlpha);
 }
 )glsl";
 #endif
@@ -1025,6 +1020,7 @@ uniform sampler2D texture;
 uniform vec3 uColor;
 uniform float screenWidth;
 uniform float screenHeight;
+uniform float alpha;
 
 void main() {
     vec4 texColor = texture2D(texture, vTextureCoord);
@@ -1047,8 +1043,8 @@ void main() {
         color = vec3(0.0, gray * uColor.g * 0.8, 0.0);
     }
 
-    float alpha = (texColor.r <= 0.05 && texColor.g <= 0.05 && texColor.b <= 0.05) ? 0.0 : 1.0;
-    gl_FragColor = vec4(color, alpha);
+    float outAlpha = (texColor.r <= 0.05 && texColor.g <= 0.05 && texColor.b <= 0.05) ? alpha : 1.0;
+    gl_FragColor = vec4(color, outAlpha);
 }
 )glsl";
 #endif
@@ -1139,7 +1135,9 @@ void checkPermissionsAndInitialize(JNIEnv *env, jobject activity);
 std::vector<uint8_t> getClipboardText(struct android_app *app);
 static void callJavaFinish(struct android_app* app);
 void openFilePicker(struct android_app* app);
+#ifdef USE_JOYSTICK
 void callGetJoyPadInformation(struct android_app* app);
+#endif
 
 #define SOFT_KEYBOARD_KEEP_COUNT  3
 int softKeyboardCount = 0;
@@ -1509,7 +1507,9 @@ void android_main(struct android_app *state) {
     initializeGlWallPaper(&engine);
 #endif
 
+#ifdef USE_JOYSTICK
     callGetJoyPadInformation(state); // ジョイパッド情報取得用デバッグメソッド
+#endif
 
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
@@ -1527,6 +1527,10 @@ void android_main(struct android_app *state) {
     DWORD disable_screen_saver_time = 0;
     bool needDraw = false;
 
+#if USE_TV_CONTROL
+    int old_special_display_mode = -1;
+#endif
+
     resetFlag = false;
     while (1) {
         // Read all pending events.
@@ -1542,6 +1546,25 @@ void android_main(struct android_app *state) {
 
         // 画面サイズ変更チェック
         check_update_screen(&engine);
+
+#if USE_TV_CONTROL
+        if (old_special_display_mode != emu->special_display_mode) {
+            if (emu->special_display_mode == 0 && config.shader_superimpose != 0) {
+                config.shader_superimpose = 0;
+                LOGI("Shader superimpose off");
+            } else if (emu->special_display_mode == 1) {
+                config.shader_superimpose = 1;
+                LOGI("Shader tv on");
+            } else if (emu->special_display_mode == 2) {
+                config.shader_superimpose = 1;
+                LOGI("Shader superimpose on");
+            } else if (emu->special_display_mode == 3) {
+                config.shader_superimpose = 2;
+                LOGI("Shader superimpose on");
+            }
+            old_special_display_mode = emu->special_display_mode;
+        }
+#endif
 
         // If not animating, we will block forever waiting for events.
         // If animating, we loop until all events are read, then continue
@@ -2492,7 +2515,8 @@ void EventProc(engine* engine, MenuNode menuNode)
                     config.shader_dot = 1 - config.shader_dot;
                     break;
                 case ID_FILTER_SUPERIMPOSE:
-                    config.shader_superimpose = 1 - config.shader_superimpose;
+                    // config.shader_superimpose に+1し、2を超えたら0に戻す
+                    config.shader_superimpose = (config.shader_superimpose + 1) % 3;
                     break;
                 case ID_SOUND_ON:
                     emu->get_osd()->reset_sound();
@@ -3359,7 +3383,7 @@ void update_host_filter_menu(Menu *hMenu)
             hMenu->CheckMenuRadioItem(ID_FILTER_NONE, ID_FILTER_GREEN, ID_FILTER_NONE);
             break;
     }
-    hMenu->CheckMenuItem(ID_FILTER_SUPERIMPOSE, config.shader_superimpose == 1);
+    hMenu->CheckMenuItem(ID_FILTER_SUPERIMPOSE, config.shader_superimpose > 0);
     hMenu->CheckMenuItem(ID_FILTER_DOT, config.shader_dot == 1);
 }
 
@@ -5394,7 +5418,9 @@ void initializeGlIcons(struct engine* engine) {
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_EXIT, false, false);
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_RESET, false, false);
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_KEYBOARD, true, false);
+#ifdef USE_JOYSTICK
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_JOYSTICK, false, false);
+#endif
 #ifdef USE_MOUSE
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_MOUSE, true, emu->get_osd()->is_mouse_enabled());
 #endif
@@ -5694,10 +5720,16 @@ void updateTextureOpenGlFrame(struct engine* engine) {
 
 void enableAlphaBlending() {
     if (config.shader_superimpose > 0) {
+        if (config.shader_superimpose == 1) {
+            screenAlpha = 0.0f;
+        } else if (config.shader_superimpose == 2) {
+            screenAlpha = 0.5f;
+        }
         glEnable(GL_BLEND); // ブレンドを有効にする
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // アルファ値に基づいたブレンディングを設定
     } else {
         glDisable(GL_BLEND); // ブレンドを無効にする
+        screenAlpha = 0.0f;
     }
 }
 
@@ -5723,14 +5755,13 @@ void drawOpenGlFrame(struct engine* engine) {
     }
     // シェーダーに画面の横サイズをセット
     GLint screenWidthLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenWidth"); checkGLError("glGetUniformLocation E8");
-    if (screenWidthLocation > -1) {
-        glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f E9");
-    }
+    if (screenWidthLocation > -1) { glUniform1f(screenWidthLocation, (GLfloat)deviceInfo.width); checkGLError("glUniform1f E9"); }
     // シェーダーに画面の縦サイズをセット
     GLint screenHeightLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "screenHeight"); checkGLError("glGetUniformLocation E10");
-    if (screenHeightLocation > -1) {
-        glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f E11");
-    }
+    if (screenHeightLocation > -1) { glUniform1f(screenHeightLocation, (GLfloat)deviceInfo.height); checkGLError("glUniform1f E11"); }
+    // アルファ値をセット
+    GLint alphaLocation = glGetUniformLocation(engine->shaderProgram[shader_type], "alpha"); checkGLError("glGetUniformLocation E10b");
+    if (alphaLocation > -1) { glUniform1f(alphaLocation, (GLfloat)screenAlpha); checkGLError("glUniform1f E11b"); }
     // 頂点セット
     glEnableVertexAttribArray(0); checkGLError("glEnableVertexAttribArray E12");
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertexScreen.data()); checkGLError("glVertexAttribPointer E13");
@@ -5822,9 +5853,11 @@ void clickOpenGlIcon(struct android_app *app, float x, float y) {
             case SYSTEM_WALLPAPER:
                 openFilePicker(app);
                 break;
+#ifdef USE_JOYSTICK
             case SYSTEM_JOYSTICK:
                 callGetJoyPadInformation(app);
                 break;
+#endif
             case SYSTEM_NONE:
                 break;
             case SYSTEM_ICON_MAX:
@@ -6116,122 +6149,73 @@ void start_auto_key(struct android_app *app)
 // dialog
 // ----------------------------------------------------------------------------
 
-#if defined(_WIN32)
-#ifdef USE_SOUND_VOLUME
-INT_PTR CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch(iMsg) {
-        case WM_CLOSE:
-            EndDialog(hDlg, IDCANCEL);
-            break;
-        case WM_INITDIALOG:
-            for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-                SetDlgItemText(hDlg, IDC_VOLUME_CAPTION0 + i, sound_device_caption[i]);
-                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETTICFREQ, 5, 0);
-                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETTICFREQ, 5, 0);
-                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETRANGE, TRUE, MAKELPARAM(-40, 0));
-                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETRANGE, TRUE, MAKELPARAM(-40, 0));
-                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETPOS, TRUE, max(-40, min(0, config.sound_volume_l[i])));
-                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETPOS, TRUE, max(-40, min(0, config.sound_volume_r[i])));
-                //			EnableWindow(GetDlgItem(hDlg, IDC_VOLUME_CAPTION0 + i), TRUE);
-                //			EnableWindow(GetDlgItem(hDlg, IDC_VOLUME_PARAM_L0 + i), TRUE);
-                //			EnableWindow(GetDlgItem(hDlg, IDC_VOLUME_PARAM_R0 + i), TRUE);
-            }
-            break;
-        case WM_COMMAND:
-            switch(LOWORD(wParam)) {
-                case IDOK:
-                    for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-                        config.sound_volume_l[i] = (int)SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_GETPOS, 0, 0);
-                        config.sound_volume_r[i] = (int)SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_GETPOS, 0, 0);
-                        emu->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
-                    }
-                    EndDialog(hDlg, IDOK);
-                    break;
-                case IDC_VOLUME_RESET:
-                    for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-                        SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETPOS, TRUE, 0);
-                        SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETPOS, TRUE, 0);
-                    }
-                    break;
-                default:
-                    return FALSE;
-            }
-            break;
-        default:
-            return FALSE;
-    }
-    return TRUE;
-}
-#endif
-
-#ifdef USE_JOYSTICK
+#ifdef USE_JOYSTICK1
 // from http://homepage3.nifty.com/ic/help/rmfunc/vkey.htm
 static const _TCHAR *vk_names[] = {
-        _T("VK_$00"),			_T("VK_LBUTTON"),		_T("VK_RBUTTON"),		_T("VK_CANCEL"),
-        _T("VK_MBUTTON"),		_T("VK_XBUTTON1"),		_T("VK_XBUTTON2"),		_T("VK_$07"),
-        _T("VK_BACK"),			_T("VK_TAB"),			_T("VK_$0A"),			_T("VK_$0B"),
-        _T("VK_CLEAR"),			_T("VK_RETURN"),		_T("VK_$0E"),			_T("VK_$0F"),
-        _T("VK_SHIFT"),			_T("VK_CONTROL"),		_T("VK_MENU"),			_T("VK_PAUSE"),
-        _T("VK_CAPITAL"),		_T("VK_KANA"),			_T("VK_$16"),			_T("VK_JUNJA"),
-        _T("VK_FINAL"),			_T("VK_KANJI"),			_T("VK_$1A"),			_T("VK_ESCAPE"),
-        _T("VK_CONVERT"),		_T("VK_NONCONVERT"),		_T("VK_ACCEPT"),		_T("VK_MODECHANGE"),
-        _T("VK_SPACE"),			_T("VK_PRIOR"),			_T("VK_NEXT"),			_T("VK_END"),
-        _T("VK_HOME"),			_T("VK_LEFT"),			_T("VK_UP"),			_T("VK_RIGHT"),
-        _T("VK_DOWN"),			_T("VK_SELECT"),		_T("VK_PRINT"),			_T("VK_EXECUTE"),
-        _T("VK_SNAPSHOT"),		_T("VK_INSERT"),		_T("VK_DELETE"),		_T("VK_HELP"),
-        _T("VK_0"),			_T("VK_1"),			_T("VK_2"),			_T("VK_3"),
-        _T("VK_4"),			_T("VK_5"),			_T("VK_6"),			_T("VK_7"),
-        _T("VK_8"),			_T("VK_9"),			_T("VK_$3A"),			_T("VK_$3B"),
-        _T("VK_$3C"),			_T("VK_$3D"),			_T("VK_$3E"),			_T("VK_$3F"),
-        _T("VK_$40"),			_T("VK_A"),			_T("VK_B"),			_T("VK_C"),
-        _T("VK_D"),			_T("VK_E"),			_T("VK_F"),			_T("VK_G"),
-        _T("VK_H"),			_T("VK_I"),			_T("VK_J"),			_T("VK_K"),
-        _T("VK_L"),			_T("VK_M"),			_T("VK_N"),			_T("VK_O"),
-        _T("VK_P"),			_T("VK_Q"),			_T("VK_R"),			_T("VK_S"),
-        _T("VK_T"),			_T("VK_U"),			_T("VK_V"),			_T("VK_W"),
-        _T("VK_X"),			_T("VK_Y"),			_T("VK_Z"),			_T("VK_LWIN"),
-        _T("VK_RWIN"),			_T("VK_APPS"),			_T("VK_$5E"),			_T("VK_SLEEP"),
-        _T("VK_NUMPAD0"),		_T("VK_NUMPAD1"),		_T("VK_NUMPAD2"),		_T("VK_NUMPAD3"),
-        _T("VK_NUMPAD4"),		_T("VK_NUMPAD5"),		_T("VK_NUMPAD6"),		_T("VK_NUMPAD7"),
-        _T("VK_NUMPAD8"),		_T("VK_NUMPAD9"),		_T("VK_MULTIPLY"),		_T("VK_ADD"),
-        _T("VK_SEPARATOR"),		_T("VK_SUBTRACT"),		_T("VK_DECIMAL"),		_T("VK_DIVIDE"),
-        _T("VK_F1"),			_T("VK_F2"),			_T("VK_F3"),			_T("VK_F4"),
-        _T("VK_F5"),			_T("VK_F6"),			_T("VK_F7"),			_T("VK_F8"),
-        _T("VK_F9"),			_T("VK_F10"),			_T("VK_F11"),			_T("VK_F12"),
-        _T("VK_F13"),			_T("VK_F14"),			_T("VK_F15"),			_T("VK_F16"),
-        _T("VK_F17"),			_T("VK_F18"),			_T("VK_F19"),			_T("VK_F20"),
-        _T("VK_F21"),			_T("VK_F22"),			_T("VK_F23"),			_T("VK_F24"),
-        _T("VK_$88"),			_T("VK_$89"),			_T("VK_$8A"),			_T("VK_$8B"),
-        _T("VK_$8C"),			_T("VK_$8D"),			_T("VK_$8E"),			_T("VK_$8F"),
-        _T("VK_NUMLOCK"),		_T("VK_SCROLL"),		_T("VK_$92"),			_T("VK_$93"),
-        _T("VK_$94"),			_T("VK_$95"),			_T("VK_$96"),			_T("VK_$97"),
-        _T("VK_$98"),			_T("VK_$99"),			_T("VK_$9A"),			_T("VK_$9B"),
-        _T("VK_$9C"),			_T("VK_$9D"),			_T("VK_$9E"),			_T("VK_$9F"),
-        _T("VK_LSHIFT"),		_T("VK_RSHIFT"),		_T("VK_LCONTROL"),		_T("VK_RCONTROL"),
-        _T("VK_LMENU"),			_T("VK_RMENU"),			_T("VK_BROWSER_BACK"),		_T("VK_BROWSER_FORWARD"),
-        _T("VK_BROWSER_REFRESH"),	_T("VK_BROWSER_STOP"),		_T("VK_BROWSER_SEARCH"),	_T("VK_BROWSER_FAVORITES"),
-        _T("VK_BROWSER_HOME"),		_T("VK_VOLUME_MUTE"),		_T("VK_VOLUME_DOWN"),		_T("VK_VOLUME_UP"),
-        _T("VK_MEDIA_NEXT_TRACK"),	_T("VK_MEDIA_PREV_TRACK"),	_T("VK_MEDIA_STOP"),		_T("VK_MEDIA_PLAY_PAUSE"),
+        _T("VK_$00"),			    _T("VK_LBUTTON"),		        _T("VK_RBUTTON"),		    _T("VK_CANCEL"),
+        _T("VK_MBUTTON"),		    _T("VK_XBUTTON1"),		        _T("VK_XBUTTON2"),		    _T("VK_$07"),
+        _T("VK_BACK"),			    _T("VK_TAB"),			        _T("VK_$0A"),			    _T("VK_$0B"),
+        _T("VK_CLEAR"),			    _T("VK_RETURN"),		        _T("VK_$0E"),			    _T("VK_$0F"),
+        _T("VK_SHIFT"),			    _T("VK_CONTROL"),		        _T("VK_MENU"),			    _T("VK_PAUSE"),
+        _T("VK_CAPITAL"),		    _T("VK_KANA"),			        _T("VK_$16"),			    _T("VK_JUNJA"),
+        _T("VK_FINAL"),			    _T("VK_KANJI"),			        _T("VK_$1A"),			    _T("VK_ESCAPE"),
+        _T("VK_CONVERT"),		    _T("VK_NONCONVERT"),            _T("VK_ACCEPT"),		    _T("VK_MODECHANGE"),
+        _T("VK_SPACE"),			    _T("VK_PRIOR"),			        _T("VK_NEXT"),			    _T("VK_END"),
+        _T("VK_HOME"),			    _T("VK_LEFT"),			        _T("VK_UP"),			    _T("VK_RIGHT"),
+        _T("VK_DOWN"),			    _T("VK_SELECT"),		        _T("VK_PRINT"),			    _T("VK_EXECUTE"),
+        _T("VK_SNAPSHOT"),		    _T("VK_INSERT"),		        _T("VK_DELETE"),		    _T("VK_HELP"),
+        _T("VK_0"),			        _T("VK_1"),			            _T("VK_2"),			        _T("VK_3"),
+        _T("VK_4"),			        _T("VK_5"),			            _T("VK_6"),			        _T("VK_7"),
+        _T("VK_8"),			        _T("VK_9"),			            _T("VK_$3A"),			    _T("VK_$3B"),
+        _T("VK_$3C"),			    _T("VK_$3D"),			        _T("VK_$3E"),			    _T("VK_$3F"),
+        _T("VK_$40"),			    _T("VK_A"),			            _T("VK_B"),			        _T("VK_C"),
+        _T("VK_D"),			        _T("VK_E"),			            _T("VK_F"),			        _T("VK_G"),
+        _T("VK_H"),			        _T("VK_I"),			            _T("VK_J"),			        _T("VK_K"),
+        _T("VK_L"),			        _T("VK_M"),			            _T("VK_N"),			        _T("VK_O"),
+        _T("VK_P"),			        _T("VK_Q"),			            _T("VK_R"),			        _T("VK_S"),
+        _T("VK_T"),			        _T("VK_U"),			            _T("VK_V"),			        _T("VK_W"),
+        _T("VK_X"),			        _T("VK_Y"),			            _T("VK_Z"),			        _T("VK_LWIN"),
+        _T("VK_RWIN"),			    _T("VK_APPS"),			        _T("VK_$5E"),			    _T("VK_SLEEP"),
+        _T("VK_NUMPAD0"),		    _T("VK_NUMPAD1"),		        _T("VK_NUMPAD2"),		    _T("VK_NUMPAD3"),
+        _T("VK_NUMPAD4"),		    _T("VK_NUMPAD5"),		        _T("VK_NUMPAD6"),		    _T("VK_NUMPAD7"),
+        _T("VK_NUMPAD8"),		    _T("VK_NUMPAD9"),		        _T("VK_MULTIPLY"),		    _T("VK_ADD"),
+        _T("VK_SEPARATOR"),		    _T("VK_SUBTRACT"),		        _T("VK_DECIMAL"),		    _T("VK_DIVIDE"),
+        _T("VK_F1"),			    _T("VK_F2"),			        _T("VK_F3"),			    _T("VK_F4"),
+        _T("VK_F5"),			    _T("VK_F6"),			        _T("VK_F7"),			    _T("VK_F8"),
+        _T("VK_F9"),			    _T("VK_F10"),			        _T("VK_F11"),			    _T("VK_F12"),
+        _T("VK_F13"),			    _T("VK_F14"),			        _T("VK_F15"),			    _T("VK_F16"),
+        _T("VK_F17"),			    _T("VK_F18"),			        _T("VK_F19"),			    _T("VK_F20"),
+        _T("VK_F21"),			    _T("VK_F22"),			        _T("VK_F23"),			    _T("VK_F24"),
+        _T("VK_$88"),			    _T("VK_$89"),			        _T("VK_$8A"),			    _T("VK_$8B"),
+        _T("VK_$8C"),			    _T("VK_$8D"),			        _T("VK_$8E"),			    _T("VK_$8F"),
+        _T("VK_NUMLOCK"),		    _T("VK_SCROLL"),		        _T("VK_$92"),			    _T("VK_$93"),
+        _T("VK_$94"),			    _T("VK_$95"),			        _T("VK_$96"),			    _T("VK_$97"),
+        _T("VK_$98"),			    _T("VK_$99"),			        _T("VK_$9A"),			    _T("VK_$9B"),
+        _T("VK_$9C"),			    _T("VK_$9D"),			        _T("VK_$9E"),			    _T("VK_$9F"),
+        _T("VK_LSHIFT"),		    _T("VK_RSHIFT"),		        _T("VK_LCONTROL"),		    _T("VK_RCONTROL"),
+        _T("VK_LMENU"),			    _T("VK_RMENU"),			        _T("VK_BROWSER_BACK"),		_T("VK_BROWSER_FORWARD"),
+        _T("VK_BROWSER_REFRESH"),	_T("VK_BROWSER_STOP"),		    _T("VK_BROWSER_SEARCH"),	_T("VK_BROWSER_FAVORITES"),
+        _T("VK_BROWSER_HOME"),		_T("VK_VOLUME_MUTE"),		    _T("VK_VOLUME_DOWN"),		_T("VK_VOLUME_UP"),
+        _T("VK_MEDIA_NEXT_TRACK"),	_T("VK_MEDIA_PREV_TRACK"),	    _T("VK_MEDIA_STOP"),		_T("VK_MEDIA_PLAY_PAUSE"),
         _T("VK_LAUNCH_MAIL"),		_T("VK_LAUNCH_MEDIA_SELECT"),	_T("VK_LAUNCH_APP1"),		_T("VK_LAUNCH_APP2"),
-        _T("VK_$B8"),			_T("VK_$B9"),			_T("VK_OEM_1"),			_T("VK_OEM_PLUS"),
-        _T("VK_OEM_COMMA"),		_T("VK_OEM_MINUS"),		_T("VK_OEM_PERIOD"),		_T("VK_OEM_2"),
-        _T("VK_OEM_3"),			_T("VK_$C1"),			_T("VK_$C2"),			_T("VK_$C3"),
-        _T("VK_$C4"),			_T("VK_$C5"),			_T("VK_$C6"),			_T("VK_$C7"),
-        _T("VK_$C8"),			_T("VK_$C9"),			_T("VK_$CA"),			_T("VK_$CB"),
-        _T("VK_$CC"),			_T("VK_$CD"),			_T("VK_$CE"),			_T("VK_$CF"),
-        _T("VK_$D0"),			_T("VK_$D1"),			_T("VK_$D2"),			_T("VK_$D3"),
-        _T("VK_$D4"),			_T("VK_$D5"),			_T("VK_$D6"),			_T("VK_$D7"),
-        _T("VK_$D8"),			_T("VK_$D9"),			_T("VK_$DA"),			_T("VK_OEM_4"),
-        _T("VK_OEM_5"),			_T("VK_OEM_6"),			_T("VK_OEM_7"),			_T("VK_OEM_8"),
-        _T("VK_$E0"),			_T("VK_OEM_AX"),		_T("VK_OEM_102"),		_T("VK_ICO_HELP"),
-        _T("VK_ICO_00"),		_T("VK_PROCESSKEY"),		_T("VK_ICO_CLEAR"),		_T("VK_PACKET"),
-        _T("VK_$E8"),			_T("VK_OEM_RESET"),		_T("VK_OEM_JUMP"),		_T("VK_OEM_PA1"),
-        _T("VK_OEM_PA2"),		_T("VK_OEM_PA3"),		_T("VK_OEM_WSCTRL"),		_T("VK_OEM_CUSEL"),
-        _T("VK_OEM_ATTN"),		_T("VK_OEM_FINISH"),		_T("VK_OEM_COPY"),		_T("VK_OEM_AUTO"),
-        _T("VK_OEM_ENLW"),		_T("VK_OEM_BACKTAB"),		_T("VK_ATTN"),			_T("VK_CRSEL"),
-        _T("VK_EXSEL"),			_T("VK_EREOF"),			_T("VK_PLAY"),			_T("VK_ZOOM"),
-        _T("VK_NONAME"),		_T("VK_PA1"),			_T("VK_OEM_CLEAR"),		_T("VK_$FF"),
+        _T("VK_$B8"),			    _T("VK_$B9"),			        _T("VK_OEM_1"),			    _T("VK_OEM_PLUS"),
+        _T("VK_OEM_COMMA"),		    _T("VK_OEM_MINUS"),		        _T("VK_OEM_PERIOD"),		_T("VK_OEM_2"),
+        _T("VK_OEM_3"),			    _T("VK_$C1"),			        _T("VK_$C2"),			    _T("VK_$C3"),
+        _T("VK_$C4"),			    _T("VK_$C5"),			        _T("VK_$C6"),			    _T("VK_$C7"),
+        _T("VK_$C8"),			    _T("VK_$C9"),			        _T("VK_$CA"),			    _T("VK_$CB"),
+        _T("VK_$CC"),			    _T("VK_$CD"),			        _T("VK_$CE"),			    _T("VK_$CF"),
+        _T("VK_$D0"),			    _T("VK_$D1"),			        _T("VK_$D2"),			    _T("VK_$D3"),
+        _T("VK_$D4"),			    _T("VK_$D5"),			        _T("VK_$D6"),			    _T("VK_$D7"),
+        _T("VK_$D8"),			    _T("VK_$D9"),			        _T("VK_$DA"),			    _T("VK_OEM_4"),
+        _T("VK_OEM_5"),			    _T("VK_OEM_6"),			        _T("VK_OEM_7"),			    _T("VK_OEM_8"),
+        _T("VK_$E0"),			    _T("VK_OEM_AX"),		        _T("VK_OEM_102"),		    _T("VK_ICO_HELP"),
+        _T("VK_ICO_00"),		    _T("VK_PROCESSKEY"),		    _T("VK_ICO_CLEAR"),		    _T("VK_PACKET"),
+        _T("VK_$E8"),			    _T("VK_OEM_RESET"),		        _T("VK_OEM_JUMP"),		    _T("VK_OEM_PA1"),
+        _T("VK_OEM_PA2"),		    _T("VK_OEM_PA3"),		        _T("VK_OEM_WSCTRL"),		_T("VK_OEM_CUSEL"),
+        _T("VK_OEM_ATTN"),		    _T("VK_OEM_FINISH"),		    _T("VK_OEM_COPY"),		    _T("VK_OEM_AUTO"),
+        _T("VK_OEM_ENLW"),		    _T("VK_OEM_BACKTAB"),		    _T("VK_ATTN"),			    _T("VK_CRSEL"),
+        _T("VK_EXSEL"),			    _T("VK_EREOF"),			        _T("VK_PLAY"),			    _T("VK_ZOOM"),
+        _T("VK_NONAME"),		    _T("VK_PA1"),			        _T("VK_OEM_CLEAR"),		    _T("VK_$FF"),
 };
 
 static const _TCHAR *joy_button_names[32] = {
@@ -6269,9 +6253,9 @@ static const _TCHAR *joy_button_names[32] = {
         _T("POV 270deg"),
 };
 
-HWND hJoyDlg;
-HWND hJoyEdit[16];
-WNDPROC JoyOldProc[16];
+//HWND hJoyDlg;
+//HWND hJoyEdit[16];
+//WNDPROC JoyOldProc[16];
 int joy_stick_index;
 int joy_button_index;
 int joy_button_params[16];
@@ -6424,7 +6408,7 @@ INT_PTR CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
                     SetDlgItemText(hDlg, IDC_JOYSTICK_CAPTION0 + i, joy_button_names[i]);
                     set_joy_button_text(i);
 #ifdef _M_AMD64
-                    // thanks Marukun (64bit)
+// thanks Marukun (64bit)
 				    JoyOldProc[i] = (WNDPROC)GetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC);
 				    SetWindowLongPtr(hJoyEdit[i], GWLP_WNDPROC, (LONG_PTR)JoySubProc);
 #else
@@ -6444,14 +6428,14 @@ INT_PTR CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
                     }
                     EndDialog(hDlg, IDOK);
                     break;
-                case IDC_JOYSTICK_RESET:
-                    for(int i = 0; i < 16; i++) {
-                        joy_button_params[i] = (joy_stick_index << 5) | i;
-                        set_joy_button_text(i);
-                    }
-                    break;
-                default:
-                    return FALSE;
+            case IDC_JOYSTICK_RESET:
+                for(int i = 0; i < 16; i++) {
+                    joy_button_params[i] = (joy_stick_index << 5) | i;
+                    set_joy_button_text(i);
+                }
+                break;
+            default:
+                return FALSE;
             }
             break;
         case WM_TIMER:
@@ -6564,6 +6548,56 @@ INT_PTR CALLBACK JoyToKeyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lPa
     return (INT_PTR)TRUE;
 }
 #endif
+
+#if defined(_WIN32)
+#ifdef USE_SOUND_VOLUME
+INT_PTR CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch(iMsg) {
+        case WM_CLOSE:
+            EndDialog(hDlg, IDCANCEL);
+            break;
+        case WM_INITDIALOG:
+            for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+                SetDlgItemText(hDlg, IDC_VOLUME_CAPTION0 + i, sound_device_caption[i]);
+                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETTICFREQ, 5, 0);
+                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETTICFREQ, 5, 0);
+                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETRANGE, TRUE, MAKELPARAM(-40, 0));
+                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETRANGE, TRUE, MAKELPARAM(-40, 0));
+                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETPOS, TRUE, max(-40, min(0, config.sound_volume_l[i])));
+                SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETPOS, TRUE, max(-40, min(0, config.sound_volume_r[i])));
+                //			EnableWindow(GetDlgItem(hDlg, IDC_VOLUME_CAPTION0 + i), TRUE);
+                //			EnableWindow(GetDlgItem(hDlg, IDC_VOLUME_PARAM_L0 + i), TRUE);
+                //			EnableWindow(GetDlgItem(hDlg, IDC_VOLUME_PARAM_R0 + i), TRUE);
+            }
+            break;
+        case WM_COMMAND:
+            switch(LOWORD(wParam)) {
+                case IDOK:
+                    for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+                        config.sound_volume_l[i] = (int)SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_GETPOS, 0, 0);
+                        config.sound_volume_r[i] = (int)SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_GETPOS, 0, 0);
+                        emu->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
+                    }
+                    EndDialog(hDlg, IDOK);
+                    break;
+                case IDC_VOLUME_RESET:
+                    for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+                        SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_L0 + i, TBM_SETPOS, TRUE, 0);
+                        SendDlgItemMessage(hDlg, IDC_VOLUME_PARAM_R0 + i, TBM_SETPOS, TRUE, 0);
+                    }
+                    break;
+                default:
+                    return FALSE;
+            }
+            break;
+        default:
+            return FALSE;
+    }
+    return TRUE;
+}
+#endif
+
 #endif
 
 /** @return the id of the button clicked if model is true, or 0 */
@@ -7692,6 +7726,7 @@ void openFilePicker(struct android_app* app) {
     app->activity->vm->DetachCurrentThread();
 }
 
+#ifdef USE_JOYSTICK
 void callGetJoyPadInformation(struct android_app* app) {
     JNIEnv* jni;
     app->activity->vm->AttachCurrentThread(&jni, NULL);
@@ -7726,6 +7761,7 @@ void callGetJoyPadInformation(struct android_app* app) {
     jni->DeleteLocalRef(clazz);
     app->activity->vm->DetachCurrentThread();
 }
+#endif
 
 // ----------------------------------------------------------------------------
 // jni export
@@ -7888,6 +7924,7 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_newFileCallback(JNIEnv *en
 #endif
                 break;
             default:
+                break;
         }
     }
     // メモリ解放
@@ -8303,6 +8340,7 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendImageToNative(JNIEnv *
 JNIEXPORT void JNICALL
 Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendJoypadInputToNative(JNIEnv *env, jobject obj, jint deviceId, jint index, jfloat axisX, jfloat axisY, jint keyCode, jint action) {
 
+#ifdef USE_JOYSTICK
     float* joy_info = emu->get_osd()->get_input_joy_info();
     float* joy_status = emu->get_osd()->get_input_joy_status();
     uint32_t* joy_button = emu->get_osd()->get_input_joy_button();
@@ -8366,6 +8404,7 @@ Java_jp_matrix_shikarunochi_emulator_EmulatorActivity_sendJoypadInputToNative(JN
             joy_status[joyPadIndex * 6 + 3] = axisY;
             break;
     }
+#endif
 
 }
 
