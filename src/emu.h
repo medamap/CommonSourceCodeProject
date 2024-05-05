@@ -333,10 +333,8 @@ public:
 	void stop_record_video();
 	bool is_video_recording();
 
-#ifdef USE_SPECIAL_DISPLAY
-    int superimpose_mode; // 0 ... COM / 1 ... SI / 2 ... SI CD
-    void special_display_mode(int code);
-    int is_superimpose_mode();
+#ifdef USE_TV_CONTROL
+    int special_display_mode;
 #endif
 
 	// sound

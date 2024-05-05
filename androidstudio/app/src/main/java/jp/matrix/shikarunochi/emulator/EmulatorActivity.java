@@ -171,8 +171,7 @@ public class EmulatorActivity extends NativeActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) ||
-                event.isFromSource(InputDevice.SOURCE_GAMEPAD)) {
+        if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) || event.isFromSource(InputDevice.SOURCE_GAMEPAD)) {
             sendJoypadInputToNative(event.getDeviceId(), 0, 0, 0, keyCode, 1);
         }
         return super.onKeyDown(keyCode, event);
@@ -180,8 +179,7 @@ public class EmulatorActivity extends NativeActivity {
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) ||
-                event.isFromSource(InputDevice.SOURCE_GAMEPAD)) {
+        if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) || event.isFromSource(InputDevice.SOURCE_GAMEPAD)) {
             sendJoypadInputToNative(event.getDeviceId(), 0, 0, 0, keyCode, 0);
         }
         return super.onKeyUp(keyCode, event);
@@ -431,6 +429,11 @@ public class EmulatorActivity extends NativeActivity {
 
         for (int deviceId : deviceIds) {
             InputDevice device = InputDevice.getDevice(deviceId);
+            if ((device.getSources() & InputDevice.SOURCE_MOUSE) == InputDevice.SOURCE_MOUSE ||
+               ((device.getSources() & InputDevice.SOURCE_KEYBOARD) == InputDevice.SOURCE_KEYBOARD && device.getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC) ||
+                (device.getSources() & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD) {
+                continue;
+            }
             if ((device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
                     (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
                 // デバイス情報の取得
@@ -467,6 +470,18 @@ public class EmulatorActivity extends NativeActivity {
                 Log.i("DeviceInfo", "Product ID: " + productId);
                 Log.i("DeviceInfo", "Vendor ID: " + vendorId);
                 Log.i("DeviceInfo", "Button Count: " + buttonCount);
+                Log.i("DeviceInfo", "Source:" +
+                        ((device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ? " Joystick" : "") +
+                        ((device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD ? " Gamepad" : "") +
+                        ((device.getSources() & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD ? " D-Pad" : "") +
+                        ((device.getSources() & InputDevice.SOURCE_KEYBOARD) == InputDevice.SOURCE_KEYBOARD ? " Keyboard" : "") +
+                        ((device.getSources() & InputDevice.SOURCE_TOUCHSCREEN) == InputDevice.SOURCE_TOUCHSCREEN ? " Touchscreen" : "") +
+                        ((device.getSources() & InputDevice.SOURCE_MOUSE) == InputDevice.SOURCE_MOUSE ? " Mouse" : "") +
+                        ((device.getSources() & InputDevice.SOURCE_TOUCHPAD) == InputDevice.SOURCE_TOUCHPAD ? " TouchPad" : ""));
+                Log.i("DeviceInfo", "KeyboardType:" +
+                        ((device.getKeyboardType() & InputDevice.KEYBOARD_TYPE_ALPHABETIC) == InputDevice.KEYBOARD_TYPE_ALPHABETIC ? " Alphabetic" : "") +
+                        ((device.getKeyboardType() & InputDevice.KEYBOARD_TYPE_NON_ALPHABETIC) == InputDevice.KEYBOARD_TYPE_NON_ALPHABETIC ? " NonAlphabetic" : ""));
+
                 deviceCount++;
             }
         }
