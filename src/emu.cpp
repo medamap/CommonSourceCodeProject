@@ -3125,6 +3125,9 @@ void EMU::load_state(const _TCHAR* file_path)
 		save_state(create_local_path(_T("$temp$.sta")));
 		if(!load_state_tmp(file_path)) {
 			out_debug_log(_T("failed to load state file\n"));
+#if defined(__ANDROID__)
+            LOGI(("failed to load state file"));
+#endif
 			load_state_tmp(create_local_path(_T("$temp$.sta")));
 		}
 		FILEIO::RemoveFile(create_local_path(_T("$temp$.sta")));
