@@ -1,29 +1,7 @@
-#
-# Copyright (C) The Android Open Source Project
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
 
-cmake_minimum_required(VERSION 3.4.1)
+#cmake_minimum_required(VERSION 3.4.1)
+cmake_minimum_required(VERSION 3.5)
 
-#if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-#	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
-#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
-#	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
-#	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
-#endif()
-
-# Set the path to the Oboe library directory\
 set (OBOE_DIR ../../../../oboe)
 set (OBOE_BASE_DIR ../../../../../oboe)
 set (CSP_SRC_DIR ../../../../../src)
@@ -32,21 +10,8 @@ set (ANDROID_SRC_DIR ./Android)
 
 add_subdirectory(${OBOE_BASE_DIR} ./oboe-bin)
 
-# zlibライブラリをサブディレクトリとして追加
-add_subdirectory(../../../../externals/zlib ${CMAKE_BINARY_DIR}/zlib)
-
-# libpngライブラリをサブディレクトリとして追加
-# PNG_ARM_NEON option (optional) improves performance on ARM devices but requires NEON support
-set(PNG_ARM_NEON "on" CACHE STRING "Enable ARM NEON optimizations")
-set(PNG_SHARED OFF CACHE BOOL "Build shared libpng")
-set(PNG_STATIC ON CACHE BOOL "Build static libpng")
-add_subdirectory(../../../../externals/libpng ${CMAKE_BINARY_DIR}/libpng)
-
-# Include directories for zlib and libpng
 include_directories(
-		${OBOE_DIR}/include  # Path to the Oboe include files
-		${CMAKE_BINARY_DIR}/zlib  # Path to the built zlib include files
-		${CMAKE_BINARY_DIR}/libpng  # Path to the built libpng include files
+		${OBOE_DIR}/include
 )
 
 # build native_app_glue as a static lib
@@ -410,12 +375,7 @@ target_link_libraries(native-activity
 		m
 		oboe
 		${log-lib}
-		${CMAKE_BINARY_DIR}/zlib/libz.a  # Link to the zlib static library
-		${CMAKE_BINARY_DIR}/libpng/libpng.a  # Link to the libpng static library
 )
 
-
-# Export ANativeActivity_onCreate(),
-# Refer to: https://github.com/android-ndk/ndk/issues/381.
 set(CMAKE_SHARED_LINKER_FLAGS
     "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
