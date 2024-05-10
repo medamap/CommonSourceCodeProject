@@ -20,22 +20,27 @@ public:
     int parentId;
     int nodeId;
     std::string caption;
+    std::string thumbnail;
     ItemType itemType;
     int returnValue;
     int tag;
     bool checked;
     bool enabled;
 
+    MenuNode(int parentId, int nodeId, const std::string& caption, const std::string& thumbnail, ItemType itemType, int returnValue, bool checked, bool enabled)
+            : parentId(parentId), nodeId(nodeId), caption(caption), thumbnail(thumbnail),
+              itemType(itemType), returnValue(returnValue), tag(0), checked(checked), enabled(enabled) {}
+
     MenuNode(int parentId, int nodeId, const std::string& caption, ItemType itemType, int returnValue, bool checked, bool enabled)
-            : parentId(parentId), nodeId(nodeId), caption(caption),
+            : parentId(parentId), nodeId(nodeId), caption(caption), thumbnail(""),
               itemType(itemType), returnValue(returnValue), tag(0), checked(checked), enabled(enabled) {}
 
     MenuNode(int parentId, int nodeId, const std::string& caption, ItemType itemType, int returnValue)
-            : parentId(parentId), nodeId(nodeId), caption(caption),
+            : parentId(parentId), nodeId(nodeId), caption(caption), thumbnail(""),
               itemType(itemType), returnValue(returnValue), tag(0), checked(false), enabled(true) {}
 
     MenuNode(int parentId, int nodeId, const std::string& caption, ItemType itemType, int returnValue, int tag)
-            : parentId(parentId), nodeId(nodeId), caption(caption),
+            : parentId(parentId), nodeId(nodeId), caption(caption), thumbnail(""),
               itemType(itemType), returnValue(returnValue), tag(tag), checked(false), enabled(true) {}
 
     // ノードIDを返すメソッド
@@ -45,6 +50,10 @@ public:
     // キャプションを返すメソッド
     const std::string& getCaption() const {
         return caption;
+    }
+    // サムネイルを返すメソッド
+    const std::string& getThumbnail() const {
+        return thumbnail;
     }
     // アイテムタイプを返すメソッド
     ItemType getItemType() const {
@@ -146,7 +155,8 @@ public:
     //                            std::to_string(node.getReturnValue()) + ";" +
     //                            std::to_string(parentId) + ";" +
     //                            std::to_string(node.checked) + ";" +
-    //                            std::to_string(node.enabled) + ",";
+    //                            std::to_string(node.enabled) + ";" +
+    //                            node.getThumbnail() + ",";
     std::string getExtendMenuString(int parentId) {
         std::string extendMenuString;
         for (const auto& node : nodes) {
@@ -157,7 +167,8 @@ public:
                                    std::to_string(node.getReturnValue()) + ";" +
                                    std::to_string(parentId) + ";" +
                                    std::to_string(node.checked ? 1 : 0) + ";" +
-                                   std::to_string(node.enabled ? 1 : 0) + ",";
+                                   std::to_string(node.enabled ? 1 : 0) + ";" +
+                                   node.getThumbnail() + ",";
             }
         }
         // 末尾の余分なカンマを削除
@@ -174,7 +185,8 @@ public:
     //                           std::to_string(node.getReturnValue()) + ";" +
     //                           std::to_string(node.getParentId()) + ";" +
     //                           std::to_string(node.checked) + ";" +
-    //                           std::to_string(node.enabled);
+    //                           std::to_string(node.enabled) + ";" +
+    //                           node.getThumbnail();
     std::string getNodeString(const MenuNode& node) {
         return std::to_string(node.getNodeId()) + ";" +
                node.getCaption() + ";" +
@@ -182,7 +194,8 @@ public:
                std::to_string(node.getReturnValue()) + ";" +
                std::to_string(node.getParentId()) + ";" +
                std::to_string(node.checked ? 1 : 0) + ";" +
-               std::to_string(node.enabled ? 1 : 0);
+               std::to_string(node.enabled ? 1 : 0) + ";" +
+               node.getThumbnail();
     }
 
     // 指定されたノードIDの階層文字列を取得する、階層文字列は親ノード(ROOT)から順に今のノードまで手繰ったものをスラッシュで区切った文字列
@@ -208,7 +221,7 @@ public:
     }
 
     // 入力された文字列が下記フォーマットに沿っているなら合致するノードを返す
-    // int ノードID, string キャプション, int ノードタイプ, int 戻り値, int 親ID, bool チェック済, bool 許可済 の順で文字列をセミコロンで区切られている
+    // int ノードID, string キャプション, int ノードタイプ, int 戻り値, int 親ID, bool チェック済, bool 許可済, string サムネイル の順で文字列をセミコロンで区切られている
     MenuNode getNodeFromExtendMenuString(const std::string& extendMenuString) {
         // セミコロンで区切る
         std::vector<std::string> tokens;
@@ -220,9 +233,9 @@ public:
             end = extendMenuString.find(';', start);
         }
         tokens.push_back(extendMenuString.substr(start, end));
-        // 7つの要素があるか確認
-        if (tokens.size() != 7) {
-            return MenuNode(-1, -1, "", Category, -1, false, false);
+        // 8つの要素があるか確認
+        if (tokens.size() != 8) {
+            return MenuNode(-1, -1, "", "", Category, -1, false, false);
         }
         // それぞれの要素が正しい形式か確認
         try {
@@ -233,14 +246,15 @@ public:
             int parentId = std::stoi(tokens[4]);
             bool checked = std::stoi(tokens[5]) != 0; // 0以外はtrueとする
             bool enabled = std::stoi(tokens[6]) != 0; // 0以外はtrueとする
-            return MenuNode(parentId, nodeId, caption, itemType, returnValue, checked, enabled);
+            std::string thumbnail = tokens[7];
+            return MenuNode(parentId, nodeId, caption, thumbnail, itemType, returnValue, checked, enabled);
         } catch (std::invalid_argument& e) {
-            return MenuNode(-1, -1, "", Category, -1, false, false);
+            return MenuNode(-1, -1, "", "", Category, -1, false, false);
         }
     }
 
     // 入力された文字列が下記フォーマットに沿っているならtrueを返す
-    // int ノードID, string キャプション, int ノードタイプ, int 戻り値, int 親ID, bool チェック済, bool 許可済 の順で文字列をセミコロンで区切られている
+    // int ノードID, string キャプション, int ノードタイプ, int 戻り値, int 親ID, bool チェック済, bool 許可済, string サムネイル の順で文字列をセミコロンで区切られている
     static bool isValidExtendMenuString(const std::string& extendMenuString) {
         // セミコロンで区切る
         std::vector<std::string> tokens;
@@ -252,8 +266,8 @@ public:
             end = extendMenuString.find(';', start);
         }
         tokens.push_back(extendMenuString.substr(start, end));
-        // 5つの要素があるか確認
-        if (tokens.size() != 7) {
+        // 8つの要素があるか確認
+        if (tokens.size() != 8) {
             return false;
         }
         // それぞれの要素が正しい形式か確認
@@ -305,6 +319,16 @@ public:
         for (auto& node : nodes) {
             if (node.getReturnValue() == item) {
                 node.caption = std::string(buf);
+                break;
+            }
+        }
+    }
+
+    void SetMenuItemThumbnail(int item, char * buf) {
+        // item で指定された returnValue を持つノードを取得し、buf の内容で thumbnail を更新する
+        for (auto& node : nodes) {
+            if (node.getReturnValue() == item) {
+                node.thumbnail = std::string(buf);
                 break;
             }
         }
