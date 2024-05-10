@@ -1119,6 +1119,7 @@ bool caseInsensitiveCompare(const std::string &a, const std::string &b);
 void setFileSelectIcon(struct engine *engine);
 bool check_dir_exists(const char *path);
 bool create_dir(const char *path);
+void saveImage(const char* path);
 
 #ifdef _WIN32
 bool win8_or_later = false;
@@ -2154,6 +2155,7 @@ void EventProc(engine* engine, MenuNode menuNode)
                 case ID_SAVE_STATE0: case ID_SAVE_STATE1: case ID_SAVE_STATE2: case ID_SAVE_STATE3: case ID_SAVE_STATE4:
                 case ID_SAVE_STATE5: case ID_SAVE_STATE6: case ID_SAVE_STATE7: case ID_SAVE_STATE8: case ID_SAVE_STATE9:
                     if(emu) {
+                        saveImage(create_local_path(_T("%s.scr%d"), _T(CONFIG_NAME), LOWORD(wParam) - ID_SAVE_STATE0));
                         emu->save_state(emu->state_file_path(LOWORD(wParam) - ID_SAVE_STATE0));
                     }
                     break;
@@ -3081,6 +3083,15 @@ void update_save_state_menu(Menu *hMenu)
             snprintf(buf, sizeof(buf), "%d: (No Data)", i);  // File not found
         }
         hMenu->SetMenuItemInfo(ID_SAVE_STATE0 + i, buf);
+        const char* thumbnailPath = create_local_path(_T("%s.scr%d"), _T(CONFIG_NAME), i);
+        // Check if the thumbnail file exists
+        if(access(thumbnailPath, F_OK) != -1) {
+            // 正しく thumbnailPath を char * に変換して内容をコピー
+            char *thumbnailPathChar = new char[strlen(thumbnailPath) + 1];
+            strcpy(thumbnailPathChar, thumbnailPath); // 必ずコピーする
+            hMenu->SetMenuItemThumbnail(ID_SAVE_STATE0 + i, thumbnailPathChar);
+            delete[] thumbnailPathChar;
+        }
     }
 }
 
@@ -3105,6 +3116,15 @@ void update_load_state_menu(Menu *hMenu)
             snprintf(buf, sizeof(buf), "%d: (No Data)", i);  // File not found
         }
         hMenu->SetMenuItemInfo(ID_LOAD_STATE0 + i, buf);
+        const char* thumbnailPath = create_local_path(_T("%s.scr%d"), _T(CONFIG_NAME), i);
+        // Check if the thumbnail file exists
+        if(access(thumbnailPath, F_OK) != -1) {
+            // 正しく thumbnailPath を char * に変換して内容をコピー
+            char *thumbnailPathChar = new char[strlen(thumbnailPath) + 1];
+            strcpy(thumbnailPathChar, thumbnailPath); // 必ずコピーする
+            hMenu->SetMenuItemThumbnail(ID_LOAD_STATE0 + i, thumbnailPathChar);
+            delete[] thumbnailPathChar;
+        }
     }
 }
 #endif
@@ -7519,6 +7539,50 @@ bool create_dir(const char *path) {
 
     delete[] local_path;
     return result;
+}
+
+// 画像ファイルを保存する関数
+void saveImage(const char* path) {
+    // 画像サイズの取得
+    int width = emu->get_osd()->get_vm_window_width();
+    int height = emu->get_osd()->get_vm_window_height();
+
+    // 画像データのポインタを取得
+    uint16_t* lpBmp = emu->get_osd()->getScreenBuffer()->lpBmp;
+
+    // ファイルのオープン
+    int fd = open(path, O_WRONLY | O_CREAT, 0666);
+    if (fd == -1) {
+        LOGI("Failed to open file: %s, errno: %d", path, errno);
+        return;
+    }
+
+    // 画像サイズヘッダを書き込む
+    uint16_t sizeHeader[2] = {static_cast<uint16_t>(width), static_cast<uint16_t>(height)};
+    if (write(fd, sizeHeader, sizeof(sizeHeader)) != sizeof(sizeHeader)) {
+        LOGI("Failed to write header to file, errno: %d", errno);
+        close(fd);
+        return;
+    }
+
+    // バイナリデータとして画像を保存するには、各ピクセルをファイルに書き込みます
+    ssize_t written, total_written = 0;
+    size_t bytes_to_write = width * height * sizeof(uint16_t);
+    uint8_t* data_ptr = reinterpret_cast<uint8_t*>(lpBmp);
+
+    while (total_written < bytes_to_write) {
+        written = write(fd, data_ptr + total_written, bytes_to_write - total_written);
+        if (written == -1) {
+            LOGI("Failed to write to file, errno: %d", errno);
+            close(fd);
+            return;
+        }
+        total_written += written;
+    }
+
+    // ファイルのクローズ
+    close(fd);
+    LOGI("Image saved successfully");
 }
 
 // ----------------------------------------------------------------------------

@@ -25,7 +25,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,6 +38,7 @@ import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -53,6 +56,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -459,7 +463,7 @@ public class EmulatorActivity extends NativeActivity {
                         }
                     }
                 }
-                // デバイスごとの最後の要素にボタンの数を格納
+                // デバイスごとの最後の要素にボタンの数とデバイスIDを格納
                 values[deviceCount * 31 + 30] = buttonCount;
                 values[deviceCount * 31 + 31] = deviceId;
 
@@ -750,31 +754,38 @@ public class EmulatorActivity extends NativeActivity {
                 LinearLayout layout = dialog.findViewById(R.id.custom_dialog_layout);
                 for (int i = 0; i < nodes.length; i++) {
                     String[] node = nodes[i].split(";");
+                    if (node.length < 3) {
+                        continue;
+                    }
                     Button button = new Button(EmulatorActivity.this);
                     button.setText(node[1]);
                     // nodes[2] が "0" の時はフォルダ、"1" の時はファイル
                     //  フォルダの時はボタンの色を薄い黄色、ファイルの時は薄い青色にする
                     // 白に近い黄色の背景色を設定
                     // node 配列の数が足りない場合、可能なら配列の中の情報を logcat ダンプして continue する
-                    if (node.length < 3) {
-                        continue;
-                    }
-                    if (node[2].equals("0")) {
-                        button.setBackgroundColor(Color.argb(255, 255, 255, 200)); // ARGBで白に近い黄色
+                    if (node.length >= 8 && node[7] != null && !node[7].isEmpty() && new File(node[7]).exists()) {
+                        setButtonBackground(button, dialog, node[7]); // Load and set the image background if it exists
+                        button.setTextColor(Color.WHITE);  // テキストの色を白に設定
+                        button.setShadowLayer(12, 4, 4, Color.BLACK);  // 黒い影をテキストに追加
+                        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
                     } else {
-                        if (node[5].equals("1")) {
-                            button.setBackgroundColor(Color.argb(255, 150, 150, 255)); // ARGBで青
+                        if (node[2].equals("0")) {
+                            button.setBackgroundColor(Color.argb(255, 255, 255, 200)); // ARGBで白に近い黄色
                         } else {
-                            button.setBackgroundColor(Color.argb(255, 200, 255, 255)); // ARGBで白に近い青
+                            if (node[5].equals("1")) {
+                                button.setBackgroundColor(Color.argb(255, 150, 150, 255)); // ARGBで青
+                            } else {
+                                button.setBackgroundColor(Color.argb(255, 200, 255, 255)); // ARGBで白に近い青
+                            }
                         }
+                        // ボタン押下許可
+                        button.setEnabled(node[6].equals("1"));
+                        if (node[6].equals("0")) {
+                            button.setBackgroundColor(Color.argb(255, 200, 200, 200)); // 灰色
+                        }
+                        // テキスト色を設定（ここでは黒を例としています）
+                        button.setTextColor(Color.BLACK);
                     }
-                    // ボタン押下許可
-                    button.setEnabled(node[6].equals("1"));
-                    if (node[6].equals("0")) {
-                        button.setBackgroundColor(Color.argb(255, 200, 200, 200)); // 灰色
-                    }
-                    // テキスト色を設定（ここでは黒を例としています）
-                    button.setTextColor(Color.BLACK);
                     final int index = i;
                     button.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -818,6 +829,7 @@ public class EmulatorActivity extends NativeActivity {
                     }
                 });
 
+                setupNavigationButtons(dialog, nodes); // Handles back and cancel buttons
                 dialog.setCancelable(false);
                 dialog.show();
             }
@@ -826,6 +838,102 @@ public class EmulatorActivity extends NativeActivity {
         Log.i("EmulatorActivity", "showExtendMenu end");
         return buttonId.get();
     }
+
+    private Bitmap decodeCustomImageFile(String imagePath) {
+        File file = new File(imagePath);
+        if (!file.exists()) return null;
+
+        try (FileInputStream fis = new FileInputStream(file)) {
+            // ヘッダから画像サイズを読み取る
+            byte[] header = new byte[4];
+            if (fis.read(header) != header.length) {
+                return null; // ヘッダが完全に読み込めなかった場合
+            }
+
+            // リトルエンディアン形式での読み取り
+            int width = ((header[1] & 0xFF) << 8) | (header[0] & 0xFF);
+            int height = ((header[3] & 0xFF) << 8) | (header[2] & 0xFF);
+
+            // 画像データを読み込む
+            byte[] pixelData = new byte[width * height * 2];
+            if (fis.read(pixelData) != pixelData.length) {
+                return null; // ピクセルデータが完全に読み込めなかった場合
+            }
+
+            int[] colors = new int[width * height];
+            // RGB565からARGB8888へ変換し、同時に画像を上下反転
+            for (int y = 0; y < height; y++) {
+                int invY = height - 1 - y;  // 上下反転のためのY座標
+                for (int x = 0; x < width; x++) {
+                    int pixelIndex = 2 * (x + invY * width);
+                    int rgb565 = ((pixelData[pixelIndex + 1] & 0xFF) << 8) | (pixelData[pixelIndex] & 0xFF);
+                    int red = ((rgb565 >> 11) & 0x1F) << 3;
+                    int green = ((rgb565 >> 5) & 0x3F) << 2;
+                    int blue = (rgb565 & 0x1F) << 3;
+                    colors[x + y * width] = 0xFF000000 | (red << 16) | (green << 8) | blue;
+                }
+            }
+
+            // Bitmapを生成
+            return Bitmap.createBitmap(colors, width, height, Bitmap.Config.ARGB_8888);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // setButtonBackground メソッドを更新して、Dialog を受け取り、ボタンのサイズを測定
+    private void setButtonBackground(final Button button, final Dialog dialog, final String imagePath) {
+        button.post(new Runnable() {
+            @Override
+            public void run() {
+                int buttonWidth = button.getWidth();  // ボタンの実際の幅を取得
+                Bitmap bitmap = decodeCustomImageFile(imagePath);
+                if (bitmap != null && buttonWidth > 0) {
+                    Bitmap scaledBitmap = scaleBitmapToWidth(bitmap, buttonWidth); // ボタンの幅に画像をスケール
+                    Drawable drawable = new BitmapDrawable(getResources(), scaledBitmap);
+                    button.setBackground(drawable);
+                }
+            }
+        });
+    }
+
+    private Bitmap scaleBitmapToWidth(Bitmap original, int width) {
+        int originalWidth = original.getWidth();
+        int originalHeight = original.getHeight();
+        float scale = width / (float) originalWidth;
+        int newHeight = (int) (originalHeight * scale);
+        return Bitmap.createScaledBitmap(original, width, newHeight, true);
+    }
+
+    private void setupNavigationButtons(final Dialog dialog, final String[] nodes) {
+        Button cancelButton = dialog.findViewById(R.id.cancelButton);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i("EmulatorActivity", "cancelButton clicked");
+                extendMenuCallback("");
+                dialog.dismiss();
+            }
+        });
+
+        Button backButton = dialog.findViewById(R.id.backButton);
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (nodes.length > 0) {
+                    String[] node = nodes[0].split(";");
+                    Log.i("EmulatorActivity", "backButton clicked: " + node[4]);
+                    extendMenuCallback(node[4]); // Pass parent ID
+                } else {
+                    Log.i("EmulatorActivity", "backButton clicked: empty");
+                    extendMenuCallback("");
+                }
+                dialog.dismiss();
+            }
+        });
+    }
+
 
     public native void extendMenuCallback(String extendMenu);
     public native void fileSelectCallback(int id);
