@@ -31,7 +31,23 @@ set (CSP_VM_SRC_DIR ../../../../../src/vm)
 set (ANDROID_SRC_DIR ./Android)
 
 add_subdirectory(${OBOE_BASE_DIR} ./oboe-bin)
-include_directories(${OBOE_DIR}/include)
+
+# zlibライブラリをサブディレクトリとして追加
+add_subdirectory(../../../../externals/zlib ${CMAKE_BINARY_DIR}/zlib)
+
+# libpngライブラリをサブディレクトリとして追加
+# PNG_ARM_NEON option (optional) improves performance on ARM devices but requires NEON support
+set(PNG_ARM_NEON "on" CACHE STRING "Enable ARM NEON optimizations")
+set(PNG_SHARED OFF CACHE BOOL "Build shared libpng")
+set(PNG_STATIC ON CACHE BOOL "Build static libpng")
+add_subdirectory(../../../../externals/libpng ${CMAKE_BINARY_DIR}/libpng)
+
+# Include directories for zlib and libpng
+include_directories(
+		${OBOE_DIR}/include  # Path to the Oboe include files
+		${CMAKE_BINARY_DIR}/zlib  # Path to the built zlib include files
+		${CMAKE_BINARY_DIR}/libpng  # Path to the built libpng include files
+)
 
 # build native_app_glue as a static lib
 set(${CMAKE_C_FLAGS}, "${CMAKE_C_FLAGS}")
@@ -372,13 +388,17 @@ endif()
 
 find_library(log-lib log)
 
+# Assuming your executable or native library is named 'native-activity'
+# If it's different, replace 'native-activity' with the actual target name
 target_include_directories(native-activity PRIVATE
 		${ANDROID_NDK}/sources/android/native_app_glue
 		${OBOE_DIR}/include
 		${CSP_SRC_DIR}
 		${CSP_VM_SRC_DIR}
 		${ANDROID_SRC_DIR}
-		)
+		${CMAKE_BINARY_DIR}/zlib  # zlib include
+		${CMAKE_BINARY_DIR}/libpng # libpng include
+)
 
 # add lib dependencies
 target_link_libraries(native-activity
@@ -389,7 +409,11 @@ target_link_libraries(native-activity
 		GLESv2
 		m
 		oboe
-		${log-lib})
+		${log-lib}
+		${CMAKE_BINARY_DIR}/zlib/libz.a  # Link to the zlib static library
+		${CMAKE_BINARY_DIR}/libpng/libpng.a  # Link to the libpng static library
+)
+
 
 # Export ANativeActivity_onCreate(),
 # Refer to: https://github.com/android-ndk/ndk/issues/381.
