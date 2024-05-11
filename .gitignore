@@ -407,3 +407,4 @@ androidstudio/local.properties
 
 !/tool/**/*
 !/tool/**/*/
+android_unity/.idea

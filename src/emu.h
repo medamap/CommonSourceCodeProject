@@ -46,12 +46,17 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <android/log.h>
+#if defined(_UnityAndroid)
+#define OSD_UNITY_ANDROID
+#else
 #define OSD_ANDROID
+#endif
 #else
 // oops!
 #endif
 
-#if defined(OSD_ANDROID)
+#if defined(OSD_ANDROID) || defined(OSD_UNITY_ANDROID)
 //#undef USE_AUTO_KEY
 //#undef USE_AUTO_KEY_RELEASE
 //#undef USE_AUTO_KEY_CAPS
@@ -68,6 +73,8 @@
 
 #if defined(OSD_ANDROID)
 #include "Android/osd.h"
+#elif defined(OSD_UNITY_ANDROID)
+#include "UnityAndroid/osd.h"
 #elif defined(OSD_QT)
 #include "qt/osd.h"
 #elif defined(OSD_SDL)

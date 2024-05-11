@@ -14,6 +14,11 @@
 #if defined(_USE_QT)
 #include <string>
 #endif
+#if defined(_UnityAndroid)
+#include <android/log.h>
+#define  LOG_TAG    "commonProject"
+#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
+#endif
 #include "emu.h"
 #if defined(USE_DEBUGGER)
 #include "vm/debugger.h"
@@ -44,7 +49,11 @@ EMU::EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst, USING_FLAGS *p)
 #elif defined(OSD_WIN32)
 EMU::EMU(HWND hwnd, HINSTANCE hinst)
 #elif defined(__ANDROID__)
+#if defined(_UnityAndroid)
+EMU::EMU()
+#else
 EMU::EMU(struct android_app* state)
+#endif
 #else
 EMU::EMU()
 #endif
@@ -76,7 +85,9 @@ EMU::EMU()
 	sound_rate = sound_frequency_table[config.sound_frequency];
 	sound_samples = (int)(sound_rate * sound_latency_table[config.sound_latency] + 0.5);
 #if defined(__ANDROID__)
+#if defined(_Android)
 	LOGI("sound Frequency %d: rate %d: samples %d ",config.sound_frequency,sound_rate,sound_samples);
+#endif
 #endif
 #ifdef USE_CPU_TYPE
 	cpu_type = config.cpu_type;
@@ -98,7 +109,11 @@ EMU::EMU()
 #if defined(OSD_QT)
 	osd = new OSD(p, csp_logger);
 #elif defined(__ANDROID__)
+#if defined(_UnityAndroid)
+    osd = new OSD();
+#else
     osd = new OSD(state);
+#endif
 #else
 	osd = new OSD();
 #endif
@@ -3126,7 +3141,9 @@ void EMU::load_state(const _TCHAR* file_path)
 		if(!load_state_tmp(file_path)) {
 			out_debug_log(_T("failed to load state file\n"));
 #if defined(__ANDROID__)
+#if defined(_Android)
             LOGI(("failed to load state file"));
+#endif
 #endif
 			load_state_tmp(create_local_path(_T("$temp$.sta")));
 		}

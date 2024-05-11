@@ -1,0 +1,1062 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'jp.megamin.android.cscp'
+    ndkVersion "26.3.11579264"
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 24
+        //noinspection ExpiredTargetSdkVersion
+        targetSdk 24
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                cppFlags '-std=c++17'
+            }
+        }
+        ndk {
+            debugSymbolLevel 'FULL'
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64' // Specify your ABIs
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField "boolean", "LOG_DEBUG", "true"
+        }
+        debug() {
+            buildConfigField "boolean", "LOG_DEBUG", "false"
+            ndk {
+                debugSymbolLevel 'FULL'
+                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            }
+        }
+    }
+
+    flavorDimensions "machine"
+    productFlavors {
+        bmjr {
+            dimension "machine"
+            versionNameSuffix "-bmjr"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_BMJR=1"
+                }
+            }
+        }
+        bubcom80 {
+            dimension "machine"
+            versionNameSuffix "-bubcom80"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_BUBCOM80=1"
+                }
+            }
+        }
+        bx1 {
+            dimension "machine"
+            versionNameSuffix "-bx1"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_BX1=1"
+                }
+            }
+        }
+        cefucom21 {
+            dimension "machine"
+            versionNameSuffix "-cefucom21"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_CEFUCOM21=1"
+                }
+            }
+        }
+        colecovision {
+            dimension "machine"
+            versionNameSuffix "-colecovision"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_COLECOVISION=1"
+                }
+            }
+        }
+        familybasic {
+            dimension "machine"
+            versionNameSuffix "-familybasic"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FAMILYBASIC=1"
+                }
+            }
+        }
+        fm7 {
+            dimension "machine"
+            versionNameSuffix "-fm7"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM7=1"
+                }
+            }
+        }
+        fm8 {
+            dimension "machine"
+            versionNameSuffix "-fm8"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM8=1"
+                }
+            }
+        }
+        fm16beta_i186 {
+            dimension "machine"
+            versionNameSuffix "-fm16beta_i186"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM16BETA_I186=1"
+                }
+            }
+        }
+        fm16beta_i286 {
+            dimension "machine"
+            versionNameSuffix "-fm16beta_i286"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM16BETA_I286=1"
+                }
+            }
+        }
+        fm77 {
+            dimension "machine"
+            versionNameSuffix "-fm77"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM77=1"
+                }
+            }
+        }
+        fm77av {
+            dimension "machine"
+            versionNameSuffix "-fm77av"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM77AV=1"
+                }
+            }
+        }
+        fm77av40 {
+            dimension "machine"
+            versionNameSuffix "-fm77av40"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM77AV40=1"
+                }
+            }
+        }
+        fm77av40ex {
+            dimension "machine"
+            versionNameSuffix "-fm77av40ex"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM77AV40EX=1"
+                }
+            }
+        }
+        fm77l4 {
+            dimension "machine"
+            versionNameSuffix "-fm77l4"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FM77L4=1"
+                }
+            }
+        }
+        fmr30_i186 {
+            dimension "machine"
+            versionNameSuffix "-fmr30_i186"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR30_I186=1"
+                }
+            }
+        }
+        fmr30_i286 {
+            dimension "machine"
+            versionNameSuffix "-fmr30_i286"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR30_I286=1"
+                }
+            }
+        }
+        fmr50_i286 {
+            dimension "machine"
+            versionNameSuffix "-fmr50_i286"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR50_I286=1"
+                }
+            }
+        }
+        fmr50_i386 {
+            dimension "machine"
+            versionNameSuffix "-fmr50_i386"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR50_I386=1"
+                }
+            }
+        }
+        fmr50_i486 {
+            dimension "machine"
+            versionNameSuffix "-fmr50_i486"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR50_I486=1"
+                }
+            }
+        }
+        fmr60 {
+            dimension "machine"
+            versionNameSuffix "-fmr60"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR60=1"
+                }
+            }
+        }
+        fmr70 {
+            dimension "machine"
+            versionNameSuffix "-fmr70"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR70=1"
+                }
+            }
+        }
+        fmr80 {
+            dimension "machine"
+            versionNameSuffix "-fmr80"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FMR80=1"
+                }
+            }
+        }
+        fp200 {
+            dimension "machine"
+            versionNameSuffix "-fp200"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FP200=1"
+                }
+            }
+        }
+        fp1100 {
+            dimension "machine"
+            versionNameSuffix "-fp1100"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FP1100=1"
+                }
+            }
+        }
+        fsa1 {
+            dimension "machine"
+            versionNameSuffix "-fsa1"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FSA1=1"
+                }
+            }
+        }
+        fx9000p {
+            dimension "machine"
+            versionNameSuffix "-fx9000p"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_FX9000P=1"
+                }
+            }
+        }
+        gamegear {
+            dimension "machine"
+            versionNameSuffix "-gamegear"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_GAMEGEAR=1"
+                }
+            }
+        }
+        hc20 {
+            dimension "machine"
+            versionNameSuffix "-hc20"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_HC20=1"
+                }
+            }
+        }
+        hc40 {
+            dimension "machine"
+            versionNameSuffix "-hc40"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_HC40=1"
+                }
+            }
+        }
+        hc80 {
+            dimension "machine"
+            versionNameSuffix "-hc80"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_HC80=1"
+                }
+            }
+        }
+        hx20 {
+            dimension "machine"
+            versionNameSuffix "-hx20"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_HX20=1"
+                }
+            }
+        }
+        j3100gt {
+            dimension "machine"
+            versionNameSuffix "-j3100gt"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_J3100GT=1"
+                }
+            }
+        }
+        j3100sl {
+            dimension "machine"
+            versionNameSuffix "-j3100sl"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_J3100SL=1"
+                }
+            }
+        }
+        jr100 {
+            dimension "machine"
+            versionNameSuffix "-jr100"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_JR100=1"
+                }
+            }
+        }
+        jr800 {
+            dimension "machine"
+            versionNameSuffix "-jr800"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_JR800=1"
+                }
+            }
+        }
+        jx {
+            dimension "machine"
+            versionNameSuffix "-jx"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_JX=1"
+                }
+            }
+        }
+        m5 {
+            dimension "machine"
+            versionNameSuffix "-m5"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_M5=1"
+                }
+            }
+        }
+        m23 {
+            dimension "machine"
+            versionNameSuffix "-m23"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_M23=1"
+                }
+            }
+        }
+        m68 {
+            dimension "machine"
+            versionNameSuffix "-m68"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_M68=1"
+                }
+            }
+        }
+        map1010 {
+            dimension "machine"
+            versionNameSuffix "-map1010"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MAP1010=1"
+                }
+            }
+        }
+        mastersystem {
+            dimension "machine"
+            versionNameSuffix "-mastersystem"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MASTERSYSTEM=1"
+                }
+            }
+        }
+        msx1 {
+            dimension "machine"
+            versionNameSuffix "-msx1"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MSX1=1"
+                }
+            }
+        }
+        msx2 {
+            dimension "machine"
+            versionNameSuffix "-msx2"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MSX2=1"
+                }
+            }
+        }
+        msx2p {
+            dimension "machine"
+            versionNameSuffix "-msx2p"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MSX2P=1"
+                }
+            }
+        }
+        multi8 {
+            dimension "machine"
+            versionNameSuffix "-multi8"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MULTI8=1"
+                }
+            }
+        }
+        mycomz80a {
+            dimension "machine"
+            versionNameSuffix "-mycomz80a"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MYCOMZ80A=1"
+                }
+            }
+        }
+        mz80a {
+            dimension "machine"
+            versionNameSuffix "-mz80a"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ80A=1"
+                }
+            }
+        }
+        mz80b {
+            dimension "machine"
+            versionNameSuffix "-mz80b"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ80B=1"
+                }
+            }
+        }
+        mz80k {
+            dimension "machine"
+            versionNameSuffix "-mz80k"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ80K=1"
+                }
+            }
+        }
+        mz700 {
+            dimension "machine"
+            versionNameSuffix "-mz700"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ700=1"
+                }
+            }
+        }
+        mz800 {
+            dimension "machine"
+            versionNameSuffix "-mz800"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ800=1"
+                }
+            }
+        }
+        mz1500 {
+            dimension "machine"
+            versionNameSuffix "-mz1500"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ1500=1"
+                }
+            }
+        }
+        mz2200 {
+            dimension "machine"
+            versionNameSuffix "-mz2200"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ2200=1"
+                }
+            }
+        }
+        mz2500 {
+            dimension "machine"
+            versionNameSuffix "-mz2500"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ2500=1"
+                }
+            }
+        }
+        mz2800 {
+            dimension "machine"
+            versionNameSuffix "-mz2800"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ2800=1"
+                }
+            }
+        }
+        mz3500 {
+            dimension "machine"
+            versionNameSuffix "-mz3500"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ3500=1"
+                }
+            }
+        }
+        mz5500 {
+            dimension "machine"
+            versionNameSuffix "-mz5500"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ5500=1"
+                }
+            }
+        }
+        mz6500 {
+            dimension "machine"
+            versionNameSuffix "-mz6500"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ6500=1"
+                }
+            }
+        }
+        mz6550 {
+            dimension "machine"
+            versionNameSuffix "-mz6550"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_MZ6550=1"
+                }
+            }
+        }
+        n5200 {
+            dimension "machine"
+            versionNameSuffix "-n5200"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_N5200=1"
+                }
+            }
+        }
+        pasopia {
+            dimension "machine"
+            versionNameSuffix "-pasopia"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PASOPIA=1"
+                }
+            }
+        }
+        pasopia7 {
+            dimension "machine"
+            versionNameSuffix "-pasopia7"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PASOPIA7=1"
+                }
+            }
+        }
+        pc98do {
+            dimension "machine"
+            versionNameSuffix "-pc98do"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC98DO=1"
+                }
+            }
+        }
+        pc98ha {
+            dimension "machine"
+            versionNameSuffix "-pc98ha"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC98HA=1"
+                }
+            }
+        }
+        pc98lt {
+            dimension "machine"
+            versionNameSuffix "-pc98lt"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC98LT=1"
+                }
+            }
+        }
+        pc98rl {
+            dimension "machine"
+            versionNameSuffix "-pc98rl"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC98RL=1"
+                }
+            }
+        }
+        pc98xa {
+            dimension "machine"
+            versionNameSuffix "-pc98xa"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC98XA=1"
+                }
+            }
+        }
+        pc98xl {
+            dimension "machine"
+            versionNameSuffix "-pc98xl"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC98XL=1"
+                }
+            }
+        }
+        pc100 {
+            dimension "machine"
+            versionNameSuffix "-pc100"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC100=1"
+                }
+            }
+        }
+        pc2001 {
+            dimension "machine"
+            versionNameSuffix "-pc2001"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC2001=1"
+                }
+            }
+        }
+        pc6001 {
+            dimension "machine"
+            versionNameSuffix "-pc6001"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC6001=1"
+                }
+            }
+        }
+        pc6001mk2 {
+            dimension "machine"
+            versionNameSuffix "-pc6001mk2"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC6001MK2=1"
+                }
+            }
+        }
+        pc6001mk2sr {
+            dimension "machine"
+            versionNameSuffix "-pc6001mk2sr"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC6001MK2SR=1"
+                }
+            }
+        }
+        pc6601 {
+            dimension "machine"
+            versionNameSuffix "-pc6601"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC6601=1"
+                }
+            }
+        }
+        pc6601sr {
+            dimension "machine"
+            versionNameSuffix "-pc6601sr"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC6601SR=1"
+                }
+            }
+        }
+        pc8001 {
+            dimension "machine"
+            versionNameSuffix "-pc8001"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC8001=1"
+                }
+            }
+        }
+        pc8001mk2 {
+            dimension "machine"
+            versionNameSuffix "-pc8001mk2"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC8001MK2=1"
+                }
+            }
+        }
+        pc8001sr {
+            dimension "machine"
+            versionNameSuffix "-pc8001sr"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC8001SR=1"
+                }
+            }
+        }
+        pc8201 {
+            dimension "machine"
+            versionNameSuffix "-pc8201"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC8201=1"
+                }
+            }
+        }
+        pc8801 {
+            dimension "machine"
+            versionNameSuffix "-pc8801"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC8801=1"
+                }
+            }
+        }
+        pc8801ma {
+            dimension "machine"
+            versionNameSuffix "-pc8801ma"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC8801MA=1"
+                }
+            }
+        }
+        pc8801mk2 {
+            dimension "machine"
+            versionNameSuffix "-pc8801mk2"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC8801MK2=1"
+                }
+            }
+        }
+        pc9801 {
+            dimension "machine"
+            versionNameSuffix "-pc9801"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC9801=1"
+                }
+            }
+        }
+        pc9801e {
+            dimension "machine"
+            versionNameSuffix "-pc9801e"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC9801E=1"
+                }
+            }
+        }
+        pc9801ra {
+            dimension "machine"
+            versionNameSuffix "-pc9801ra"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC9801RA=1"
+                }
+            }
+        }
+        pc9801u {
+            dimension "machine"
+            versionNameSuffix "-pc9801u"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC9801U=1"
+                }
+            }
+        }
+        pc9801vf {
+            dimension "machine"
+            versionNameSuffix "-pc9801vf"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC9801VF=1"
+                }
+            }
+        }
+        pc9801vm {
+            dimension "machine"
+            versionNameSuffix "-pc9801vm"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC9801VM=1"
+                }
+            }
+        }
+        pc9801vx {
+            dimension "machine"
+            versionNameSuffix "-pc9801vx"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PC9801VX=1"
+                }
+            }
+        }
+        pcengine {
+            dimension "machine"
+            versionNameSuffix "-pcengine"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PCENGINE=1"
+                }
+            }
+        }
+        phc20 {
+            dimension "machine"
+            versionNameSuffix "-phc20"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PHC20=1"
+                }
+            }
+        }
+        phc25 {
+            dimension "machine"
+            versionNameSuffix "-phc25"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PHC25=1"
+                }
+            }
+        }
+        pv1000 {
+            dimension "machine"
+            versionNameSuffix "-pv1000"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PV1000=1"
+                }
+            }
+        }
+        pv2000 {
+            dimension "machine"
+            versionNameSuffix "-pv2000"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PV2000=1"
+                }
+            }
+        }
+        px7 {
+            dimension "machine"
+            versionNameSuffix "-px7"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PX7=1"
+                }
+            }
+        }
+        pyuta {
+            dimension "machine"
+            versionNameSuffix "-pyuta"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_PYUTA=1"
+                }
+            }
+        }
+        qc10 {
+            dimension "machine"
+            versionNameSuffix "-qc10"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_QC10=1"
+                }
+            }
+        }
+        rx78 {
+            dimension "machine"
+            versionNameSuffix "-rx78"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_RX78=1"
+                }
+            }
+        }
+        sc3000 {
+            dimension "machine"
+            versionNameSuffix "-sc3000"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_SC3000=1"
+                }
+            }
+        }
+        scv {
+            dimension "machine"
+            versionNameSuffix "-scv"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_SCV=1"
+                }
+            }
+        }
+        smb80te {
+            dimension "machine"
+            versionNameSuffix "-smb80te"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_SMB80TE=1"
+                }
+            }
+        }
+        smc70 {
+            dimension "machine"
+            versionNameSuffix "-smc70"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_SMC70=1"
+                }
+            }
+        }
+        smc777 {
+            dimension "machine"
+            versionNameSuffix "-smc777"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_SMC777=1"
+                }
+            }
+        }
+        tk85 {
+            dimension "machine"
+            versionNameSuffix "-tk85"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_TK85=1"
+                }
+            }
+        }
+        tvboy {
+            dimension "machine"
+            versionNameSuffix "-tvboy"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_TVBOY=1"
+                }
+            }
+        }
+        x1 {
+            dimension "machine"
+            versionNameSuffix "-x1"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_X1=1"
+                }
+            }
+        }
+        x1turbo {
+            dimension "machine"
+            versionNameSuffix "-x1turbo"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_X1TURBO=1"
+                }
+            }
+        }
+        x1turboz {
+            dimension "machine"
+            versionNameSuffix "-x1turboz"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_X1TURBOZ=1"
+                }
+            }
+        }
+        x1twin {
+            dimension "machine"
+            versionNameSuffix "-x1twin"
+            externalNativeBuild {
+                cmake {
+                    arguments "-D_X1TWIN=1"
+                }
+            }
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    lintOptions {
+        disable 'InvalidPackage'
+        checkReleaseBuilds false
+    }
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+}
+
+dependencies {
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.constraintlayout
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}

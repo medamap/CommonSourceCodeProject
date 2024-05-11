@@ -87,7 +87,7 @@ FILEIO::~FILEIO(void)
 
 bool FILEIO::IsFileExisting(const _TCHAR *file_path)
 {
-#if defined(_USE_QT) || defined(_USE_SDL) || defined(_Android)
+#if defined(_USE_QT) || defined(_USE_SDL) || defined(__ANDROID__)
 	FILE *f = fopen(file_path, "r");
 	if(f != NULL) {
 		fclose(f);
@@ -132,7 +132,7 @@ bool FILEIO::IsFileProtected(const _TCHAR *file_path)
 
 bool FILEIO::RemoveFile(const _TCHAR *file_path)
 {
-#if defined(_USE_QT) || defined(_USE_SDL)|| defined(_Android)
+#if defined(_USE_QT) || defined(_USE_SDL)|| defined(__ANDROID__)
 	return (remove(file_path) == 0);
 #elif defined(_WIN32)
 	return (DeleteFile(file_path) != 0);
@@ -143,7 +143,7 @@ bool FILEIO::RemoveFile(const _TCHAR *file_path)
 
 bool FILEIO::RenameFile(const _TCHAR *existing_file_path, const _TCHAR *new_file_path)
 {
-#if defined(_USE_QT) || defined(_USE_SDL)|| defined(_Android)
+#if defined(_USE_QT) || defined(_USE_SDL)|| defined(__ANDROID__)
 	return (rename(existing_file_path, new_file_path) == 0);
 #elif defined(_WIN32)
 	return (MoveFile(existing_file_path, new_file_path) != 0);

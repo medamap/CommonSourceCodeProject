@@ -22,7 +22,11 @@
     #include <stdio.h>
 	#include <string>
     #include <string.h>
+#if defined(_UnityAndroid)
+    #include "UnityAndroid/osd.h"
+#else
     #include "Android/osd.h"
+#endif
 #endif
 #if defined(_USE_QT)
 	#include <string.h>
@@ -817,7 +821,7 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 }
 #endif
 
-#if defined (_Android)
+#if defined (__ANDROID__)
 
 class ConfigManager {
 private:
@@ -1416,10 +1420,12 @@ const _TCHAR *DLL_PREFIX get_application_path()
 			my_tcscpy_s(app_path, _MAX_PATH, _T(".\\"));
 		}
 #elif defined(__ANDROID__)
-		//sprintf(app_path,"/sdcard/emulator/%sROM%s/",CONFIG_NAME, "");
+#if defined(_UnityAndroid)
+        // Todo: Unity Android
+#else
 		sprintf(app_path,"%s/emulator/%sROM%s/", documentDir, CONFIG_NAME, "");
         LOGI("Path: %s", app_path);
-
+#endif
     	return (const _TCHAR *)app_path;
 #else
 #if defined(Q_OS_WIN)
