@@ -3,6 +3,8 @@ package jp.matrix.shikarunochi.emulator;
 import static android.content.ContentValues.TAG;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -43,6 +45,7 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
@@ -58,8 +61,10 @@ import androidx.annotation.NonNull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -934,12 +939,44 @@ public class EmulatorActivity extends NativeActivity {
         });
     }
 
-
     public native void extendMenuCallback(String extendMenu);
     public native void fileSelectCallback(int id);
     public native void bankSelectCallback(int id);
     public native void bootSelectCallback(int id);
     public native void exitSelectCallback(int id);
+
+    // NDKから呼び出される画像保存メソッド
+    public void savePngImage(String imageName, byte[] imageData, int width, int height) {
+        ImageSaver.saveImage(this, imageName, imageData, width, height);
+        showTemporarySaveDialog(imageName);
+    }
+
+    private void showTemporarySaveDialog(final String fileName) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // ダイアログの作成
+                final Dialog dialog = new Dialog(EmulatorActivity.this);
+                dialog.requestWindowFeature(Window.FEATURE_NO_TITLE); // タイトル非表示
+                dialog.setContentView(R.layout.temp_save_dialog); // ダイアログで使用するレイアウト
+
+                // ダイアログに表示するテキストビューを設定
+                TextView textView = dialog.findViewById(R.id.text_view);
+                textView.setText("Save " + fileName + ".png");
+
+                // ダイアログを表示
+                dialog.show();
+
+                // 0.5秒後にダイアログを閉じる
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        dialog.dismiss();
+                    }
+                }, 1500); // 1500ミリ秒 = 1.5秒
+            }
+        });
+    }
 
     private int iconResouceId(int iconType, int iconId){
         switch(iconType){
@@ -963,7 +1000,9 @@ public class EmulatorActivity extends NativeActivity {
                         return R.drawable.wallpaper;
                     case 8:
                         return R.drawable.joystick;
-             }
+                    case 9:
+                        return R.drawable.screenshot;
+                }
             case 1://mediaIcon
                 switch(iconId) {
                     case 0:

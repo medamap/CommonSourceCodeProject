@@ -646,15 +646,16 @@ public:
     GlIcon(struct engine *engine, int id, enum systemIconType systemIconType, bool isTogglle, bool toggleValue) :
             engine(engine),
             id(id),
-            name(systemIconType == SYSTEM_EXIT      ? "EXIT"
-               : systemIconType == SYSTEM_RESET     ? "RESET"
-               : systemIconType == SYSTEM_SOUND     ? "SOUND"
-               : systemIconType == SYSTEM_PCG       ? "PCG"
-               : systemIconType == SYSTEM_CONFIG    ? "CONFIG"
-               : systemIconType == SYSTEM_KEYBOARD  ? "KEYBOARD"
-               : systemIconType == SYSTEM_MOUSE     ? "MOUSE"
-               : systemIconType == SYSTEM_WALLPAPER ? "WALLPAPER"
-               : systemIconType == SYSTEM_JOYSTICK  ? "JOYSTICK"
+            name(systemIconType == SYSTEM_EXIT       ? "EXIT"
+               : systemIconType == SYSTEM_RESET      ? "RESET"
+               : systemIconType == SYSTEM_SOUND      ? "SOUND"
+               : systemIconType == SYSTEM_PCG        ? "PCG"
+               : systemIconType == SYSTEM_CONFIG     ? "CONFIG"
+               : systemIconType == SYSTEM_KEYBOARD   ? "KEYBOARD"
+               : systemIconType == SYSTEM_MOUSE      ? "MOUSE"
+               : systemIconType == SYSTEM_WALLPAPER  ? "WALLPAPER"
+               : systemIconType == SYSTEM_JOYSTICK   ? "JOYSTICK"
+               : systemIconType == SYSTEM_SCREENSHOT ? "SCREENSHOT"
                : "Other"),
             iconType(SYSTEM_ICON),
             isValid(true),
@@ -891,6 +892,8 @@ public:
                     return SYSTEM_WALLPAPER;
                 case SYSTEM_JOYSTICK:
                     return SYSTEM_JOYSTICK;
+                case SYSTEM_SCREENSHOT:
+                    return SYSTEM_SCREENSHOT;
             }
         }
         return SYSTEM_NONE; // 四角形外
@@ -1120,6 +1123,7 @@ void setFileSelectIcon(struct engine *engine);
 bool check_dir_exists(const char *path);
 bool create_dir(const char *path);
 void saveImage(const char* path);
+void savePngImage(struct android_app *app, const char* path);
 
 #ifdef _WIN32
 bool win8_or_later = false;
@@ -1139,6 +1143,7 @@ void openFilePicker(struct android_app* app);
 #ifdef USE_JOYSTICK
 void callGetJoyPadInformation(struct android_app* app);
 #endif
+static void callJavaSaveImage(struct android_app* app, const char* path, uint16_t* bitmap, int width, int height);
 
 #define SOFT_KEYBOARD_KEEP_COUNT  3
 int softKeyboardCount = 0;
@@ -5446,6 +5451,7 @@ void initializeGlIcons(struct engine* engine) {
 #endif
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_SOUND, true, config.sound_on);
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_WALLPAPER, false, false);
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_SCREENSHOT, false, false);
 #if defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700)
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_PCG, true, config.dipswitch & 1);
 #elif defined(SUPPORT_PC88_PCG8100)
@@ -5878,6 +5884,18 @@ void clickOpenGlIcon(struct android_app *app, float x, float y) {
                 callGetJoyPadInformation(app);
                 break;
 #endif
+            case SYSTEM_SCREENSHOT:
+            {
+                // 今日の日付と時間から YYYYMMDD_HHMMSS 形式の文字列を生成
+                char filename1[48];
+                char filename2[64];
+                time_t now = time(nullptr);
+                struct tm *tm = localtime(&now);
+                strftime(filename1, sizeof(filename1), "screenshot_%Y%m%d_%H%M%S", tm);
+                sprintf(filename2, "%s_%s", _T(CONFIG_NAME), filename1);
+                savePngImage(app, filename2);
+                break;
+            }
             case SYSTEM_NONE:
                 break;
             case SYSTEM_ICON_MAX:
@@ -7585,6 +7603,18 @@ void saveImage(const char* path) {
     LOGI("Image saved successfully");
 }
 
+void savePngImage(struct android_app *app, const char* path) {
+
+    // 画像サイズの取得
+    int width = emu->get_osd()->get_vm_window_width();
+    int height = emu->get_osd()->get_vm_window_height();
+
+    // 画像データのポインタを取得
+    uint16_t* lpBmp = emu->get_osd()->getScreenBuffer()->lpBmp;
+
+    callJavaSaveImage(app, path, lpBmp, width, height);
+}
+
 // ----------------------------------------------------------------------------
 // android
 // ----------------------------------------------------------------------------
@@ -7826,6 +7856,45 @@ void callGetJoyPadInformation(struct android_app* app) {
     app->activity->vm->DetachCurrentThread();
 }
 #endif
+
+static void callJavaSaveImage(struct android_app* app, const char* path, uint16_t* bitmap, int width, int height) {
+    JNIEnv* env;
+    app->activity->vm->AttachCurrentThread(&env, NULL);
+
+    jclass activityClass = env->GetObjectClass(app->activity->clazz);
+    jmethodID saveImageMethod = env->GetMethodID(activityClass, "savePngImage", "(Ljava/lang/String;[BII)V");
+
+    if (saveImageMethod == nullptr) {
+        __android_log_print(ANDROID_LOG_ERROR, "JNI", "Failed to find the savePngImage method");
+        env->DeleteLocalRef(activityClass);
+        app->activity->vm->DetachCurrentThread();
+        return;
+    }
+
+    jstring jPath = env->NewStringUTF(path);
+    jbyteArray imageData = env->NewByteArray(width * height * 4); // Assume ARGB format
+    jbyte* pixelData = env->GetByteArrayElements(imageData, NULL);
+
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            int y2 = height - y - 1; // Flip the image vertically
+            int pixelIndex = (y2 * width + x) * 4;
+            int bitmapIndex = (y * width + x);
+            pixelData[pixelIndex] = (bitmap[bitmapIndex] & 0xf800) >> 8; // Red
+            pixelData[pixelIndex + 1] = (bitmap[bitmapIndex] & 0x07e0) >> 3; // Green
+            pixelData[pixelIndex + 2] = (bitmap[bitmapIndex] & 0x001f) << 3; // Blue
+            pixelData[pixelIndex + 3] = 0xFF; // Alpha
+        }
+    }
+
+    env->ReleaseByteArrayElements(imageData, pixelData, 0);
+    env->CallVoidMethod(app->activity->clazz, saveImageMethod, jPath, imageData, width, height);
+    env->DeleteLocalRef(imageData);
+    env->DeleteLocalRef(jPath);
+    env->DeleteLocalRef(activityClass);
+
+    app->activity->vm->DetachCurrentThread();
+}
 
 // ----------------------------------------------------------------------------
 // jni export

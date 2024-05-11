@@ -1226,6 +1226,7 @@ enum systemIconType {
     SYSTEM_MOUSE ,
     SYSTEM_WALLPAPER ,
     SYSTEM_JOYSTICK ,
+    SYSTEM_SCREENSHOT,
     SYSTEM_ICON_MAX
 };
 enum FileSelectType {
