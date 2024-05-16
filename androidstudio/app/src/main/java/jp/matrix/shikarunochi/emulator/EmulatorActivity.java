@@ -65,6 +65,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -75,6 +76,7 @@ public class EmulatorActivity extends NativeActivity {
     private static final int REQUEST_CODE_FILE_PICKER = 123;
     private static final int REQUEST_ENABLE_BT = 1;
     private volatile boolean permissionsGranted = false;
+
     private static final String[] PERMISSIONS_REQUIRED = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -82,11 +84,19 @@ public class EmulatorActivity extends NativeActivity {
             Manifest.permission.BLUETOOTH_ADMIN,
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
-            // APIレベル 31 以降で必要な Bluetooth 接続権限
-            "android.permission.BLUETOOTH_CONNECT"
+            Manifest.permission.RECEIVE_BOOT_COMPLETED
     };
 
+    // APIレベル31以上で必要な追加の権限
+    private static final String[] ADDITIONAL_PERMISSIONS_API_31 = {
+            "android.permission.BLUETOOTH_CONNECT",
+            "android.permission.BLUETOOTH_SCAN",
+            "android.permission.MIDI"
+    };
+
+
     private DeviceManager deviceManager;
+    private MidiManagerActivity midiManagerActivity;
 
     private native void sendMouseClickEvent(int action, float x, float y, int pointerCount, int buttonState);
     private native void sendMouseMovementEvent(float x, float y);
@@ -96,18 +106,20 @@ public class EmulatorActivity extends NativeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // 画面を縦方向に固定
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!hasPermissions()) {
-                requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
+            List<String> ungrantedPermissions = getUngrantedPermissions();
+            if (!ungrantedPermissions.isEmpty()) {
+                requestPermissions(ungrantedPermissions.toArray(new String[0]), PERMISSIONS_REQUEST_CODE);
             } else {
                 initializeApp();
             }
         } else {
             initializeApp();
         }
+
+        // MidiManagerActivityを初期化
+        midiManagerActivity = MidiManagerActivity.getInstance(this);
 
         // ジョイパッドを管理するデバイスマネージャを初期化
         deviceManager = new DeviceManager(this);
@@ -122,7 +134,7 @@ public class EmulatorActivity extends NativeActivity {
 
         setContentView(R.layout.activity_main);
         View mouseView = findViewById(R.id.mouseView);
-        mouseView.setOnTouchListener(new View.OnTouchListener() { // この行でエラー
+        mouseView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 int action = event.getActionMasked();
@@ -238,11 +250,12 @@ public class EmulatorActivity extends NativeActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         Log.i(TAG, "onRequestPermissionsResult called");
         if (requestCode == PERMISSIONS_REQUEST_CODE) {
-            if (hasPermissions()) {
+            List<String> ungrantedPermissions = getUngrantedPermissions();
+            if (ungrantedPermissions.isEmpty()) {
                 Log.i(TAG, "All permissions granted");
                 onPermissionsGranted();
             } else {
-                Log.i(TAG, "Some permissions denied");
+                Log.i(TAG, "Some permissions denied: " + ungrantedPermissions.toString());
                 onPermissionsDenied();
             }
         }
@@ -252,32 +265,45 @@ public class EmulatorActivity extends NativeActivity {
     private native void nativeOnPermissionsGranted();
     private native void nativeOnPermissionsDenied();
 
+    private List<String> getUngrantedPermissions() {
+        List<String> ungrantedPermissions = new ArrayList<>();
 
-    private boolean hasPermissions() {
-        Log.i(TAG, "Checking permissions");
-        // 基本的なファイルアクセス権限をチェック
-        boolean hasFilePermissions = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-                && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-
-        // APIレベル 31 以降では、BLUETOOTH_CONNECT 権限もチェックする
-        if (Build.VERSION.SDK_INT >= 31) {
-            boolean bluetoothConnectGranted = checkSelfPermission("android.permission.BLUETOOTH_CONNECT") == PackageManager.PERMISSION_GRANTED;
-            Log.i(TAG, "Checking BLUETOOTH_CONNECT permission " + (bluetoothConnectGranted ? "granted" : "denied"));
-
-            return hasFilePermissions
-                    && bluetoothConnectGranted
-                    && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-        } else {
-            // Android 12未満では、BLUETOOTH_CONNECT権限は不要であり、位置情報権限も必要に応じてチェック
-            return hasFilePermissions
-                    && checkSelfPermission(Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED
-                    && checkSelfPermission(Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_GRANTED
-                    && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ungrantedPermissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
         }
-    }
+        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ungrantedPermissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+        if (checkSelfPermission(Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+            ungrantedPermissions.add(Manifest.permission.BLUETOOTH);
+        }
+        if (checkSelfPermission(Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+            ungrantedPermissions.add(Manifest.permission.BLUETOOTH_ADMIN);
+        }
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ungrantedPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+        if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ungrantedPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+        }
+        if (checkSelfPermission(Manifest.permission.RECEIVE_BOOT_COMPLETED) != PackageManager.PERMISSION_GRANTED) {
+            ungrantedPermissions.add(Manifest.permission.RECEIVE_BOOT_COMPLETED);
+        }
 
+        if (Build.VERSION.SDK_INT >= 31) {
+            if (checkSelfPermission("android.permission.BLUETOOTH_CONNECT") != PackageManager.PERMISSION_GRANTED) {
+                ungrantedPermissions.add("android.permission.BLUETOOTH_CONNECT");
+            }
+            if (checkSelfPermission("android.permission.BLUETOOTH_SCAN") != PackageManager.PERMISSION_GRANTED) {
+                ungrantedPermissions.add("android.permission.BLUETOOTH_SCAN");
+            }
+            if (checkSelfPermission("android.permission.BLUETOOTH_ADVERTISE") != PackageManager.PERMISSION_GRANTED) {
+                ungrantedPermissions.add("android.permission.BLUETOOTH_ADVERTISE");
+            }
+        }
+
+        return ungrantedPermissions;
+    }
 
     private void onPermissionsGranted() {
         Log.i(TAG, "Permissions granted");
@@ -290,20 +316,24 @@ public class EmulatorActivity extends NativeActivity {
         nativeOnPermissionsDenied();
     }
 
-    // JNIから呼び出す非同期メソッド
     public void checkPermissionsAsync() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Log.i(TAG, "checkPermissionsAsync called");
-                if (EmulatorActivity.this.hasPermissions()) {
+                List<String> ungrantedPermissions = getUngrantedPermissions();
+                if (ungrantedPermissions.isEmpty()) {
                     Log.i(TAG, "Permissions already granted");
-                    EmulatorActivity.this.onPermissionsGranted();
+                    onPermissionsGranted();
                 } else {
-                    EmulatorActivity.this.requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
+                    requestPermissions(ungrantedPermissions.toArray(new String[0]), PERMISSIONS_REQUEST_CODE);
                 }
             }
         });
+    }
+
+    public String getMidiDeviceInfo(int index) {
+        return MidiManagerActivity.getInstance(this).getMidiDeviceInfo(index);
     }
 
     public void openFilePickerForImages() {
@@ -314,10 +344,33 @@ public class EmulatorActivity extends NativeActivity {
         startActivityForResult(intent, REQUEST_CODE_FILE_PICKER);
     }
 
+    public void updateMidiDevice() {
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+            Log.e(TAG, "Bluetooth is not enabled or not available");
+            return;
+        }
+
+        // アプリケーションの初期化時にUSBデバイスをチェック
+        midiManagerActivity.checkForUsbDevices();
+        // アプリケーションの初期化時にBLEスキャンを開始
+        midiManagerActivity.startBleScan();
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (resultCode == RESULT_OK) {
+                // ユーザーが Bluetooth を有効にした場合の処理
+                midiManagerActivity.checkForUsbDevices();
+                midiManagerActivity.startBleScan();
+            } else {
+                // ユーザーが Bluetooth を有効にしなかった場合の処理
+                Log.e(TAG, "Bluetooth is not enabled");
+            }
+        }
         if (requestCode == REQUEST_CODE_FILE_PICKER && resultCode == Activity.RESULT_OK) {
             if (data != null) {
                 Uri uri = data.getData();
@@ -411,6 +464,8 @@ public class EmulatorActivity extends NativeActivity {
     private void initializeApp() {
         // 権限がある場合のアプリの初期化処理
         System.loadLibrary("native-activity");
+        // 権限がある場合のアプリの初期化処理
+        midiManagerActivity = MidiManagerActivity.getInstance(this);
     }
 
     @Override
@@ -1002,6 +1057,8 @@ public class EmulatorActivity extends NativeActivity {
                         return R.drawable.joystick;
                     case 9:
                         return R.drawable.screenshot;
+                    case 10:
+                        return R.drawable.midi;
                 }
             case 1://mediaIcon
                 switch(iconId) {

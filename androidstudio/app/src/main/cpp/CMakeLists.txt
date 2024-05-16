@@ -361,8 +361,6 @@ target_include_directories(native-activity PRIVATE
 		${CSP_SRC_DIR}
 		${CSP_VM_SRC_DIR}
 		${ANDROID_SRC_DIR}
-		${CMAKE_BINARY_DIR}/zlib  # zlib include
-		${CMAKE_BINARY_DIR}/libpng # libpng include
 )
 
 # add lib dependencies
