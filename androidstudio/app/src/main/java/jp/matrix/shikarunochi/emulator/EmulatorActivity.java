@@ -345,15 +345,19 @@ public class EmulatorActivity extends NativeActivity {
     }
 
     public void updateMidiDevice() {
+        Log.i(TAG, "updateMidiDevice called");
+
+        // アプリケーションの初期化時にUSBデバイスをチェック
+        Log.i(TAG, "checkForUsbDevices called");
+        midiManagerActivity.checkForUsbDevices();
+
+        // アプリケーションの初期化時にBLEスキャンを開始
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
             Log.e(TAG, "Bluetooth is not enabled or not available");
             return;
         }
-
-        // アプリケーションの初期化時にUSBデバイスをチェック
-        midiManagerActivity.checkForUsbDevices();
-        // アプリケーションの初期化時にBLEスキャンを開始
+        Log.i(TAG, "startBleScan called");
         midiManagerActivity.startBleScan();
     }
 
