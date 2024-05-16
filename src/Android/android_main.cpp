@@ -5907,6 +5907,7 @@ void clickOpenGlIcon(struct android_app *app, float x, float y) {
             }
 #ifdef USE_MIDI
             case SYSTEM_MIDI:
+                LOGI("MIDI Device");
                 updateMidiDevice(app);
                 break;
 #endif
@@ -7920,6 +7921,7 @@ void updateMidiDevice(struct android_app* app) {
         __android_log_print(ANDROID_LOG_ERROR, "JNI", "Failed to find the updateMidiDevice method");
         return;
     }
+    LOGI("Call updateMidiDevice");
     jni->CallVoidMethod(app->activity->clazz, methodID);
     jni->DeleteLocalRef(clazz);
     app->activity->vm->DetachCurrentThread();

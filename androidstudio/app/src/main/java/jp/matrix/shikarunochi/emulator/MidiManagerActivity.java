@@ -69,14 +69,20 @@ public class MidiManagerActivity {
 
     public void checkForUsbDevices() {
         HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+        Log.i("MIDI", "Found " + deviceList.size() + " USB devices" + deviceList.toString());
         for (UsbDevice device : deviceList.values()) {
+            Log.i("MIDI", "Device: " + device.getDeviceName() + " - " + device.getDeviceId() + " - " + device.getVendorId() + " - " + device.getProductId() + " - " + device.getDeviceClass() + " - " + device.getDeviceSubclass() + " - " + device.getDeviceProtocol() + " - " + device.getInterfaceCount() + " - " + device.getConfigurationCount() + " - " + device.getSerialNumber() + " - " + device.getManufacturerName() + " - " + device.getProductName() + " - " + device.getVersion());
             if (device.getDeviceClass() == UsbConstants.USB_CLASS_AUDIO) {
+                Log.i("MIDI", "Found USB MIDI device");
                 if (!usbManager.hasPermission(device)) {
-                    PendingIntent permissionIntent =
-                            PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
+                    Log.i("MIDI", "Requesting permission for USB device");
+                    PendingIntent permissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
+                    Log.i("MIDI", "Requesting permission for USB device");
                     usbManager.requestPermission(device, permissionIntent);
                 } else {
+                    Log.i("MIDI", "USB device already has permission");
                     openUsbDevice(device);
+                    Log.i("MIDI", "USB device opened successfully");
                 }
             }
         }
@@ -84,11 +90,15 @@ public class MidiManagerActivity {
 
     private void openUsbDevice(UsbDevice device) {
         MidiDeviceInfo[] infos = midiManager.getDevices();
+        Log.i("MIDI", "Found " + infos.length + " MIDI devices" + infos.toString());
         for (MidiDeviceInfo info : infos) {
+            Log.i("MIDI", "MIDI Device: " + info.toString());
             if (info.getType() == MidiDeviceInfo.TYPE_USB && isMatchingDevice(info, device)) {
+                Log.i("MIDI", "Found matching USB MIDI device");
                 midiManager.openDevice(info, new MidiManager.OnDeviceOpenedListener() {
                     @Override
                     public void onDeviceOpened(MidiDevice midiDevice) {
+                        Log.i("MIDI", "Opening USB device");
                         if (midiDevice == null) {
                             Log.e("MIDI", "Could not open USB device");
                         } else {
