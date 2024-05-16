@@ -656,6 +656,7 @@ public:
                : systemIconType == SYSTEM_WALLPAPER  ? "WALLPAPER"
                : systemIconType == SYSTEM_JOYSTICK   ? "JOYSTICK"
                : systemIconType == SYSTEM_SCREENSHOT ? "SCREENSHOT"
+               : systemIconType == SYSTEM_MIDI       ? "MIDI"
                : "Other"),
             iconType(SYSTEM_ICON),
             isValid(true),
@@ -894,6 +895,8 @@ public:
                     return SYSTEM_JOYSTICK;
                 case SYSTEM_SCREENSHOT:
                     return SYSTEM_SCREENSHOT;
+                case SYSTEM_MIDI:
+                    return SYSTEM_MIDI;
             }
         }
         return SYSTEM_NONE; // 四角形外
@@ -1144,6 +1147,9 @@ void openFilePicker(struct android_app* app);
 void callGetJoyPadInformation(struct android_app* app);
 #endif
 static void callJavaSaveImage(struct android_app* app, const char* path, uint16_t* bitmap, int width, int height);
+#ifdef USE_MIDI
+void updateMidiDevice(struct android_app* app);
+#endif
 
 #define SOFT_KEYBOARD_KEEP_COUNT  3
 int softKeyboardCount = 0;
@@ -5452,6 +5458,9 @@ void initializeGlIcons(struct engine* engine) {
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_SOUND, true, config.sound_on);
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_WALLPAPER, false, false);
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_SCREENSHOT, false, false);
+#ifdef USE_MIDI
+    glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_MIDI, false, false);
+#endif
 #if defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700)
     glIcons.resize(glIcons.size() + 1); glIcons[iconIndex++] = *new GlIcon(engine, id++, SYSTEM_PCG, true, config.dipswitch & 1);
 #elif defined(SUPPORT_PC88_PCG8100)
@@ -5896,6 +5905,11 @@ void clickOpenGlIcon(struct android_app *app, float x, float y) {
                 savePngImage(app, filename2);
                 break;
             }
+#ifdef USE_MIDI
+            case SYSTEM_MIDI:
+                updateMidiDevice(app);
+                break;
+#endif
             case SYSTEM_NONE:
                 break;
             case SYSTEM_ICON_MAX:
@@ -7812,7 +7826,7 @@ void openFilePicker(struct android_app* app) {
     jclass clazz = jni->GetObjectClass(app->activity->clazz);
     jmethodID methodID = jni->GetMethodID(clazz, "openFilePickerForImages", "()V");
     if (methodID == nullptr) {
-        __android_log_print(ANDROID_LOG_ERROR, "JNI", "Failed to find the doFinish method");
+        __android_log_print(ANDROID_LOG_ERROR, "JNI", "Failed to find the openFilePickerForImages method");
         return;
     }
     jni->CallVoidMethod(app->activity->clazz, methodID);
@@ -7895,6 +7909,22 @@ static void callJavaSaveImage(struct android_app* app, const char* path, uint16_
 
     app->activity->vm->DetachCurrentThread();
 }
+
+#ifdef USE_MIDI
+void updateMidiDevice(struct android_app* app) {
+    JNIEnv* jni;
+    app->activity->vm->AttachCurrentThread(&jni, NULL);
+    jclass clazz = jni->GetObjectClass(app->activity->clazz);
+    jmethodID methodID = jni->GetMethodID(clazz, "updateMidiDevice", "()V");
+    if (methodID == nullptr) {
+        __android_log_print(ANDROID_LOG_ERROR, "JNI", "Failed to find the updateMidiDevice method");
+        return;
+    }
+    jni->CallVoidMethod(app->activity->clazz, methodID);
+    jni->DeleteLocalRef(clazz);
+    app->activity->vm->DetachCurrentThread();
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // jni export

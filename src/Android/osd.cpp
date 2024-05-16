@@ -18,6 +18,12 @@ void OSD::initialize(int rate, int samples)
 	initialize_input();
 	initialize_screen();
 	initialize_sound(rate, samples);
+#ifdef USE_SOCKET
+    initialize_socket();
+#endif
+#ifdef USE_MIDI
+    initialize_midi();
+#endif
 }
 
 void OSD::release()

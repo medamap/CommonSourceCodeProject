@@ -200,6 +200,19 @@ class FILEIO;
 
 class OBOESOUND;
 
+#ifdef USE_MIDI
+#include <thread>
+#include <mutex>
+
+typedef struct midi_thread_params_s {
+    FIFO *send_buffer;
+    FIFO *recv_buffer;
+    bool terminate;
+} midi_thread_params_t;
+
+extern midi_thread_params_t midi_thread_params;
+#endif
+
 class OSD
 {
 private:
@@ -383,13 +396,18 @@ private:
 	char recv_buffer[SOCKET_MAX][SOCKET_BUFFER_MAX];
 	int recv_r_ptr[SOCKET_MAX], recv_w_ptr[SOCKET_MAX];
 #endif
-	
+
+    //midi
+#ifdef USE_MIDI
+    std::thread midi_thread;
+#endif
+
 public:
 	OSD(struct android_app* state)
 	{
 		this->state = state;
 		lock_count = 0;
-	}
+    }
 	~OSD() {}
 	
 	// common
@@ -623,7 +641,15 @@ public:
 	void send_socket_data(int ch);
 	void recv_socket_data(int ch);
 #endif
-	
+
+    // common midi
+#ifdef USE_MIDI
+    void initialize_midi();
+    void release_midi();
+    void send_to_midi(uint8_t data);
+    bool recv_from_midi(uint8_t *data);
+#endif
+
 	// win32 dependent
 	void invalidate_screen();
 	bool vista_or_later;
@@ -1227,6 +1253,7 @@ enum systemIconType {
     SYSTEM_WALLPAPER ,
     SYSTEM_JOYSTICK ,
     SYSTEM_SCREENSHOT,
+    SYSTEM_MIDI,
     SYSTEM_ICON_MAX
 };
 enum FileSelectType {
