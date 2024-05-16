@@ -2,6 +2,3 @@
 	path = oboe
 	url = https://github.com/google/oboe.git
 	branch = tag: 1.8.1
-[submodule "externals/rtmidi"]
-	path = externals/rtmidi
-	url = https://github.com/thestk/rtmidi.git
