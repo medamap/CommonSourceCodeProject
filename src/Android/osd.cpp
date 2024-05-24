@@ -15,6 +15,7 @@
 
 void OSD::initialize(int rate, int samples)
 {
+    LOGI("initialize rate:%d samples:%d", rate, samples);
 	initialize_input();
 	initialize_screen();
 	initialize_sound(rate, samples);
@@ -22,6 +23,7 @@ void OSD::initialize(int rate, int samples)
     initialize_socket();
 #endif
 #ifdef USE_MIDI
+    LOGI("initialize_midi");
     initialize_midi();
 #endif
 }
@@ -31,6 +33,10 @@ void OSD::release()
 	release_input();
 	//release_screen();
 	release_sound();
+#ifdef USE_MIDI
+    LOGI("release_midi");
+    release_midi();
+#endif
 }
 
 void OSD::power_off()

@@ -336,6 +336,10 @@ public class EmulatorActivity extends NativeActivity {
         return MidiManagerActivity.getInstance(this).getMidiDeviceInfo(index);
     }
 
+    public void sendMidiMessage(byte[] message) {
+        MidiManagerActivity.getInstance(this).sendMidiMessage(message);
+    }
+
     public void openFilePickerForImages() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("*/*");  // この設定は後の EXTRA_MIME_TYPES により上書きされます。
@@ -475,6 +479,10 @@ public class EmulatorActivity extends NativeActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
+        // MidiManagerActivityのクローズ処理を呼び出す
+        if (midiManagerActivity != null) {
+            midiManagerActivity.close();
+        }
         deviceManager.unregisterInputDeviceListener();
     }
 
