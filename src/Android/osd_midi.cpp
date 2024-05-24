@@ -38,6 +38,8 @@ void midi_thread_function(OSD *osd) {
     jmethodID getMidiDeviceInfo = env->GetMethodID(clazz, "getMidiDeviceInfo", "(I)Ljava/lang/String;");
     jmethodID sendMidiMessage = env->GetMethodID(clazz, "sendMidiMessage", "([B)V");
 
+    LOGI("midi_thread_function start");
+
     while (!midi_thread_params.terminate) {
         while (true) {
             uint8_t buffer[128];
@@ -106,10 +108,13 @@ void midi_thread_function(OSD *osd) {
         usleep(1000); // 1ミリ秒スリープ
     }
 
+    LOGI("midi_thread_function end");
+
     vm->DetachCurrentThread();
 }
 
 void OSD::initialize_midi() {
+    LOGI("initialize_midi");
     midi_thread_params.send_buffer = new FIFO(1024);
     midi_thread_params.recv_buffer = new FIFO(1024);
     midi_thread_params.terminate = false;
@@ -118,6 +123,7 @@ void OSD::initialize_midi() {
 }
 
 void OSD::release_midi() {
+    LOGI("release_midi");
     if (midi_thread.joinable()) {
         midi_thread_params.terminate = true;
         midi_thread.join();

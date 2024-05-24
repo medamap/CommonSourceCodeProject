@@ -3060,8 +3060,8 @@ void update_control_menu(Menu *hMenu)
         now_paste = emu->is_auto_key_running();
         now_stop = !now_paste;
     }
-    hMenu->EnableMenuItem(ID_AUTOKEY_START, now_paste);
-    hMenu->EnableMenuItem(ID_AUTOKEY_STOP, now_stop);
+    //hMenu->EnableMenuItem(ID_AUTOKEY_START, now_paste);
+    //hMenu->EnableMenuItem(ID_AUTOKEY_STOP, now_stop);
     hMenu->CheckMenuItem(ID_ROMAJI_TO_KANA, config.romaji_to_kana);
 #endif
 #ifdef USE_DEBUGGER

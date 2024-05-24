@@ -1892,16 +1892,12 @@ void EMU::recv_socket_data(int ch)
 #ifdef USE_MIDI
 void EMU::send_to_midi(uint8_t data)
 {
-#if !defined(__ANDROID__)
 	osd->send_to_midi(data);
-#endif
 }
 
 bool EMU::recv_from_midi(uint8_t *data)
 {
-#if !defined(__ANDROID__)
 	return osd->recv_from_midi(data);
-#endif
 }
 #endif
 
