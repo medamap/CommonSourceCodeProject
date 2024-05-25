@@ -165,6 +165,13 @@ Menu::Menu() {
     addNode(printerId, "JAST SOUND", Property, ID_VM_PRINTER_TYPE3);
     addNode(printerId, "None", Property, ID_VM_PRINTER_TYPE4);
 
+    // Serial メニューを作成
+    int serialId = addNode(deviceId, "Serial", Category, -1);
+    addNode(serialId, "Physical Comm Port", Property, ID_VM_SERIAL_TYPE0);
+    addNode(serialId, "Named Pipe", Property, ID_VM_SERIAL_TYPE1);
+    addNode(serialId, "MIDI Device", Property, ID_VM_SERIAL_TYPE2);
+    addNode(serialId, "None", Property, ID_VM_SERIAL_TYPE3);
+
     // Host メニューを作成
     int recMovieId = addNode(hostId, "Rec Movie", Category, -1);
     addNode(recMovieId, "60fps", Property, ID_HOST_REC_MOVIE_60FPS);
