@@ -25,6 +25,7 @@ set(HEADER
         ../../../../../src/vm/io.h
         ../../../../../src/vm/mb8877.h
         ../../../../../src/vm/mcs48.h
+        ../../../../../src/vm/midi.h
         ../../../../../src/vm/noise.h
         ../../../../../src/vm/pcm8bit.h
         ../../../../../src/vm/prnfile.h
@@ -83,6 +84,7 @@ add_library(native-activity SHARED
         ../../../../../src/vm/io.cpp
         ../../../../../src/vm/mb8877.cpp
         ../../../../../src/vm/mcs48.cpp
+        ../../../../../src/vm/midi.cpp
         ../../../../../src/vm/noise.cpp
         ../../../../../src/vm/pcm8bit.cpp
         ../../../../../src/vm/prnfile.cpp
@@ -113,6 +115,7 @@ add_library(native-activity SHARED
         ../../../../../src/Android/osd_screen.cpp
         ../../../../../src/Android/osd_sound.cpp
         ../../../../../src/Android/osd_console.cpp
+        ../../../../../src/Android/osd_midi.cpp
         ../../../../../src/Android/menu/BaseMenu.cpp
         ../../../../../src/Android/menu/x1turbo.cpp
 )

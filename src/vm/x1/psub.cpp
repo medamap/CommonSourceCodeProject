@@ -17,7 +17,7 @@
 
 #define TVKEY_HACK_CH12_TO_COM
 //#define TVKEY_WIN_DEBUG
-#define TVKEY_ANDROID_DEBUG
+//#define TVKEY_ANDROID_DEBUG
 
 //#define DEBUG_COMMAND
 

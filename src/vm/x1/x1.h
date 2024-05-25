@@ -123,6 +123,10 @@
 #define USE_PRINTER_TYPE	5
 #define USE_DEBUGGER
 #define USE_STATE
+// MedamaP
+#define USE_MIDI
+#define USE_SERIAL_TYPE		4
+#define SERIAL_TYPE_DEFAULT	(USE_SERIAL_TYPE - 1)
 
 #include "../../common.h"
 #include "../../fileio.h"
