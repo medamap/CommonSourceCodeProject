@@ -187,6 +187,7 @@ typedef struct {
         int shader_type;
         int shader_dot;
         int shader_superimpose;
+        int shader_color_blindness;
     #endif
 
     #if defined(__ANDROID__) // Medamap

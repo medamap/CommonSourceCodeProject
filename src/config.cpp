@@ -342,6 +342,7 @@ void load_config(const _TCHAR* config_path)
         config.shader_type = MyGetPrivateProfileInt(_T("Screen"), _T("ShaderType"), config.shader_type, config_path);
         config.shader_dot = MyGetPrivateProfileInt(_T("Screen"), _T("ShaderDot"), config.shader_dot, config_path);
         config.shader_superimpose = MyGetPrivateProfileInt(_T("Screen"), _T("ShaderSuperImpose"), config.shader_superimpose, config_path);
+        config.shader_color_blindness = MyGetPrivateProfileInt(_T("Screen"), _T("ShaderColorBlindness"), config.shader_color_blindness, config_path);
         config.screen_top_margin = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenTopMargin"), config.screen_top_margin, config_path);
         config.screen_bottom_margin = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenBottomMargin"), config.screen_bottom_margin, config_path);
         config.screen_vertical_system_iconsize = MyGetPrivateProfileInt(_T("Screen"), _T("ScreenVerticalSystemIconSize"), 6, config_path);
@@ -602,10 +603,11 @@ void save_config(const _TCHAR* config_path)
 		MyWritePrivateProfileInt(_T("Screen"), _T("FilterType"), config.filter_type, config_path);
     #endif
 
-    #if defined(__ANDROID__)
+    #if defined(__ANDROID__) // Medamap
         MyWritePrivateProfileInt(_T("Screen"), _T("ShaderType"), config.shader_type, config_path);
         MyWritePrivateProfileInt(_T("Screen"), _T("ShaderDot"), config.shader_dot, config_path);
         MyWritePrivateProfileInt(_T("Screen"), _T("ShaderSuperImpose"), config.shader_superimpose, config_path);
+        MyWritePrivateProfileInt(_T("Screen"), _T("ShaderColorBlindness"), config.shader_color_blindness, config_path);
         MyWritePrivateProfileInt(_T("Screen"), _T("ScreenTopMargin"), config.screen_top_margin, config_path);
         MyWritePrivateProfileInt(_T("Screen"), _T("ScreenBottomMargin"), config.screen_bottom_margin, config_path);
         MyWritePrivateProfileInt(_T("Screen"), _T("ScreenVerticalSystemIconSize"), config.screen_vertical_system_iconsize, config_path);
