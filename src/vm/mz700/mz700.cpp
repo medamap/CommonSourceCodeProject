@@ -25,6 +25,7 @@
 #include "../pcm1bit.h"
 #include "../z80.h"
 #include "../z80sio.h"
+#include "../midi.h"
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -38,6 +39,7 @@
 #include "memory.h"
 #include "quickdisk.h"
 #include "ramfile.h"
+#include "cmu800.h"
 
 #if defined(_MZ800) || defined(_MZ1500)
 #include "../not.h"
@@ -100,6 +102,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	ramfile = new RAMFILE(this, emu);
 	qd = new QUICKDISK(this, emu);
 	qd->set_context_noise_seek(new NOISE(this, emu));
+	cmu800 = new CMU800(this, emu);
 	
 #if defined(_MZ800) || defined(_MZ1500)
 	and_snd = new AND(this, emu);
@@ -188,7 +191,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// Z80SIO:DCDA <- QD:INSERT
 	// Z80SIO:DCDB <- QD:HOE
 	qd->set_context_sio(sio_qd);
-	
+
+	// CMU-800
+	MIDI *midi = new MIDI(this, emu);
+	cmu800->set_context_midi(midi);
+	cmu800->set_context_event(event);
+
 #if defined(_MZ1500)
 	// psg mixer
 	psg->set_context_psg_l(psg_l);
@@ -370,7 +378,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	for(int i = 0; i < 4; i++) {
 		io->set_iomap_alias_rw(0xf4 + i, sio_qd, z80_sio_addr[i]);
 	}
-	
+
+	io->set_iomap_range_rw(0x90, 0x9c, cmu800);
+
 #if defined(_MZ800) || defined(_MZ1500)
 	// z80pio/sio
 	static const int z80_pio_addr[4] = {1, 3, 0, 2};
