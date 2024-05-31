@@ -335,7 +335,9 @@
     <ClCompile Include="..\src\vm\i8255.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\ls393.cpp" />
+    <ClCompile Include="..\src\vm\midi.cpp" />
     <ClCompile Include="..\src\vm\mz1p17.cpp" />
+    <ClCompile Include="..\src\vm\mz80k\cmu800.cpp" />
     <ClCompile Include="..\src\vm\mz80k\keyboard.cpp" />
     <ClCompile Include="..\src\vm\mz80k\memory.cpp" />
     <ClCompile Include="..\src\vm\mz80k\mz80fio.cpp" />
@@ -349,6 +351,7 @@
     <ClCompile Include="..\src\win32\osd.cpp" />
     <ClCompile Include="..\src\win32\osd_console.cpp" />
     <ClCompile Include="..\src\win32\osd_input.cpp" />
+    <ClCompile Include="..\src\win32\osd_midi.cpp" />
     <ClCompile Include="..\src\win32\osd_screen.cpp" />
     <ClCompile Include="..\src\win32\osd_sound.cpp" />
     <ClCompile Include="..\src\win32\winmain.cpp" />
@@ -371,6 +374,7 @@
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\ls393.h" />
     <ClInclude Include="..\src\vm\mz1p17.h" />
+    <ClInclude Include="..\src\vm\mz80k\cmu800.h" />
     <ClInclude Include="..\src\vm\mz80k\keyboard.h" />
     <ClInclude Include="..\src\vm\mz80k\memory.h" />
     <ClInclude Include="..\src\vm\mz80k\mz80fio.h" />

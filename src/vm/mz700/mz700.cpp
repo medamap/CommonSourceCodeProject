@@ -39,7 +39,9 @@
 #include "memory.h"
 #include "quickdisk.h"
 #include "ramfile.h"
+#if !defined(_MZ800)
 #include "cmu800.h"
+#endif
 
 #if defined(_MZ800) || defined(_MZ1500)
 #include "../not.h"
@@ -102,8 +104,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	ramfile = new RAMFILE(this, emu);
 	qd = new QUICKDISK(this, emu);
 	qd->set_context_noise_seek(new NOISE(this, emu));
+#if !defined(_MZ800)
 	cmu800 = new CMU800(this, emu);
-	
+#endif
+
 #if defined(_MZ800) || defined(_MZ1500)
 	and_snd = new AND(this, emu);
 	and_snd->set_device_name(_T("AND Gate (Sound)"));
@@ -192,10 +196,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	// Z80SIO:DCDB <- QD:HOE
 	qd->set_context_sio(sio_qd);
 
+#if !defined(_MZ800)
 	// CMU-800
 	MIDI *midi = new MIDI(this, emu);
 	cmu800->set_context_midi(midi);
 	cmu800->set_context_event(event);
+#endif
 
 #if defined(_MZ1500)
 	// psg mixer
@@ -379,7 +385,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		io->set_iomap_alias_rw(0xf4 + i, sio_qd, z80_sio_addr[i]);
 	}
 
+#if !defined(_MZ800)
 	io->set_iomap_range_rw(0x90, 0x9c, cmu800);
+#endif
 
 #if defined(_MZ800) || defined(_MZ1500)
 	// z80pio/sio

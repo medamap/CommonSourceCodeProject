@@ -224,7 +224,11 @@ typedef struct {
 		_TCHAR mame2151_dll_path[_MAX_PATH];
 		_TCHAR mame2608_dll_path[_MAX_PATH];
 	#endif
-	
+
+	#if defined(USE_CMU800)
+	int cmu800_tempo;
+	#endif
+
 	// input
 	#if defined(USE_SHARED_DLL) || defined(USE_JOYSTICK)
 		int joy_buttons[8][16];

@@ -175,6 +175,11 @@ void initialize_config()
 		config.render_minor_version = 1;
 		config.rendering_type = CONFIG_RENDER_TYPE_STD;
 	#endif
+
+	// CMU-800 MIDI
+	#ifdef USE_CMU800
+	config.cmu800_tempo = 100;
+	#endif
 }
 
 void load_config(const _TCHAR* config_path)
