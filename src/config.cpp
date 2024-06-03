@@ -175,6 +175,11 @@ void initialize_config()
 		config.render_minor_version = 1;
 		config.rendering_type = CONFIG_RENDER_TYPE_STD;
 	#endif
+
+	// CMU-800 MIDI
+	#ifdef USE_CMU800
+	config.cmu800_tempo = 100;
+	#endif
 }
 
 void load_config(const _TCHAR* config_path)
@@ -447,6 +452,11 @@ void load_config(const _TCHAR* config_path)
 		if(config.rendering_type < 0) config.rendering_type = 0;
 		if(config.rendering_type >= CONFIG_RENDER_TYPE_END) config.rendering_type = CONFIG_RENDER_TYPE_END - 1;
 	#endif
+
+	// CMU-800 MIDI
+	#ifdef USE_CMU800
+	config.cmu800_tempo = MyGetPrivateProfileInt(_T("Cmu800Midi"), _T("Tempo"), config.cmu800_tempo, config_path);
+	#endif
 }
 
 void save_config(const _TCHAR* config_path)
@@ -686,6 +696,11 @@ void save_config(const _TCHAR* config_path)
 		MyWritePrivateProfileInt(_T("Qt"), _T("RenderMinorVersion"), config.render_minor_version, config_path);
 		MyWritePrivateProfileInt(_T("Qt"), _T("RenderType"), config.rendering_type, config_path);
     #endif
+
+	// CMU-800 MIDI
+	#ifdef USE_CMU800
+	MyWritePrivateProfileInt(_T("Cmu800Midi"), _T("Tempo"), config.cmu800_tempo, config_path);
+	#endif
 
 #if defined(__ANDROID__) // Medamap
     MySavePrivateProfile(config_path);
