@@ -334,8 +334,10 @@
     <ClCompile Include="..\src\vm\i8255.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\mb8877.cpp" />
+    <ClCompile Include="..\src\vm\midi.cpp" />
     <ClCompile Include="..\src\vm\mz1p17.cpp" />
     <ClCompile Include="..\src\vm\mz2500\cmt.cpp" />
+    <ClCompile Include="..\src\vm\mz2500\cmu800.cpp" />
     <ClCompile Include="..\src\vm\mz2500\floppy.cpp" />
     <ClCompile Include="..\src\vm\mz2500\keyboard.cpp" />
     <ClCompile Include="..\src\vm\mz2500\memory80b.cpp" />
@@ -352,6 +354,7 @@
     <ClCompile Include="..\src\win32\osd.cpp" />
     <ClCompile Include="..\src\win32\osd_console.cpp" />
     <ClCompile Include="..\src\win32\osd_input.cpp" />
+    <ClCompile Include="..\src\win32\osd_midi.cpp" />
     <ClCompile Include="..\src\win32\osd_screen.cpp" />
     <ClCompile Include="..\src\win32\osd_sound.cpp" />
     <ClCompile Include="..\src\win32\winmain.cpp" />
@@ -374,6 +377,7 @@
     <ClInclude Include="..\src\vm\mb8877.h" />
     <ClInclude Include="..\src\vm\mz1p17.h" />
     <ClInclude Include="..\src\vm\mz2500\cmt.h" />
+    <ClInclude Include="..\src\vm\mz2500\cmu800.h" />
     <ClInclude Include="..\src\vm\mz2500\floppy.h" />
     <ClInclude Include="..\src\vm\mz2500\keyboard.h" />
     <ClInclude Include="..\src\vm\mz2500\memory80b.h" />
