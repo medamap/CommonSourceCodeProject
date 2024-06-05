@@ -65,6 +65,8 @@
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_MIDI
+#define USE_CMU800
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -100,6 +102,7 @@ class MZ1R12;
 class MZ1R13;
 class PRINTER;
 class TIMER;
+class CMU800;
 
 #ifdef SUPPORT_QUICK_DISK
 class Z80SIO;
@@ -137,7 +140,8 @@ protected:
 	MZ1R13* mz1r13;
 	PRINTER* printer;
 	TIMER* timer;
-	
+	CMU800* cmu800;
+
 #ifdef SUPPORT_QUICK_DISK
 	Z80SIO* sio;
 	QUICKDISK* qd;

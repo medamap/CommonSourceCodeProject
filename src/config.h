@@ -187,6 +187,7 @@ typedef struct {
         int shader_type;
         int shader_dot;
         int shader_superimpose;
+        int shader_color_blindness;
     #endif
 
     #if defined(__ANDROID__) // Medamap
@@ -224,7 +225,7 @@ typedef struct {
 		_TCHAR mame2151_dll_path[_MAX_PATH];
 		_TCHAR mame2608_dll_path[_MAX_PATH];
 	#endif
-
+	
 	#if defined(USE_CMU800)
 	int cmu800_tempo;
 	#endif

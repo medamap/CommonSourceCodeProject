@@ -1282,6 +1282,23 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 		}
 		break;
 #endif
+#ifdef SUPPORT_CMU800
+	case 0x90:
+	case 0x91:
+	case 0x92:
+	case 0x93:
+	case 0x94:
+	case 0x95:
+	case 0x96:
+	case 0x97:
+	case 0x98:
+	case 0x99:
+	case 0x9A:
+	case 0x9B:
+	case 0x9C:
+		d_cmu800->write_io8(addr, data);
+		break;
+#endif
 #else
 	case 0x71:
 		if(mod & 0x03) {
@@ -1781,6 +1798,10 @@ uint32_t PC88::read_io8_debug(uint32_t addr)
 			return d_opm->read_io8(addr);
 		}
 		break;
+#endif
+#ifdef SUPPORT_CMU800
+	case 0x9A:
+		return d_cmu800->read_io8(addr);
 #endif
 #ifdef SUPPORT_PC88_CDROM
 	// M88 cdif

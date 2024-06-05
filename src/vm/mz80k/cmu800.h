@@ -11,6 +11,7 @@
 #ifndef _CMU800_H_
 #define _CMU800_H_
 
+#include <vector>
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
@@ -32,6 +33,7 @@ private:
 	uint8_t before_rythm;
 	bool is_reset;
 	static uint8_t rythm_table[7];
+	static std::vector<int> counterTable;
 public:
 	CMU800(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

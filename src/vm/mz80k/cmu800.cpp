@@ -8,10 +8,25 @@
 	[ AMDEK/RolandDG CMU-800 (MIDI) ]
 */
 
+#include <algorithm>
 #include "cmu800.h"
 #include "../midi.h"
 
 uint8_t CMU800::rythm_table[7] = {42, 46, 49, 48, 41, 38, 35};
+
+std::vector<int> CMU800::counterTable =
+{
+	0x9741, 0x8EBE, 0x86BB, 0x7F2E, 0x780B, 0x714E, 0x6AED, 0x64EC, 0x5F41, 0x59E8, 0x54D9, 0x5015,
+	0x4B95, 0x4754, 0x4353, 0x3F8D, 0x3BFC, 0x389E, 0x356E, 0x326E, 0x2F99, 0x2CED, 0x2A66, 0x2805,
+	0x25C5, 0x23A5, 0x21A5, 0x1FC3, 0x1DFB, 0x1C4C, 0x1AB4, 0x1934, 0x17CA, 0x1674, 0x1531, 0x1401,
+	0x12E1, 0x11D1, 0x10D1, 0x0FE1, 0x0EFD, 0x0E26, 0x0D59, 0x0C99, 0x0BE4, 0x0B39, 0x0A98, 0x0A00,
+	0x0970, 0x08E8, 0x0868, 0x07F0, 0x077E, 0x0712, 0x06AC, 0x064C, 0x05F2, 0x059C, 0x054C, 0x0500,
+	0x04B8, 0x0474, 0x0434, 0x03F8, 0x03BF, 0x0389, 0x0356, 0x0326, 0x02F9, 0x02CE, 0x02A6, 0x0280,
+	0x025C, 0x023A, 0x021A, 0x01FC, 0x01DF, 0x01C4, 0x01AB, 0x0193, 0x017C, 0x0167, 0x0153, 0x0140,
+	0x012E, 0x011D, 0x010D, 0x00FE, 0x00F0, 0x00E2, 0x00D5, 0x00C9, 0x00BE, 0x00B3, 0x00A9, 0x00A0,
+	0x0097, 0x008E, 0x0086, 0x007F, 0x0078, 0x0071, 0x006A, 0x0064, 0x005F, 0x0059, 0x0054, 0x0050,
+	0x004B, 0x0047, 0x0043, 0x003F, 0x003C
+};
 
 void CMU800::initialize()
 {
@@ -62,9 +77,10 @@ void CMU800::write_io8(uint32_t addr, uint32_t data)
 	case 0x91:
 	case 0x92:
 		{
-			int port_number = (addr & 0x0F) >> 4;
+			int port_number = addr & 0x0F;
 			uint16_t data8 = data & 0xFF;
-			counter[port_number] = data8 * 256 * toggle[port_number];
+			counter[port_number] &= (toggle[port_number] == 0 ? 0xFF00 : 0xFF);
+			counter[port_number] |= data8 * (toggle[port_number] == 0 ? 1 : 256);
 			toggle[port_number] = 1 - toggle[port_number];
 			is_reset = false;
 			break;
@@ -78,9 +94,10 @@ void CMU800::write_io8(uint32_t addr, uint32_t data)
 	case 0x95:
 	case 0x96:
 		{
-			int port_number = ((addr & 0x0F) >> 4) - 1;
+			int port_number = (addr & 0x0F) - 1;
 			uint16_t data8 = data & 0xFF;
-			counter[port_number] = data8 * 256 * toggle[port_number];
+			counter[port_number] &= (toggle[port_number] == 0 ? 0xFF00 : 0xFF);
+			counter[port_number] |= data8 * (toggle[port_number] == 0 ? 1 : 256);
 			toggle[port_number] = 1 - toggle[port_number];
 			is_reset = false;
 			break;
@@ -148,6 +165,34 @@ void CMU800::write_io8(uint32_t addr, uint32_t data)
 				}
 				else if(note_on == true && note_on_flag[channel] == 0)
 				{
+					if(cv == 0)
+					{
+						// cv‚ª0‚Ìê‡‚Íü”g”‚©‚çcv‚ğ‹‚ß‚é
+						int val = counter[channel];
+						int back = -1;
+						for(size_t i = 0; i < counterTable.size(); ++ i)
+						{
+							if(val >= counterTable[i])
+							{
+								back = i;
+								break;
+							}
+						}
+						if(back != -1)
+						{
+							int front = back - 1;
+							int x = counterTable[front] - val;
+							int y = counterTable[back] - val;
+							if(x * x < y * y)
+							{
+								cv = front;
+							}
+							else
+							{
+								cv = back;
+							}
+						}
+					}
 					// note on
 					uint8_t key = cv + 24;
 					d_midi->write_signal(SIG_MIDI_OUT, 0x90 + channel, 0xFF);
