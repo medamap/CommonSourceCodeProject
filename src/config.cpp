@@ -178,6 +178,7 @@ void initialize_config()
 
 	// CMU-800 MIDI
 	#ifdef USE_CMU800
+	config.cmu800 = true;
 	config.cmu800_tempo = 100;
 	#endif
 }
@@ -455,6 +456,7 @@ void load_config(const _TCHAR* config_path)
 
 	// CMU-800 MIDI
 	#ifdef USE_CMU800
+	config.cmu800 = MyGetPrivateProfileBool(_T("Cmu800Midi"), _T("Cmu800"), config.cmu800, config_path);
 	config.cmu800_tempo = MyGetPrivateProfileInt(_T("Cmu800Midi"), _T("Tempo"), config.cmu800_tempo, config_path);
 	#endif
 }
@@ -699,6 +701,7 @@ void save_config(const _TCHAR* config_path)
 
 	// CMU-800 MIDI
 	#ifdef USE_CMU800
+	MyWritePrivateProfileBool(_T("Cmu800Midi"), _T("Cmu800"), config.cmu800, config_path);
 	MyWritePrivateProfileInt(_T("Cmu800Midi"), _T("Tempo"), config.cmu800_tempo, config_path);
 	#endif
 

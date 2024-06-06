@@ -12,10 +12,10 @@
 #define _CMU800_H_
 
 #include <vector>
-#include "../vm.h"
-#include "../../emu.h"
-#include "../device.h"
-#include "../event.h"
+#include "vm.h"
+#include "../emu.h"
+#include "device.h"
+#include "event.h"
 
 class CMU800 : public DEVICE
 {
@@ -34,6 +34,7 @@ private:
 	bool is_reset;
 	static uint8_t rythm_table[7];
 	static std::vector<int> counterTable;
+	void reset_midi();
 public:
 	CMU800(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -44,7 +45,6 @@ public:
 	// common functions
 	void initialize();
 	void release();
-	void reset_midi();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	bool process_state(FILEIO* state_fio, bool loading);

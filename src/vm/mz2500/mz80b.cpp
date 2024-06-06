@@ -26,6 +26,7 @@
 #include "../z80.h"
 #include "../z80pio.h"
 #include "../midi.h"
+#include "../cmu800.h"
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -39,7 +40,6 @@
 #include "mz1r13.h"
 #include "printer.h"
 #include "timer.h"
-#include "cmu800.h"
 
 #ifdef SUPPORT_QUICK_DISK
 #include "../z80sio.h"

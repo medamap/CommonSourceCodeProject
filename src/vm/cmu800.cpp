@@ -10,7 +10,7 @@
 
 #include <algorithm>
 #include "cmu800.h"
-#include "../midi.h"
+#include "midi.h"
 
 uint8_t CMU800::rythm_table[7] = {42, 46, 49, 48, 41, 38, 35};
 
@@ -71,6 +71,9 @@ void CMU800::reset_midi()
 
 void CMU800::write_io8(uint32_t addr, uint32_t data)
 {
+	if(!config.cmu800) {
+		return;
+	}
 	switch(addr & 0xff) {
 		// 8253-1 counter setting (not use)
 	case 0x90:
@@ -170,7 +173,7 @@ void CMU800::write_io8(uint32_t addr, uint32_t data)
 						// cv‚ª0‚Ìê‡‚Íü”g”‚©‚çcv‚ğ‹‚ß‚é
 						int val = counter[channel];
 						int back = -1;
-						for(size_t i = 0; i < counterTable.size(); ++ i)
+						for(int i = 0; i < counterTable.size(); ++ i)
 						{
 							if(val >= counterTable[i])
 							{
@@ -218,6 +221,9 @@ void CMU800::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t CMU800::read_io8(uint32_t addr)
 {
+	if(!config.cmu800) {
+		return 0;
+	}
 	if((addr & 0xff) == 0x9A)
 	{
 		// tempo
