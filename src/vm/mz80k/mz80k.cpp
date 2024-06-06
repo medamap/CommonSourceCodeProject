@@ -31,6 +31,7 @@
 #include "../z80.h"
 #if !defined(_MZ80A)
 #include "../midi.h"
+#include "../cmu800.h"
 #endif
 
 #ifdef USE_DEBUGGER
@@ -40,9 +41,6 @@
 #include "keyboard.h"
 #include "memory.h"
 #include "printer.h"
-#if !defined(_MZ80A)
-#include "cmu800.h"
-#endif
 
 #if defined(SUPPORT_MZ80AIF)
 #include "../io.h"

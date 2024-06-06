@@ -81,8 +81,10 @@
 #if defined(_MZ1200)
 #define USE_MONITOR_TYPE	4
 #endif
+#if !defined(_MZ80A)
 #define USE_MIDI
 #define USE_CMU800
+#endif
 
 #if defined(_MZ80K) || defined(_MZ1200)
 static const int vm_auto_key_table_base[][2] = {
@@ -176,7 +178,9 @@ protected:
 	KEYBOARD* keyboard;
 	MEMORY* memory;
 	PRINTER* printer;
+#if !defined(_MZ80A)
 	CMU800* cmu800;
+#endif
 	
 #if defined(SUPPORT_MZ80AIF)
 	MB8877* fdc;

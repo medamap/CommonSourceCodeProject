@@ -2220,6 +2220,11 @@ void update_popup_menu(HWND hWnd, HMENU hMenu)
 			break;
 		}
 	}
+
+	char temp[1024];
+	sprintf(temp, "id = %d\n", id);
+	OutputDebugStringA(temp);
+
 	if(id >= ID_CONTROL_MENU_START && id <= ID_CONTROL_MENU_END) {
 		update_control_menu(hMenu);
 	}
@@ -2445,9 +2450,9 @@ void update_popup_menu(HWND hWnd, HMENU hMenu)
 		update_vm_joystick_menu(hMenu);
 	}
 #endif
-#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE) || defined(USE_DIPSWITCH)
+#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE) || defined(USE_DIPSWITCH) || defined(USE_CMU800)
 	else if(id >= ID_VM_SOUND_MENU_START && id <= ID_VM_SOUND_MENU_END) {
-		#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE)
+		#if defined(USE_SOUND_TYPE) || defined(USE_FLOPPY_DISK) || defined(USE_TAPE) || defined(USE_CMU800)
 			update_vm_sound_menu(hMenu);
 		#endif
 		#ifdef USE_DIPSWITCH

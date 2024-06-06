@@ -328,6 +328,7 @@
     <ClCompile Include="..\src\fifo.cpp" />
     <ClCompile Include="..\src\fileio.cpp" />
     <ClCompile Include="..\src\vm\ay_3_891x.cpp" />
+    <ClCompile Include="..\src\vm\cmu800.cpp" />
     <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
     <ClCompile Include="..\src\vm\fmgen\fmgen.cpp" />
@@ -340,7 +341,6 @@
     <ClCompile Include="..\src\vm\midi.cpp" />
     <ClCompile Include="..\src\vm\noise.cpp" />
     <ClCompile Include="..\src\vm\pc80s31k.cpp" />
-    <ClCompile Include="..\src\vm\pc8801\cmu800.cpp" />
     <ClCompile Include="..\src\vm\pc8801\diskio.cpp" />
     <ClCompile Include="..\src\vm\pc8801\pc88.cpp" />
     <ClCompile Include="..\src\vm\pc8801\pc8801.cpp" />
@@ -365,6 +365,7 @@
     <ClInclude Include="..\src\fileio.h" />
     <ClInclude Include="..\src\res\resource.h" />
     <ClInclude Include="..\src\vm\ay_3_891x.h" />
+    <ClInclude Include="..\src\vm\cmu800.h" />
     <ClInclude Include="..\src\vm\debugger.h" />
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\disk.h" />
@@ -382,7 +383,6 @@
     <ClInclude Include="..\src\vm\i8255.h" />
     <ClInclude Include="..\src\vm\noise.h" />
     <ClInclude Include="..\src\vm\pc80s31k.h" />
-    <ClInclude Include="..\src\vm\pc8801\cmu800.h" />
     <ClInclude Include="..\src\vm\pc8801\diskio.h" />
     <ClInclude Include="..\src\vm\pc8801\pc88.h" />
     <ClInclude Include="..\src\vm\pc8801\pc8801.h" />

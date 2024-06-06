@@ -71,7 +71,7 @@
 
 #if defined(_PC8001)
 #include "../midi.h"
-#include "cmu800.h"
+#include "../cmu800.h"
 #endif
 
 #include "pc88.h"

@@ -169,6 +169,8 @@ BEGIN
         END
         POPUP "Sound"
         BEGIN
+            MENUITEM "CMU-800",                     ID_VM_SOUND_CMU800
+            MENUITEM SEPARATOR
             MENUITEM "GSX-8800",                    ID_VM_DIPSWITCH2
             MENUITEM "PCG-8100",                    ID_VM_DIPSWITCH3
             MENUITEM SEPARATOR

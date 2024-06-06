@@ -26,6 +26,9 @@
 #include "../z80.h"
 #include "../z80sio.h"
 #include "../midi.h"
+#if !defined(_MZ800)
+#include "../cmu800.h"
+#endif
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -39,9 +42,6 @@
 #include "memory.h"
 #include "quickdisk.h"
 #include "ramfile.h"
-#if !defined(_MZ800)
-#include "cmu800.h"
-#endif
 
 #if defined(_MZ800) || defined(_MZ1500)
 #include "../not.h"
