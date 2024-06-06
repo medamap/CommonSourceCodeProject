@@ -335,7 +335,9 @@
     <ClCompile Include="..\src\vm\i8255.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\mb8877.cpp" />
+    <ClCompile Include="..\src\vm\midi.cpp" />
     <ClCompile Include="..\src\vm\mz700\cmos.cpp" />
+    <ClCompile Include="..\src\vm\mz700\cmu800.cpp" />
     <ClCompile Include="..\src\vm\mz700\emm.cpp" />
     <ClCompile Include="..\src\vm\mz700\floppy.cpp" />
     <ClCompile Include="..\src\vm\mz700\joystick.cpp" />
@@ -352,6 +354,7 @@
     <ClCompile Include="..\src\win32\osd.cpp" />
     <ClCompile Include="..\src\win32\osd_console.cpp" />
     <ClCompile Include="..\src\win32\osd_input.cpp" />
+    <ClCompile Include="..\src\win32\osd_midi.cpp" />
     <ClCompile Include="..\src\win32\osd_screen.cpp" />
     <ClCompile Include="..\src\win32\osd_sound.cpp" />
     <ClCompile Include="..\src\win32\winmain.cpp" />
@@ -374,6 +377,7 @@
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\mb8877.h" />
     <ClInclude Include="..\src\vm\mz700\cmos.h" />
+    <ClInclude Include="..\src\vm\mz700\cmu800.h" />
     <ClInclude Include="..\src\vm\mz700\emm.h" />
     <ClInclude Include="..\src\vm\mz700\floppy.h" />
     <ClInclude Include="..\src\vm\mz700\joystick.h" />

@@ -117,6 +117,7 @@
 //	#define SUPPORT_PC88_KANJI2
 //	#define SUPPORT_PC88_FDD_8INCH
 //	#define SUPPORT_M88_DISKDRV
+
 #endif
 #define SUPPORT_PC88_GSX8800
 #define SUPPORT_PC88_PCG8100
@@ -247,6 +248,11 @@
 #define USE_DEBUGGER
 #define USE_STATE
 
+#if defined(_PC8001)
+#define USE_MIDI
+#define USE_CMU800
+#endif
+
 #include "../../common.h"
 #include "../../fileio.h"
 #include "../vm_template.h"
@@ -342,6 +348,10 @@ class MEMORY;
 class DiskIO;
 #endif
 
+#if defined(_PC8001)
+class CMU800;
+#endif
+
 class PC88;
 
 class VM : public VM_TEMPLATE
@@ -418,7 +428,11 @@ protected:
 #ifdef SUPPORT_M88_DISKDRV
 	DiskIO* pc88diskio;
 #endif
-	
+
+#if defined(_PC8001)
+	CMU800* cmu800;
+#endif
+
 	PC88* pc88;
 	
 	int boot_mode;

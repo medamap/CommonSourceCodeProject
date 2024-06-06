@@ -150,6 +150,15 @@
     <ClCompile Include="..\src\vm\pc8801\pc8801.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\pc8801\cmu800.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\osd_midi.cpp">
+      <Filter>Source Files\OSD Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\midi.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\common.h">
@@ -256,6 +265,9 @@
     </ClInclude>
     <ClInclude Include="..\src\res\resource.h">
       <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\pc8801\cmu800.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

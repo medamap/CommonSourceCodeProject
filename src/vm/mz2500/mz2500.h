@@ -100,9 +100,7 @@ class MZ1R37;
 class PRINTER;
 class SERIAL;
 class TIMER;
-#ifdef USE_CMU800
 class CMU800;
-#endif
 
 class VM : public VM_TEMPLATE
 {
@@ -143,9 +141,7 @@ protected:
 	PRINTER* printer;
 	SERIAL* serial;
 	TIMER* timer;
-#ifdef USE_CMU800
 	CMU800* cmu800;
-#endif
 	
 	// monitor type cache
 	int boot_mode;

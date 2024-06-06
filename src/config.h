@@ -227,6 +227,7 @@ typedef struct {
 	#endif
 	
 	#if defined(USE_CMU800)
+	bool cmu800;
 	int cmu800_tempo;
 	#endif
 

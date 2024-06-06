@@ -47,6 +47,8 @@
 
 #if !defined(_PC8001)
 #define SUPPORT_PC88_GVRAM
+#else
+#define SUPPORT_CMU800
 #endif
 
 #if defined(PC8801_VARIANT)
@@ -161,7 +163,10 @@ private:
 #ifdef SUPPORT_M88_DISKDRV
 	DEVICE *d_diskio;
 #endif
-	
+#ifdef SUPPORT_CMU800
+	DEVICE *d_cmu800;
+#endif
+
 	uint8_t* rbank[16];
 	uint8_t* wbank[16];
 	uint8_t wdmy[0x1000];
@@ -561,6 +566,12 @@ public:
 	void set_context_diskio(DEVICE* device)
 	{
 		d_diskio = device;
+	}
+#endif
+#ifdef SUPPORT_CMU800
+	void set_context_cmu800(DEVICE* device)
+	{
+		d_cmu800 = device;
 	}
 #endif
 	void key_down(int code, bool repeat);

@@ -81,6 +81,8 @@
 #if defined(_MZ1200)
 #define USE_MONITOR_TYPE	4
 #endif
+#define USE_MIDI
+#define USE_CMU800
 
 #if defined(_MZ80K) || defined(_MZ1200)
 static const int vm_auto_key_table_base[][2] = {
@@ -141,6 +143,7 @@ class Z80;
 class KEYBOARD;
 class MEMORY;
 class PRINTER;
+class CMU800;
 
 #if defined(SUPPORT_MZ80AIF)
 class MB8877;
@@ -173,6 +176,7 @@ protected:
 	KEYBOARD* keyboard;
 	MEMORY* memory;
 	PRINTER* printer;
+	CMU800* cmu800;
 	
 #if defined(SUPPORT_MZ80AIF)
 	MB8877* fdc;
