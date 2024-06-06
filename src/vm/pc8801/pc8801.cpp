@@ -69,6 +69,11 @@
 #include "diskio.h"
 #endif
 
+#if defined(_PC8001)
+#include "../midi.h"
+#include "../cmu800.h"
+#endif
+
 #include "pc88.h"
 
 // ----------------------------------------------------------------------------
@@ -272,6 +277,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		#endif
 	#endif
 #endif
+#if defined(_PC8001)
+	cmu800 = new CMU800(this, emu);
+#endif
 #ifdef USE_DEBUGGER
 #ifdef SUPPORT_PC88_OPN1
 	if(pc88opn1 != NULL) {
@@ -400,6 +408,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		pc88event->set_context_sound(pc88opn2);
 	}
 #endif
+#if defined(_PC8001)
+	// CMU-800
+	MIDI *midi = new MIDI(this, emu);
+	cmu800->set_context_midi(midi);
+	cmu800->set_context_event(pc88event);
+#endif
 #ifdef SUPPORT_PC88_HMB20
 	if(config.dipswitch & DIPSWITCH_HMB20) {
 		pc88event->set_context_sound(pc88opm);
@@ -463,6 +477,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	if(pc88opn2 != NULL) {
 		pc88->set_context_opn2(pc88opn2);
 	}
+#endif
+#if defined(_PC8001)
+	pc88->set_context_cmu800(cmu800);
 #endif
 #ifdef SUPPORT_PC88_HMB20
 	if(config.dipswitch & DIPSWITCH_HMB20) {

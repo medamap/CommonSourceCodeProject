@@ -29,6 +29,10 @@
 #include "../pcm1bit.h"
 #include "../prnfile.h"
 #include "../z80.h"
+#if !defined(_MZ80A)
+#include "../midi.h"
+#include "../cmu800.h"
+#endif
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -77,6 +81,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	printer = new PRINTER(this, emu);
+#if !defined(_MZ80A)
+	cmu800 = new CMU800(this, emu);
+#endif
 	
 #if defined(SUPPORT_MZ80AIF)
 	io = new IO(this, emu);
@@ -154,7 +161,14 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	} else {
 		printer->set_context_prn(dummy);
 	}
-	
+
+#if !defined(_MZ80A)
+	// CMU-800
+	MIDI *midi = new MIDI(this, emu);
+	cmu800->set_context_midi(midi);
+	cmu800->set_context_event(event);
+#endif
+
 	// cpu bus
 	cpu->set_context_mem(memory);
 #if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
@@ -175,7 +189,10 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_rw(0xf8, 0xfb, mz80fio);
 #endif
 	io->set_iomap_range_rw(0xfe, 0xff, printer);
-	
+#if !defined(_MZ80A)
+	io->set_iomap_range_rw(0x90, 0x9c, cmu800);
+#endif
+
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();

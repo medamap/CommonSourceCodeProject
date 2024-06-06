@@ -25,9 +25,8 @@
 #include "../prnfile.h"
 #include "../z80.h"
 #include "../z80pio.h"
-#ifdef USE_MIDI
 #include "../midi.h"
-#endif
+#include "../cmu800.h"
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -41,9 +40,6 @@
 #include "mz1r13.h"
 #include "printer.h"
 #include "timer.h"
-#ifdef USE_CMU800
-#include "cmu800.h"
-#endif
 
 #ifdef SUPPORT_QUICK_DISK
 #include "../z80sio.h"
@@ -91,10 +87,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	mz1r13 = new MZ1R13(this, emu);
 	printer = new PRINTER(this, emu);
 	timer = new TIMER(this, emu);
-#ifdef USE_CMU800
 	cmu800 = new CMU800(this, emu);
-#endif
-	
+
 #ifdef SUPPORT_QUICK_DISK
 	sio = new Z80SIO(this, emu);
 	qd = new QUICKDISK(this, emu);
@@ -164,13 +158,11 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 		printer->set_context_prn(dummy);
 	}
 	timer->set_context_pit(pit);
-#if defined(USE_MIDI) && defined(USE_CMU800)
 	// CMU-800
 	MIDI *midi = new MIDI(this, emu);
 	cmu800->set_context_midi(midi);
 	cmu800->set_context_event(event);
-#endif
-	
+
 #ifdef SUPPORT_QUICK_DISK
 	// Z80SIO:RTSA -> QD:WRGA
 	sio->set_context_rts(0, qd, QUICKDISK_SIO_RTSA, 1);
@@ -258,10 +250,8 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_w(0xf4, 0xf7, memory);
 	io->set_iomap_range_rw(0xf8, 0xfa, mz1r12);
 	io->set_iomap_range_rw(0xfe, 0xff, printer);
-#if defined(USE_MIDI) && defined(USE_CMU800)
 	io->set_iomap_range_rw(0x90, 0x9c, cmu800);
-#endif
-	
+
 	io->set_iowait_range_rw(0xd8, 0xdf, 1);
 	io->set_iowait_range_rw(0xe8, 0xeb, 1);
 	

@@ -93,6 +93,7 @@ class MB8877;
 class PCM1BIT;
 class Z80;
 class Z80PIO;
+class CMU800;
 
 class CMT;
 class FLOPPY;
@@ -102,9 +103,6 @@ class MZ1R12;
 class MZ1R13;
 class PRINTER;
 class TIMER;
-#ifdef USE_CMU800
-class CMU800;
-#endif
 
 #ifdef SUPPORT_QUICK_DISK
 class Z80SIO;
@@ -133,6 +131,7 @@ protected:
 	PCM1BIT* pcm;
 	Z80* cpu;
 	Z80PIO* pio;
+	CMU800* cmu800;
 	
 	CMT* cmt;
 	FLOPPY* floppy;
@@ -142,10 +141,7 @@ protected:
 	MZ1R13* mz1r13;
 	PRINTER* printer;
 	TIMER* timer;
-#ifdef USE_CMU800
-	CMU800* cmu800;
-#endif
-	
+
 #ifdef SUPPORT_QUICK_DISK
 	Z80SIO* sio;
 	QUICKDISK* qd;
