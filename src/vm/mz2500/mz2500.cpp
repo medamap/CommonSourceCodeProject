@@ -32,6 +32,9 @@
 #include "../z80.h"
 #include "../z80pio.h"
 #include "../z80sio.h"
+#ifdef USE_MIDI
+#include "../midi.h"
+#endif
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -53,6 +56,9 @@
 #include "printer.h"
 #include "serial.h"
 #include "timer.h"
+#ifdef USE_CMU800
+#include "cmu800.h"
+#endif
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -115,6 +121,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	printer = new PRINTER(this, emu);
 	serial = new SERIAL(this, emu);
 	timer = new TIMER(this, emu);
+#ifdef USE_CMU800
+	cmu800 = new CMU800(this, emu);
+#endif
 	
 	// set contexts
 	event->set_context_cpu(cpu, config.boot_mode ? CPU_CLOCKS_LOW : CPU_CLOCKS);
@@ -184,7 +193,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	}
 	serial->set_context_sio(sio);
 	timer->set_context_pit(pit);
-	
+#if defined(USE_MIDI) && defined(USE_CMU800)
+	// CMU-800
+	MIDI *midi = new MIDI(this, emu);
+	cmu800->set_context_midi(midi);
+	cmu800->set_context_event(event);
+#endif
 	// cpu bus
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
@@ -227,6 +241,9 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	io->set_iomap_range_w(0xf0, 0xf3, timer);
 	io->set_iomap_range_rw(0xf4, 0xf7, crtc);
 	io->set_iomap_range_rw(0xfe, 0xff, printer);
+#if defined(USE_MIDI) && defined(USE_CMU800)
+	io->set_iomap_range_rw(0x90, 0x9c, cmu800);
+#endif
 	
 	if(config.boot_mode == 0) {
 		io->set_iowait_range_rw(0xd8, 0xdf, 1);	// nfdcs
