@@ -18,6 +18,7 @@
 
 #define EVENT_KEY_REPEAT	0
 #define EVENT_TEXT_BLINK	1
+#define EVENT_DISP_ON		2
 
 #define IRQ_BIT_VSYNC	1
 #define IRQ_BIT_KEYIN	2
@@ -37,6 +38,7 @@
 		} \
 	} \
 }
+#define LIMIT(V,MIN,MAX) ((V)<(MIN)?(MIN):(V)>(MAX)?(MAX):(V))
 
 void MEMORY::initialize()
 {
@@ -49,6 +51,11 @@ void MEMORY::initialize()
 	memset(gram, 0, sizeof(gram));
 	memset(rdmy, 0xff, sizeof(rdmy));
 	memset(kanji, 0xff, sizeof(kanji));
+	
+	js2_out = 0x3f;
+	bcolor = 0;
+	hsync_timebase = 0;
+	vsync_end_after = 0;
 	
 	// load WinSMC rom images
 	FILEIO* fio = new FILEIO();
@@ -126,7 +133,7 @@ void MEMORY::reset()
 	funckey_code = funckey_index = -1;
 	
 	gcw = 0x80;
-	vsync = disp = blink = false;
+	vsync = /*disp =*/ blink = false;
 	cblink = 0;
 	
 	ief_key = ief_vsync = false;//true;
@@ -293,6 +300,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 			case 1:
 				// ~V.SUP	1 = screen is black
 				vsup = ((data & 0x10) != 0);
+				// disp = (hsync == false) && (disp_vsync_hold_cnt <= 0) && (vsup == false)
 				break;
 			case 2:
 				// ~525/625
@@ -330,7 +338,7 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 			break;
 		case 0x23:
 			// bit0-3: border color
-//			border = data & 0x0f;
+			bcolor = data & 0x0f;
 			break;
 #if defined(_SMC70)
 		case 0x24:
@@ -358,15 +366,31 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 		case 0x51:
 			// bit4: OD		output data
 			// bit0-2: PA		pin selection
-			switch(data & 7) {
-			case 6: // character screen
-				// bit4: 0 = color generator, 1 = color palette board
-				use_palette_text = ((data & 0x10) != 0);
-				break;
-			case 7: // graphic screen
-				// bit4: 0 = color generator, 1 = color palette board
-				use_palette_graph = ((data & 0x10) != 0);
-				break;
+			{
+				uint8_t od = (data >> 4) & 1;
+				uint8_t pa = data & 7;
+				switch (pa) {
+				case 0: // joystick2 out 1:B=LOW
+				case 1: // joystick2 out 2:L=LOW
+				case 2: // joystick2 out 3:R=LOW
+				case 3: // joystick2 out 4:T=LOW
+				case 4: // joystick2 out 5:U=LOW
+				case 5: // joystick2 out 6:CS=LOW
+					if (od == 0) {
+						js2_out |= (2 << pa);
+					} else {
+						js2_out &= ~(2 << pa);
+					}
+					break;
+				case 6: // character screen
+					// bit4: 0 = color generator, 1 = color palette board
+					use_palette_text = (od == 0);
+					break;
+				case 7: // graphic screen
+					// bit4: 0 = color generator, 1 = color palette board
+					use_palette_graph = (od == 0);
+					break;
+				}
 			}
 			break;
 		case 0x52:
@@ -533,7 +557,7 @@ uint32_t MEMORY::read_io8_debug(uint32_t addr)
 			// bit2: ~L		0 = joystick left on
 			// bit1: ~B		0 = joystick back on
 			// bit0: ~F		0 = joystick forward on
-			return ((~joy_stat[(addr & 0x100) ? 0 : 1]) & ((addr & 0x100) ? 0x1f : 0x3f)) | (disp ? 0x80 : 0);
+			return ((~joy_stat[(addr & 0x100) ? 0 : 1]) & ((addr & 0x100) ? 0x1f : js2_out)) | (get_display_blank() ? 0x00 : 0x80);
 #endif
 		case 0x7e: // KANJI ROM data
 			// addr bit8-12: l/r and raster
@@ -561,14 +585,25 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 		fdc_irq = ((data & mask) != 0);
 	} else if(id == SIG_MEMORY_FDC_DRQ) {
 		fdc_drq = ((data & mask) != 0);
-	} else if(id == SIG_MEMORY_CRTC_DISP) {
-		disp = ((data & mask) != 0);
+	} else if(id == SIG_MEMORY_CRTC_HSYNC) {
+		bool hsync = ((data & mask) != 0);
+		if (hsync) {
+			// to hblank generation
+			hsync_timebase = get_current_clock();
+			// update last raster pulses
+			if (!vsync)
+				vsync_end_after++;
+		}
 	} else if(id == SIG_MEMORY_CRTC_VSYNC) {
 		bool prev = vsync;
 		vsync = ((data & mask) != 0);
 		if(prev && !vsync && ief_vsync) {
 			vsync_irq = true;
 			d_cpu->write_signal(SIG_CPU_IRQ, IRQ_BIT_VSYNC, IRQ_BIT_VSYNC);
+		}
+		if (vsync) {
+			// vblank generation
+			vsync_end_after = 0;
 		}
 	} else if(id == SIG_MEMORY_DATAREC_IN) {
 		drec_in = ((data & mask) != 0);
@@ -664,19 +699,32 @@ void MEMORY::event_frame()
 
 void MEMORY::event_vline(int v, int clock)
 {
-	if(v < 200) {
+	if(v < VIDEO_RASTER_MAX) {
 #if defined(_SMC777)
 		scrntype_t *palette_text_pc = &palette_pc[use_palette_text ? 16 : 0];
 		scrntype_t *palette_graph_pc = &palette_pc[use_palette_graph ? 16 : 0];
 		
 		memcpy(palette_line_text_pc[v], palette_text_pc, sizeof(scrntype_t) * 16);
 		memcpy(palette_line_graph_pc[v], palette_graph_pc, sizeof(scrntype_t) * 16);
+		palette_line_border[v] = palette_graph_pc[bcolor];
+#endif
+#if defined(_SMC70)
+		palette_line_border[v] = palette_pc[bcolor];
 #endif
 		
 		// render text/graph screens
 		if(v == 0) {
 			memset(text, 0, sizeof(text));
 			memset(graph, 0, sizeof(graph));
+			// save btm border colors for next top border
+			int cheight = (crtc_regs[9] & 0x1f) + 1;
+			int vtotal = crtc_regs[5] + (crtc_regs[4] + 1) * cheight;
+			int bptr = VIDEO_RASTER_MAX * 2;
+			LIMIT(vtotal, 0, VIDEO_RASTER_MAX);
+			while (vtotal > 0)
+			{
+				palette_line_border[--bptr] = palette_line_border[--vtotal];
+			}
 		}
 		if(vsup) {
 			return;
@@ -707,7 +755,7 @@ void MEMORY::draw_screen()
 {
 	if(emu->now_waiting_in_debugger) {
 		// draw lines
-		for(int v = 0; v < 200; v++) {
+		for(int v = 0; v < SCREEN_HEIGHT; v++) {
 			event_vline(v, 0);
 		}
 	}
@@ -719,43 +767,107 @@ void MEMORY::draw_screen()
 #endif
 	emu->screen_skip_line(true);
 	
+	// screen size , position
+#define VFRAME_HEIGHT (SCREEN_HEIGHT/2)
+#define VSTART_OFFSET (38) 
+#define HSTART_OFFSET (96 * 8) 
+
 	// copy to screen buffer
+	int hsync_pos = (crtc_regs[2] * 8);
+	int hstart = SCREEN_BORDER_WIDTH+HSTART_OFFSET - hsync_pos;
+	if (hstart < 0) hstart = 0; // clipping
+	int hend = hstart + (crtc_regs[1] * 8);
+	if (hend > SCREEN_WIDTH) hend = SCREEN_WIDTH; // clipping
+	// v-start / end
+	int cheight = (crtc_regs[9] & 0x1f) + 1;
+	int vtotal = crtc_regs[5] + (crtc_regs[4] + 1) * cheight;
+	int vsync_pos = vtotal - (crtc_regs[7]*8);
+	int vstart = (SCREEN_BORDER_HEIGHT/2) + VSTART_OFFSET - vsync_pos;
+	vstart = LIMIT(vstart, 0, VFRAME_HEIGHT);
+	int vsize = crtc_regs[6] * cheight;
+	vsize = LIMIT(vsize, 0, VFRAME_HEIGHT -vstart);
+
 #if defined(_SMC70)
 	#define palette_text_pc  palette_pc
 //	#define palette_graph_pc palette_pc
-	scrntype_t *palette_graph_pc = ((gcw & 0x0c) == 0x0c) ? palette_bw_pc : palette_pc;
-	
-	if((gcw & 0x0c) == 0x0c) {
-		for(int y = 0; y < 400; y++) {
+	bool gfxmode400 = (gcw & 0x0c) == 0x0c;
+	scrntype_t* palette_graph_pc = gfxmode400 ? palette_bw_pc : palette_pc;
+	if (0){//gfxmode400) {
+		for (int y = 0; y < SCREEN_HEIGHT; y++) {
 			scrntype_t* dest = emu->get_screen_buffer(y);
-			uint8_t* src_t = text[y >> 1];
-			uint8_t* src_g = graph[y];
-			
-			for(int x = 0; x < 640; x++) {
-				uint8_t t = src_t[x];
-				dest[x] = t ? palette_text_pc[t & 15] : palette_graph_pc[src_g[x]];
+			int yy = y - vstart*2;
+			if ((yy < 0) || (yy >= vsize)) {
+				// top/btm border
+				if (yy < 0) {
+					yy += VIDEO_RASTER_MAX * 2; // top == btm of prev frame
+			}
+				yy = LIMIT(yy, 0, VIDEO_RASTER_MAX * 2);
+				scrntype_t border_g = palette_line_border[yy];
+				for (int x = 0; x < SCREEN_WIDTH; x++) {
+					dest[x] = border_g;
+		}
+			}
+			else {
+				scrntype_t border_g = palette_line_border[yy];
+				uint8_t* src_t = text[yy>>1]; // 200line
+				uint8_t* src_g = graph[yy];    // 400line
+				int x = 0;
+				for (; x < hstart; x++) {
+					dest[x] = border_g;
+				}
+				for (; x < hend; x++) {
+					uint8_t t = *src_t++;
+					uint8_t g = *src_g++;
+					dest[x] = t ? palette_text_pc[t & 15] : palette_graph_pc[g];
+				}
+				for (; x < SCREEN_WIDTH; x++) {
+					dest[x] = border_g;
+				}
 			}
 		}
-	} else
+	}
+	else
 #endif
-	for(int y = 0; y < 200; y++) {
+	for (int y = 0; y < VFRAME_HEIGHT ; y++) {
 		scrntype_t* dest0 = emu->get_screen_buffer(y * 2);
 		scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
-		uint8_t* src_t = text[y];
-		uint8_t* src_g = graph[y];
+		int yy = y - vstart;
+		if ( (yy<0) || (yy>= vsize) ) {
+			// top/btm border
+			if (yy < 0) {
+				yy += VIDEO_RASTER_MAX * 2; // top == btm of prev frame
+			}
+			yy = LIMIT(yy, 0, VIDEO_RASTER_MAX*2);
+			scrntype_t border_g = palette_line_border[yy];
+			for (int x = 0; x < SCREEN_WIDTH; x++) {
+				dest0[x] = border_g;
+			}
+		} else {
 #if defined(_SMC777)
-		scrntype_t *palette_text_pc = palette_line_text_pc[y];
-		scrntype_t *palette_graph_pc = palette_line_graph_pc[y];
+			scrntype_t* palette_text_pc = palette_line_text_pc[yy];
+			scrntype_t* palette_graph_pc = palette_line_graph_pc[yy];
 #endif
-		
-		for(int x = 0; x < 640; x++) {
-			uint8_t t = src_t[x];
-			dest0[x] = t ? palette_text_pc[t & 15] : palette_graph_pc[src_g[x]];
+			scrntype_t border_g = palette_line_border[yy];
+			uint8_t* src_t = text[yy];
+			uint8_t* src_g = graph[yy];
+			int x = 0;
+			for (; x < hstart; x++) {
+				dest0[x] = border_g;
+			}
+			for (; x < hend; x++) {
+				uint8_t t = *src_t++;
+				uint8_t g = *src_g++;
+				dest0[x] = t ? palette_text_pc[t & 15] : palette_graph_pc[g];
+			}
+			for (; x < SCREEN_WIDTH; x++) {
+				dest0[x] = border_g;
+			}
 		}
 		if(config.scan_line) {
-			memset(dest1, 0, 640 * sizeof(scrntype_t));
-		} else {
-			memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
+			memset(dest1, 0, SCREEN_WIDTH * sizeof(scrntype_t));
+		}
+		else {
+			memcpy(dest1, dest0, SCREEN_WIDTH * sizeof(scrntype_t));
 		}
 	}
 }
@@ -775,7 +887,7 @@ void MEMORY::draw_text_80x25(int v)
 	int y = v / ht;
 	int l = v % ht;
 	
-	src += 80 * y;
+	src += hz * y;
 	src &= 0x7ff;
 	
 //	for(int y = 0; y < vt && y < 25; y++) {
@@ -851,7 +963,7 @@ void MEMORY::draw_text_40x25(int v)
 	int y = v / ht;
 	int l = v % ht;
 	
-	src += 80 * y;
+	src += hz * y;
 	src &= 0x7ff;
 	
 //	for(int y = 0; y < vt && y < 25; y++) {
@@ -921,7 +1033,7 @@ void MEMORY::draw_graph_640x400(int v)
 	int y = v / ht;
 	int l = v % ht;
 	
-	src += 80 * y;
+	src +=  hz * y;
 	
 //	for(int y = 0; y < vt && y < 25; y++) {
 		for(int x = 0; x < hz && x < 80; x++) {
@@ -970,7 +1082,7 @@ void MEMORY::draw_graph_640x200(int v)
 	int y = v / ht;
 	int l = v % ht;
 	
-	src += 80 * y;
+	src += hz * y;
 	
 //	for(int y = 0; y < vt && y < 25; y++) {
 		for(int x = 0; x < hz && x < 80; x++) {
@@ -1006,7 +1118,7 @@ void MEMORY::draw_graph_320x200(int v)
 	int y = v / ht;
 	int l = v % ht;
 	
-	src += 80 * y;
+	src += hz * y;
 	
 //	for(int y = 0; y < vt && y < 25; y++) {
 		for(int x = 0; x < hz && x < 80; x++) {
@@ -1041,7 +1153,7 @@ void MEMORY::draw_graph_160x100(int v)
 	int y = v / ht;
 	int l = v % ht + ((gcw >> 1) & 1);
 	
-	src += 80 * y;
+	src += hz * y;
 	
 //	for(int y = 0; y < vt && y < 25; y++) {
 		for(int x = 0; x < hz && x < 80; x++) {
@@ -1092,11 +1204,16 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(funckey_index);
 	state_fio->StateValue(caps);
 	state_fio->StateValue(kana);
+	state_fio->StateValue(js2_out);
 	state_fio->StateValue(gcw);
 	state_fio->StateValue(vsup);
 	state_fio->StateValue(vsync);
-	state_fio->StateValue(disp);
+	//	state_fio->StateValue(disp);
 	state_fio->StateValue(cblink);
+	state_fio->StateValue(bcolor);
+	state_fio->StateValue(hsync_timebase);
+	state_fio->StateValue(vsync_end_after);
+	state_fio->StateArray(palette_line_border, sizeof(palette_line_border), 1);
 #if defined(_SMC777)
 	state_fio->StateValue(use_palette_text);
 	state_fio->StateValue(use_palette_graph);
@@ -1131,3 +1248,39 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	return true;
 }
 
+
+bool MEMORY::get_display_blank()
+{
+//  hsync shifted-delay by raise CRTC.MA0
+//  normaly only one clock delay bitween change HSYNC and raise MA0 raise.
+#define HBLANK_WIDTH (8*2-1)
+#define VBLANK_WIDTH_2 (VSYNC_OUT_DELAY_2+32)
+
+#define VSYNC_OUT_DELAY_2 (4)
+#if defined(_SMC70)
+//  hsync shifted-delay by raise CRTC.CLK , for vblank shift
+#define HSYNC_OUT_DELAY (2)
+#define VBLANK_COUNT1 (HSYNC_OUT_DELAY + 0)
+#define VBLANK_COUNT2 (HSYNC_OUT_DELAY + 32)
+#endif
+#if defined(_SMC777)
+//  hsync shifted-delay by raise CRTC.MA0 , for vblank shift
+#define HSYNC_OUT_DELAY (2*2-1)
+#define VBLANK_COUNT1 (HSYNC_OUT_DELAY + 0)
+#define VBLANK_COUNT2 (HSYNC_OUT_DELAY + (32*2))
+#endif
+	int hsync_pulses = crtc_regs[3] & 0xf;
+#define GET_PASSED_CRTC_MA0(basetime) ((get_passed_clock(basetime)/4)*2)
+	int hsync_start_after = GET_PASSED_CRTC_MA0(hsync_timebase);
+	int hsync_end_after = hsync_start_after - hsync_pulses;
+	bool hblank = hsync_end_after < HBLANK_WIDTH;
+
+	// vblank shifted-delay by twice of  hsync
+	int vblank_count2 = vsync_end_after * 2;
+	// shift in current raster
+	if (hsync_start_after >= VBLANK_COUNT1) vblank_count2++;
+	if (hsync_start_after >= VBLANK_COUNT2) vblank_count2++;
+	bool vblank = vblank_count2 < VBLANK_WIDTH_2;
+
+	return hblank || vblank || vsup;
+}
