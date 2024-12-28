@@ -15,8 +15,10 @@
 #include "../../emu.h"
 #include "../device.h"
 
+#define VIDEO_RASTER_MAX (280)
+
 #define SIG_MEMORY_DATAREC_IN	0
-#define SIG_MEMORY_CRTC_DISP	1
+#define SIG_MEMORY_CRTC_HSYNC	1
 #define SIG_MEMORY_CRTC_VSYNC	2
 #define SIG_MEMORY_FDC_DRQ	3
 #define SIG_MEMORY_FDC_IRQ	4
@@ -171,11 +173,17 @@ private:
 	void initialize_key();
 	void update_key();
 	
+	// joystick
+	uint8_t js2_out;
+
 	// display
 	uint8_t gcw;
 	bool vsup;
-	bool vsync, disp, blink;
+	bool vsync, /*disp,*/ blink;
 	int cblink;
+	uint8_t bcolor;
+	uint32_t hsync_timebase;
+	int vsync_end_after;
 #if defined(_SMC777)
 	bool use_palette_text;
 	bool use_palette_graph;
@@ -189,9 +197,10 @@ private:
 #if defined(_SMC70)
 	scrntype_t palette_bw_pc[2];
 #else
-	scrntype_t palette_line_text_pc[200][16];
-	scrntype_t palette_line_graph_pc[200][16];
+	scrntype_t palette_line_text_pc[VIDEO_RASTER_MAX][16];
+	scrntype_t palette_line_graph_pc[VIDEO_RASTER_MAX][16];
 #endif
+	scrntype_t palette_line_border[VIDEO_RASTER_MAX * 2];
 	
 	void draw_text_80x25(int v);
 	void draw_text_40x25(int v);
@@ -285,6 +294,8 @@ public:
 	void key_down(int code);
 	void draw_screen();
 	bool warm_start;
+
+	bool get_display_blank();
 };
 
 #endif

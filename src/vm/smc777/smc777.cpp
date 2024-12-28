@@ -79,7 +79,7 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(drec->get_context_noise_fast());
 	
 	drec->set_context_ear(memory, SIG_MEMORY_DATAREC_IN, 1);
-	crtc->set_context_disp(memory, SIG_MEMORY_CRTC_DISP, 1);
+	crtc->set_context_hsync(memory, SIG_MEMORY_CRTC_HSYNC, 1);
 	crtc->set_context_vsync(memory, SIG_MEMORY_CRTC_VSYNC, 1);
 	fdc->set_context_drq(memory, SIG_MEMORY_FDC_DRQ, 1);
 	fdc->set_context_irq(memory, SIG_MEMORY_FDC_IRQ, 1);
