@@ -384,11 +384,11 @@ void MEMORY::write_io8(uint32_t addr, uint32_t data)
 					break;
 				case 6: // character screen
 					// bit4: 0 = color generator, 1 = color palette board
-					use_palette_text = (od == 0);
+					use_palette_text = (od != 0);
 					break;
 				case 7: // graphic screen
 					// bit4: 0 = color generator, 1 = color palette board
-					use_palette_graph = (od == 0);
+					use_palette_graph = (od != 0);
 					break;
 				}
 			}
@@ -557,7 +557,24 @@ uint32_t MEMORY::read_io8_debug(uint32_t addr)
 			// bit2: ~L		0 = joystick left on
 			// bit1: ~B		0 = joystick back on
 			// bit0: ~F		0 = joystick forward on
-			return ((~joy_stat[(addr & 0x100) ? 0 : 1]) & ((addr & 0x100) ? 0x1f : js2_out)) | (get_display_blank() ? 0x00 : 0x80);
+			//return ((~joy_stat[(addr & 0x100) ? 0 : 1]) & ((addr & 0x100) ? 0x1f : js2_out)) | (get_display_blank() ? 0x00 : 0x80);
+			{
+				int js_sel  = (addr & 0x100) ? 0 : 1;
+				uint32_t js_stat;
+				if(js_sel==0) {
+					js_stat = (~joy_stat[0]) & (0x7f^0x60); // bit6,5 fixed 0,0
+					// shared switches in cursor & space key
+					if(key_stat[0x26]) js_stat &= 0x7f^0x01; // up
+					if(key_stat[0x28]) js_stat &= 0x7f^0x02; // down
+					if(key_stat[0x25]) js_stat &= 0x7f^0x04; // left
+					if(key_stat[0x27]) js_stat &= 0x7f^0x08; // right
+					if(key_stat[0x20]) js_stat &= 0x7f^0x10; // space
+				} else {
+					// js2 has oc outputs
+					js_stat = (~joy_stat[1]) & (0x7f & js2_out);
+				}
+				return js_stat | (get_display_blank() ? 0x00 : 0x80);
+			}
 #endif
 		case 0x7e: // KANJI ROM data
 			// addr bit8-12: l/r and raster
