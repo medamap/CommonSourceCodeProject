@@ -1,0 +1,33 @@
+# MSX1用のCMake設定ファイル
+
+# メニューソース
+set(MENU_SOURCES
+    ../menu/BaseMenu.cpp
+    ../menu/msx1.cpp
+)
+
+# メニューヘッダー  
+set(MENU_HEADERS
+    ../menu/BaseMenu.h
+    ../menu/menu.h
+)
+
+# Xcodeメニューラッパー
+set(XCODE_MENU_SOURCES
+    xcode_menu_wrapper.cpp
+)
+
+set(XCODE_MENU_HEADERS
+    xcode_menu_wrapper.h
+)
+
+# 全メニュー関連ソース
+set(ALL_MENU_SOURCES
+    ${MENU_SOURCES}
+    ${XCODE_MENU_SOURCES}
+)
+
+set(ALL_MENU_HEADERS
+    ${MENU_HEADERS}
+    ${XCODE_MENU_HEADERS}
+)

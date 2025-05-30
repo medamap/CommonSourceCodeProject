@@ -52,13 +52,18 @@
 #include "fileio.h"
 #if defined(__ANDROID__)
 #include "config.h"
-
+#endif
+#if defined(__APPLE__)
+#include "limits.h"
+#include <cwchar>
+#include <string>
+#include <TargetConditionals.h>
 #endif
 
 #if defined(__MINGW32__) || defined(__MINGW64__)
 	extern DWORD GetLongPathName(LPCTSTR lpszShortPath, LPTSTR lpszLongPath, DWORD cchBuffer);
 #endif
-#if defined(_USE_QT)
+#if defined(_USE_QT) || defined(__APPLE__)
 	std::string DLL_PREFIX cpp_homedir;
 	std::string DLL_PREFIX my_procname;
 	std::string DLL_PREFIX sRssDir;
@@ -342,7 +347,7 @@ errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, 
 	return 0;
 }
 
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) || defined(__APPLE__)
 errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination, const _TCHAR *strSource)
 {
 	_tcscpy(strDestination, strSource);
@@ -389,7 +394,11 @@ int DLL_PREFIX my_swprintf_s(wchar_t *buffer, size_t sizeOfBuffer, const wchar_t
 #else
 	va_list ap;
 	va_start(ap, format);
+#if defined(__APPLE__)
+    int result = vswprintf(buffer, sizeOfBuffer, format, ap); // Cannot initialize a parameter of type 'char *' with an lvalue of type 'wchar_t *'
+#else
 	int result = vswprintf(buffer, format, ap);
+#endif
 	va_end(ap);
 	return result;
 #endif
@@ -419,15 +428,16 @@ int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TC
 void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 {
 	size_t len1;
-#if defined(__ANDROID__)
-	size_t len2;
-	uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
-	uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
-#else
+#if defined(_WIN32)
     register size_t len2;
-	register uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
-	register uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
+    register uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
+    register uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
+#else
+    size_t len2;
+    uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
+    uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
 #endif
+
 	int i;
 	
 	if(len == 0) return dst;
@@ -758,12 +768,12 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 	}
 #else
 	// Using SIMD *with* un-aligned instructions.
-#if defined(__ANDROID__)
+#if defined(_WIN32)
+    register uint32_t *s32 = (uint32_t *)src;
+    register uint32_t *d32 = (uint32_t *)dst;
+#else
     uint32_t *s32 = (uint32_t *)src;
     uint32_t *d32 = (uint32_t *)dst;
-#else
-    register uint32_t *s32 = (uint32_t *)src;
-	register uint32_t *d32 = (uint32_t *)dst;
 #endif
 	if(((s_align & 0x07) != 0x0) && ((d_align & 0x07) != 0x0)) { // None align.
 		return memcpy(dst, src, len);
@@ -1416,11 +1426,27 @@ const _TCHAR *DLL_PREFIX get_application_path()
 			my_tcscpy_s(app_path, _MAX_PATH, _T(".\\"));
 		}
 #elif defined(__ANDROID__)
-		//sprintf(app_path,"/sdcard/emulator/%sROM%s/",CONFIG_NAME, "");
 		sprintf(app_path,"%s/emulator/%sROM%s/", documentDir, CONFIG_NAME, "");
         LOGI("Path: %s", app_path);
-
     	return (const _TCHAR *)app_path;
+#elif defined(__APPLE__)
+#if TARGET_OS_IPHONE
+		// iOS/iPadOS (Objective-C++ 限定)
+		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+		NSString *documentsDirectory = [paths objectAtIndex:0];
+		NSString *fullPath = [documentsDirectory stringByAppendingPathComponent:@"emulator"];
+		strncpy(app_path, [fullPath UTF8String], _MAX_PATH - 1);
+		app_path[_MAX_PATH - 1] = '\0';
+#else
+		// macOS - アプリ固有のサンドボックス内に配置
+		const char* home = getenv("HOME");
+		if(home != NULL) {
+			snprintf(app_path, _MAX_PATH, "%s/Library/Application Support/com.cscp.emulator/", home);
+		} else {
+			strncpy(app_path, "./", _MAX_PATH - 1);
+		}
+		app_path[_MAX_PATH - 1] = '\0';
+#endif
 #else
 #if defined(Q_OS_WIN)
 		std::string delim = "\\";
@@ -1433,6 +1459,7 @@ const _TCHAR *DLL_PREFIX get_application_path()
 		std::string cpath = csppath + my_procname + delim;
 		_my_mkdir(cpath);
 		strncpy(app_path, cpath.c_str(), _MAX_PATH - 1);
+		app_path[_MAX_PATH - 1] = '\0';
 #endif
 		initialized = true;
 	}
@@ -2059,21 +2086,4 @@ void convertUTF8fromSJIS(char *src,char *dest,int length){
     }
 	dest[destIndex] = '\0';
 }
-
-
-/////// dummy
-//for PRINTER
-typedef struct font_s {
-	// common
-	inline bool initialized()
-	{
-		return false;//(hFont != NULL);
-	}
-	_TCHAR family[64];
-	int width, height, rotate;
-	bool bold, italic;
-	// win32 dependent
-	//HFONT hFont;
-} font_t;
 #endif
-

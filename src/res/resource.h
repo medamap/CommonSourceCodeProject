@@ -349,7 +349,7 @@
 #define ID_SCREEN_ROTATE_270            41370
 #define ID_SCREEN_MENU_END              41370
 
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) || (__APPLE__)
 #define ID_FILTER_MENU_START            41401
 #define ID_FILTER_NONE                  41401
 #define ID_FILTER_BLUR                  41402
@@ -703,7 +703,7 @@
 #define ID_RECENT_HD8                   45146 // 45146-45153
 #define ID_HD8_MENU_END                 45153
 
-#if defined(__ANDROID__) // Medamap
+#if defined(__ANDROID__) || defined(__APPLE__) // Medamap
 #define ID_SCREEN_BOTTOM_MARGIN_0       45170
 #define ID_SCREEN_BOTTOM_MARGIN_30      45171
 #define ID_SCREEN_BOTTOM_MARGIN_60      45172

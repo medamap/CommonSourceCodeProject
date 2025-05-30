@@ -74,6 +74,8 @@
 #include "sdl/osd.h"
 #elif defined(OSD_WIN32)
 #include "win32/osd.h"
+#elif defined(__APPLE__)
+#include "Xcode/osd.h"
 #endif
 
 #ifdef USE_FLOPPY_DISK
@@ -221,6 +223,13 @@ public:
 	EMU(HWND hwnd, HINSTANCE hinst);
 #elif defined(OSD_ANDROID)
     EMU(struct android_app* state);
+#elif defined(__APPLE__)
+	// Medamap and Claude: Apple プラットフォーム用 (macOS/iOS/iPad)
+	// 将来的な拡張例:
+	// EMU(MetalView* metalView, AVAudioSession* audioSession);
+	// EMU(NSView* view, NSViewController* controller);
+	// EMU(UIView* view, UIViewController* controller);
+	EMU();
 #else
 	EMU();
 #endif
@@ -435,6 +444,8 @@ public:
 	CSP_Debugger *hDebugger;
 #elif defined(OSD_WIN32)
 	HANDLE hDebuggerThread;
+#elif defined(__ANDROID__) || (__APPLE__)
+    pthread_t debugger_thread_id;
 #else
 	int debugger_thread_id;
 #endif
@@ -557,7 +568,7 @@ public:
 	void load_state(const _TCHAR* file_path);
 	const _TCHAR *state_file_path(int num);
 #endif
-#ifdef OSD_QT
+#if defined(OSD_QT) || defined(__APPLE__)
 	// New APIs
 	void load_sound_file(int id, const _TCHAR *name, int16_t **data, int *dst_size);
 	void free_sound_file(int id, int16_t **data);

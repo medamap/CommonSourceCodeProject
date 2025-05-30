@@ -1,0 +1,48 @@
+cmake_minimum_required(VERSION 3.15)
+project(CSCP_iPadOS LANGUAGES C CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+
+# Appleプラットフォーム前提
+#set(CMAKE_SYSTEM_NAME iOS)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
+#set(CMAKE_OSX_SYSROOT iphoneos)
+
+# ビルドターゲットのベースパス
+set(PROJECT_ROOT ${CMAKE_SOURCE_DIR}/..)
+set(SRC_DIR ${PROJECT_ROOT}/src)
+set(OSD_DIR ${SRC_DIR}/Xcode)
+set(MACHINE_DIR ${CMAKE_SOURCE_DIR}/Machines)
+set(MACHINE_NAME "_X1TURBO")
+
+# includeパス
+include_directories(
+    ${SRC_DIR}
+    ${OSD_DIR}
+)
+
+# X1turboの機種別ファイルリストを読み込む
+include(${MACHINE_DIR}/${MACHINE_NAME}.txt)
+
+# ライブラリとしてビルド
+add_library(cscp STATIC
+     ${SOURCES}
+     ${CMAKE_SOURCE_DIR}/main.swift
+ )
+
+# プリプロセッサ定義
+target_compile_definitions(cscp PRIVATE
+    -D_IOS -D_X1TURBO
+    -D_${MACHINE_NAME}
+)
+
+# Swift ファイルを使った実行可能ターゲット
+add_executable(cscp_exec ${CMAKE_SOURCE_DIR}/main.swift)
+
+# C++ 側のライブラリとリンクする
+target_link_libraries(cscp_exec PRIVATE cscp)
+
+# Swift と C++ のブリッジがあるので、C++ との連携を有効にする
+set_target_properties(cscp_exec PROPERTIES
+    SWIFT_INCLUDE_PATHS ${CMAKE_SOURCE_DIR}
+)

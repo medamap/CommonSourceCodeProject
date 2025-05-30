@@ -12,13 +12,19 @@
 #include <unistd.h>
 #include <fcntl.h>
 #else
+#ifdef _MSC_VER
 #include <io.h>
+#endif
 #endif
 #include <fcntl.h>
 #include "vm/device.h"
 #include "vm/debugger.h"
 #include "vm/vm.h"
 #include "fileio.h"
+#if defined(__APPLE__) || defined(__linux__)
+#include <pthread.h>
+#endif
+
 
 #ifdef USE_DEBUGGER
 
@@ -1613,8 +1619,7 @@ void EMU::open_debugger(int cpu_index)
 			debugger_thread_param.request_terminate = false;
 #ifdef _MSC_VER
 			if((hDebuggerThread = (HANDLE)_beginthreadex(NULL, 0, debugger_thread, &debugger_thread_param, 0, NULL)) != (HANDLE)0) {
-#elif __ANDROID__ // Medamap
-            pthread_t debugger_thread_id;
+#elif defined(__ANDROID__) || (__APPLE__) // Medamap
             if (pthread_create(&debugger_thread_id, NULL, debugger_thread, &debugger_thread_param) == 0) {
 #else
 			if(pthread_create(&debugger_thread_id, NULL, debugger_thread, &debugger_thread_param) == 0) {
@@ -1636,6 +1641,8 @@ void EMU::close_debugger()
 #ifdef _MSC_VER
 		WaitForSingleObject(hDebuggerThread, INFINITE);
 		CloseHandle(hDebuggerThread);
+#elif defined(__ANDROID__) || (__APPLE__) // MedamaP
+        pthread_join(debugger_thread_id, NULL);
 #else
 		pthread_join(debugger_thread_id, NULL);
 #endif

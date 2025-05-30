@@ -16,6 +16,12 @@
 #define local_path(x) (x)
 #endif
 
+#if defined (__APPLE__)
+#include <algorithm>
+#include <cstdint>    // For fixed-width integer types
+typedef intptr_t LONG_PTR;
+#endif
+
 // Medamap
 #if defined(__ANDROID__)
 #include <algorithm>  // For standard algorithms like std::min, std::max, etc.
@@ -1571,10 +1577,10 @@ void DISK::trim_buffer()
 	
 	memset(buffer, 0, sizeof(buffer));
 // Medamap
-#if !defined(__ANDROID__)
-	memcpy(buffer, tmp_buffer, min(sizeof(buffer), file_size.d));
+#if defined(__ANDROID__) || defined(__APPLE__)
+    memcpy(buffer, tmp_buffer, std::min(sizeof(buffer), static_cast<size_t>(file_size.d)));
 #else
-	memcpy(buffer, tmp_buffer, std::min(sizeof(buffer), static_cast<size_t>(file_size.d)));
+    memcpy(buffer, tmp_buffer, min(sizeof(buffer), file_size.d));
 #endif
 }
 

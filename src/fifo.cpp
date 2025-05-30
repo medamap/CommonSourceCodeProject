@@ -8,7 +8,9 @@
 */
 
 #include <stdlib.h>
-#include <malloc.h> 
+#if !defined(__APPLE__)
+#include <malloc.h>
+#endif
 #include "fifo.h"
 #include "fileio.h"
 

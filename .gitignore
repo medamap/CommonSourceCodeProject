@@ -407,3 +407,42 @@ androidstudio/local.properties
 
 !/tool/**/*
 !/tool/**/*/
+
+# Medamap and Claude: macOS/iOS開発用テンポラリフォルダ（ROMファイル、ディスクイメージ等）
+temp/
+.vscode
+Support
+
+# CMake builds and Xcode build artifacts
+xcode/build_*/
+xcode/CMakeCache.txt
+xcode/CMakeFiles/
+xcode/Makefile
+xcode/cmake_install.cmake
+xcode/*.a
+xcode/*.dylib
+xcode/*.so
+xcode/debug_*.txt
+xcode/*.log
+
+# macOS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Generated executables (all machines)
+xcode/bin/
+
+# Configuration files (user-specific)
+*.ini
+*.cfg
+
+# Test files
+*.d88
+*.tap
+*.cas
+test_*

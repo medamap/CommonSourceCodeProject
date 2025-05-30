@@ -45,6 +45,10 @@ void KEYBOARD::initialize()
 	key_stat = emu->get_key_buffer();
 	caps_locked = kana_locked = 0;
 	column = 0;
+	// TODO: Remove debug output after keyboard input stabilization
+	#ifdef DEBUG_KEYBOARD
+	printf("[DEBUG] X1 KEYBOARD初期化完了: key_statポインタ = %p\n", key_stat);
+	#endif
 }
 
 /*
@@ -102,6 +106,24 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 			// update key status
 			uint8_t key_buf[256];
 			memcpy(key_buf, key_stat, sizeof(key_buf));
+			
+			// TODO: Remove debug output after keyboard input stabilization
+			#ifdef DEBUG_KEYBOARD
+			// Debug: キーバッファの状態をチェック
+			static int debug_count = 0;
+			if (++debug_count % 300 == 0) { // 5秒ごと
+				int pressed_keys = 0;
+				for (int i = 0; i < 256; i++) {
+					if (key_buf[i] & 0x80) {
+						pressed_keys++;
+						if (i == 0x46) { // Fキーのチェック
+							printf("[DEBUG] VMキーボード: Fキー(0x46)が押下中\n");
+						}
+					}
+				}
+				printf("[DEBUG] VMキーボード処理: %d個のキーが押下中\n", pressed_keys);
+			}
+			#endif
 			
 			if(key_buf[VK_INSERT]) {
 				key_buf[VK_SHIFT] = key_buf[VK_DELETE] = 1;

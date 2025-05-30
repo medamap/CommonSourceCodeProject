@@ -29,6 +29,10 @@
 	#include <windows.h>
 #endif
 #include "fileio.h"
+#ifdef __APPLE__
+#include <unistd.h>
+#include <sys/stat.h>
+#endif
 
 #ifdef USE_ZLIB
 	#if defined(USE_QT)
@@ -100,6 +104,8 @@ bool FILEIO::IsFileExisting(const _TCHAR *file_path)
 		return false;
 	}
 	return ((attr & FILE_ATTRIBUTE_DIRECTORY) == 0);
+#elif defined(__APPLE__)
+    return (access(file_path, F_OK) == 0);
 #else
 	return (_taccess(file_path, 0) == 0);
 #endif
@@ -124,6 +130,13 @@ bool FILEIO::IsFileProtected(const _TCHAR *file_path)
 	return false;
 #elif defined(_WIN32)
 	return ((GetFileAttributes(file_path) & FILE_ATTRIBUTE_READONLY) != 0);
+#elif defined(__APPLE__) || defined(_USE_QT) || defined(_USE_SDL)
+    struct stat st;
+    if(stat(file_path, &st) == 0) {
+        if((st.st_mode & S_IWUSR) == 0) {
+            return true;
+        }
+    }
 #else
 	return (_taccess(file_path, 2) != 0);
 #endif

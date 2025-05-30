@@ -71,7 +71,16 @@
 
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
+	// TODO: Remove debug output after ROM loading stabilization
+	#ifdef DEBUG_X1_ROM
+	bool sub_rom_exists = FILEIO::IsFileExisting(create_local_path(SUB_ROM_FILE_NAME));
+	bool kbd_rom_exists = FILEIO::IsFileExisting(create_local_path(KBD_ROM_FILE_NAME));
+	printf("[DEBUG] SUB_ROM_FILE_NAME = %s, exists = %d\n", SUB_ROM_FILE_NAME, sub_rom_exists);
+	printf("[DEBUG] KBD_ROM_FILE_NAME = %s, exists = %d\n", KBD_ROM_FILE_NAME, kbd_rom_exists);
+	pseudo_sub_cpu = !(sub_rom_exists && kbd_rom_exists);
+	#else
 	pseudo_sub_cpu = !(FILEIO::IsFileExisting(create_local_path(SUB_ROM_FILE_NAME)) && FILEIO::IsFileExisting(create_local_path(KBD_ROM_FILE_NAME)));
+	#endif
 	
 	sound_type = config.sound_type;
 	
@@ -159,11 +168,23 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	sasi = new SASI(this, emu);
 	cz8rb = new CZ8RB(this, emu);
 	
+	// TODO: Remove debug output after X1 CPU mode stabilization
+	#ifdef DEBUG_X1_CPU
+	printf("[DEBUG] pseudo_sub_cpu = %d\n", pseudo_sub_cpu);
+	#endif
 	if(pseudo_sub_cpu) {
+		// TODO: Remove debug output after X1 CPU mode stabilization
+		#ifdef DEBUG_X1_CPU
+		printf("[DEBUG] Using pseudo sub CPU mode (no real keyboard MCU)\n");
+		#endif
 		psub = new PSUB(this, emu);
 		cpu_sub = NULL;
 		cpu_kbd = NULL;
 	} else {
+		// TODO: Remove debug output after X1 CPU mode stabilization
+		#ifdef DEBUG_X1_CPU
+		printf("[DEBUG] Using real sub CPU mode with keyboard MCU\n");
+		#endif
 		// sub cpu
 		cpu_sub = new MCS48(this, emu);
 		cpu_sub->set_device_name(_T("MCS48 MCU (Sub)"));
@@ -706,9 +727,21 @@ void VM::key_down(int code, bool repeat)
 #else
 	if(!repeat) {
 #endif
+		// TODO: Remove debug output after key input stabilization
+		#ifdef DEBUG_X1_INPUT
+		printf("[DEBUG] VM::key_down: code=0x%02X, pseudo_sub_cpu=%d\n", code, pseudo_sub_cpu);
+		#endif
 		if(pseudo_sub_cpu) {
+			// TODO: Remove debug output after key input stabilization
+			#ifdef DEBUG_X1_INPUT
+			printf("[DEBUG] VM::key_down: Calling psub->key_down\n");
+			#endif
 			psub->key_down(code, false);
 		} else {
+			// TODO: Remove debug output after key input stabilization
+			#ifdef DEBUG_X1_INPUT
+			printf("[DEBUG] VM::key_down: Calling kbd->key_down\n");
+			#endif
 			kbd->key_down(code, false);
 		}
 	}

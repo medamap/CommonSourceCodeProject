@@ -1,0 +1,60 @@
+cmake_minimum_required(VERSION 3.15)
+project(CSCP_iPadOS LANGUAGES C CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+
+# Appleプラットフォーム前提
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
+
+# 機種名の設定（コマンドラインから指定可能）
+if(NOT DEFINED MACHINE)
+    set(MACHINE "x1turbo" CACHE STRING "Target machine name (lowercase)")
+endif()
+
+# マシン名を大文字に変換（設定ファイル名用）
+string(TOUPPER ${MACHINE} MACHINE_UPPER)
+
+# ビルドターゲットのベースパス
+set(PROJECT_ROOT ${CMAKE_SOURCE_DIR}/..)
+set(SRC_DIR ${PROJECT_ROOT}/src)
+set(OSD_DIR ${SRC_DIR}/Xcode)
+set(MACHINE_DIR ${CMAKE_SOURCE_DIR}/Machines)
+set(MACHINE_NAME "_${MACHINE_UPPER}")
+
+message(STATUS "Building for machine: ${MACHINE} (config: ${MACHINE_NAME})")
+
+# includeパス
+include_directories(
+    ${SRC_DIR}
+    ${OSD_DIR}
+)
+
+# 機種別ファイルリストを読み込む
+if(EXISTS ${MACHINE_DIR}/${MACHINE_NAME}.txt)
+    include(${MACHINE_DIR}/${MACHINE_NAME}.txt)
+else()
+    message(FATAL_ERROR "Machine configuration not found: ${MACHINE_DIR}/${MACHINE_NAME}.txt")
+endif()
+
+# ライブラリとしてビルド
+add_library(cscp STATIC
+     ${SOURCES}
+     ${CMAKE_SOURCE_DIR}/main.swift
+ )
+
+# プリプロセッサ定義
+target_compile_definitions(cscp PRIVATE
+    -D_IOS -D_XCODE
+    -D${MACHINE_NAME}
+)
+
+# Swift ファイルを使った実行可能ターゲット
+add_executable(cscp_exec ${CMAKE_SOURCE_DIR}/main.swift)
+
+# C++ 側のライブラリとリンクする
+target_link_libraries(cscp_exec PRIVATE cscp)
+
+# Swift と C++ のブリッジがあるので、C++ との連携を有効にする
+set_target_properties(cscp_exec PROPERTIES
+    SWIFT_INCLUDE_PATHS ${CMAKE_SOURCE_DIR}
+)

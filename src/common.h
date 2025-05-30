@@ -111,7 +111,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if !defined(__ANDROID__)
+#if defined(_WIN32)
 #include <io.h>
 #endif
 #ifdef _MSC_VER
@@ -227,7 +227,8 @@
 	#ifndef LPCTSTR
 		typedef const _TCHAR* LPCTSTR;
 	#endif
-	#ifndef BOOL
+	// Medamap and Claude: Objective-C環境ではBOOLは既に定義されている
+	#if !defined(BOOL) && !defined(__OBJC__)
 		typedef int BOOL;
 	#endif
 	#ifndef TRUE
@@ -899,7 +900,7 @@ int16_t DLL_PREFIX ExchangeEndianS16(uint16_t x);
 	errno_t DLL_PREFIX my_tcscat_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
 	errno_t DLL_PREFIX my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
 	errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) || defined(__APPLE__)
 	errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination,  const _TCHAR *strSource);
 #endif
 	errno_t DLL_PREFIX my_strncpy_s(char *strDestination, size_t numberOfElements, const char *strSource, size_t count);
@@ -907,7 +908,12 @@ int16_t DLL_PREFIX ExchangeEndianS16(uint16_t x);
 	char * DLL_PREFIX my_strtok_s(char *strToken, const char *strDelimit, char **context);
 	_TCHAR *DLL_PREFIX my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
 	#define my_fprintf_s fprintf
-	#define my_ftprintf_s _ftprintf
+	#if defined(__APPLE__)
+        #define my_ftprintf_s fprintf
+    #else
+        #define my_ftprintf_s _ftprintf
+    #endif
+
 	int DLL_PREFIX my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *format, ...);
 	int DLL_PREFIX my_swprintf_s(wchar_t *buffer, size_t sizeOfBuffer, const wchar_t *format, ...);
 	int DLL_PREFIX my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
@@ -1124,6 +1130,30 @@ const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCH
 #if defined(__ANDROID__)
 void convertUTF8fromSJIS(char *src,char *desc,int length);
 extern char documentDir[_MAX_PATH];
+#endif
+
+/////// dummy
+//for PRINTER
+typedef struct font_s {
+    // common
+    inline bool initialized()
+    {
+        return false;//(hFont != NULL);
+    }
+    _TCHAR family[64];
+    int width, height, rotate;
+    bool bold, italic;
+    // win32 dependent
+    //HFONT hFont;
+} font_t;
+
+// Claude Code debugging support
+#ifdef CLAUDE_CODE_DEBUG
+#define DEBUG_CLAUDE_START // [DEBUG_START - claude code verification]
+#define DEBUG_CLAUDE_END   // [DEBUG_END - claude code verification]
+#else
+#define DEBUG_CLAUDE_START if(0) {
+#define DEBUG_CLAUDE_END   }
 #endif
 
 #endif

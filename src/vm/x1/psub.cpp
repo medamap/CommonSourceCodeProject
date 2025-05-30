@@ -215,8 +215,16 @@ static const uint8_t keycode_ksb[256] = {	// kana+shift (mode b)
 
 void PSUB::initialize()
 {
+	// TODO: Remove debug output after PSUB stabilization
+	#ifdef DEBUG_PSUB
+	printf("[DEBUG] PSUB::initialize() é–‹å§‹\n");
+	#endif
 	key_buf = new FIFO(8);
 	key_stat = emu->get_key_buffer();
+	// TODO: Remove debug output after PSUB stabilization
+	#ifdef DEBUG_PSUB
+	printf("[DEBUG] PSUB::initialize() å®Œäº†: key_stat = %p\n", key_stat);
+	#endif
 	
 	get_host_time(&cur_time);
 	
@@ -443,7 +451,7 @@ void PSUB::tv_remocon_code_send()
 #endif
 #ifdef TVKEY_WIN_DEBUG
 	char msgbuf[1024];
-	sprintf(msgbuf, "REMOTE_CODE : %02X\nƒCƒ“ƒ^ƒtƒF[ƒX€”õ‚¨‚Á‚¯[\nMZ-2531‚Í‚Ü‚½Œã‚Å", remote_code);
+	sprintf(msgbuf, "REMOTE_CODE : %02X\nï¿½Cï¿½ï¿½ï¿½^ï¿½tï¿½Fï¿½[ï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[\nMZ-2531ï¿½Í‚Ü‚ï¿½ï¿½ï¿½ï¿½", remote_code);
 	MessageBoxA(NULL, (LPCSTR)msgbuf, "remote control", MB_OK);
 #endif
 	// remote code send time
@@ -454,7 +462,7 @@ void PSUB::tv_remocon_code_send()
 	register_event(this, EVENT_REMOTE_SEND, sendtime_usec, false, &time_remote_send_id);
 
 #if 0
-	// –{—ˆ‚Í DISPLAY ƒNƒ‰ƒX‚Å‘—M‚µ‚ÄADISPLAY ƒNƒ‰ƒX‚Åˆ—‚·‚×‚«
+	// ï¿½{ï¿½ï¿½ï¿½ï¿½ DISPLAY ï¿½Nï¿½ï¿½ï¿½Xï¿½Å‘ï¿½ï¿½Mï¿½ï¿½ï¿½ÄADISPLAY ï¿½Nï¿½ï¿½ï¿½Xï¿½Åï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×‚ï¿½
 	// dipplay ->write_signal(SIG_REMOE_RECEIVE, remote_code, 1);
 #else
 #ifdef USE_TV_CONTROL
@@ -618,6 +626,9 @@ uint8_t PSUB::get_tvctrl_code(uint16_t x1_keycode, int win_code)
 
 void PSUB::key_down(int code, bool repeat)
 {
+	// [DEBUG_START - claude code verification]
+	printf("[DEBUG] PSUB::key_down: code=0x%02X, repeat=%d\n", code, repeat);
+	// [DEBUG_END - claude code verification]
 	// check keycode
 	switch(code) {
 	case 0x10:
@@ -638,8 +649,14 @@ void PSUB::key_down(int code, bool repeat)
 	}
 	uint16_t lh = get_key(code, repeat);
 	uint8_t tvctrl_code = get_tvctrl_code(lh, code);
+	// [DEBUG_START - claude code verification]
+	printf("[DEBUG] PSUB::key_down: lh=0x%04X, tvctrl_code=0x%02X\n", lh, tvctrl_code);
+	// [DEBUG_END - claude code verification]
 
 	if(lh & 0xff00) {
+		// [DEBUG_START - claude code verification]
+		printf("[DEBUG] PSUB::key_down: Valid key, writing to key_buf\n");
+		// [DEBUG_END - claude code verification]
 		if (tvctrl_code > 0)
 		{
 			tv_control(tvctrl_code);
@@ -650,6 +667,9 @@ void PSUB::key_down(int code, bool repeat)
 			key_buf->clear();
 		}
 		key_buf->write(lh);
+		// [DEBUG_START - claude code verification]
+		printf("[DEBUG] PSUB::key_down: Key written to buffer, key_buf size=%d\n", key_buf->count());
+		// [DEBUG_END - claude code verification]
 		key_prev = code;
 		
 		// setup key repeat event
