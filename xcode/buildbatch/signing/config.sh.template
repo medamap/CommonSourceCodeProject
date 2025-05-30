@@ -1,0 +1,108 @@
+#!/bin/bash
+
+# ================================================
+# Xcode Batch Build - Signing Configuration
+# ================================================
+# 
+# This file contains sensitive information.
+# DO NOT commit this file to version control!
+# 
+# Usage:
+# 1. Copy this template: cp config.sh.template config.sh
+# 2. Fill in your actual values
+# 3. Make sure config.sh is in .gitignore
+#
+# ================================================
+
+# ========== FREE VERSION (Personal Team) ==========
+# Your personal Apple ID and team ID for free provisioning
+# To find your team ID:
+# 1. Open Xcode > Preferences > Accounts
+# 2. Select your Apple ID
+# 3. Team ID is shown in the team list
+
+FREE_APPLE_ID="your.email@example.com"
+FREE_TEAM_ID="XXXXXXXXXX"  # 10 character team ID
+
+# Bundle ID prefix for free version
+# Should be unique to avoid conflicts
+FREE_BUNDLE_PREFIX="com.yourname.cscp"
+
+# ========== DEVELOPER VERSION (Paid) ==========
+# Only required if you have Apple Developer Program membership
+
+DEV_APPLE_ID="developer@company.com"
+DEV_TEAM_ID="YYYYYYYYYY"  # 10 character team ID
+
+# Certificate names (as shown in Keychain Access)
+# To find certificate names:
+# 1. Open Keychain Access
+# 2. Category > My Certificates
+# 3. Copy the exact certificate name
+
+DEV_CERT_MAC="Developer ID Application: Company Name (TEAMID)"
+DEV_CERT_IOS="iPhone Distribution: Company Name (TEAMID)"
+
+# For development builds (optional)
+DEV_CERT_MAC_DEV="Mac Developer: Your Name (TEAMID)"
+DEV_CERT_IOS_DEV="Apple Development: Your Name (TEAMID)"
+
+# Bundle ID prefix for developer version
+DEV_BUNDLE_PREFIX="com.company.cscp"
+
+# Provisioning profile names (without .mobileprovision extension)
+# These files should be placed in signing/developer/
+DEV_PROVISION_IOS="CSCP_iOS_Distribution"
+DEV_PROVISION_MAC="CSCP_Mac_Distribution"
+
+# ========== BUILD SETTINGS ==========
+
+# Xcode derived data path (optional, for faster builds)
+# Leave empty to use default
+DERIVED_DATA_PATH=""
+
+# Code signing style
+# "Automatic" or "Manual"
+FREE_CODE_SIGN_STYLE="Automatic"
+DEV_CODE_SIGN_STYLE="Manual"
+
+# ========== NOTARIZATION (macOS only) ==========
+# Required for distributing macOS apps outside Mac App Store
+
+# App-specific password for notarization
+# Generate at: https://appleid.apple.com/account/manage
+NOTARIZATION_PASSWORD="xxxx-xxxx-xxxx-xxxx"
+
+# Keychain profile name for storing notarization credentials
+NOTARIZATION_PROFILE="CSCP-Notarization"
+
+# ========== EXPORT OPTIONS ==========
+
+# Export method for iOS/iPadOS
+# "app-store", "ad-hoc", "enterprise", "development"
+IOS_EXPORT_METHOD="ad-hoc"
+
+# Thinning option
+# "<none>", "<thin-for-all-variants>", or specific model
+EXPORT_THINNING="<none>"
+
+# ========== HELPER FUNCTIONS ==========
+
+# Function to check if configuration is valid
+check_config() {
+    local mode=$1
+    
+    if [[ "$mode" == "free" ]]; then
+        if [[ -z "$FREE_TEAM_ID" ]] || [[ "$FREE_TEAM_ID" == "XXXXXXXXXX" ]]; then
+            echo "Error: FREE_TEAM_ID is not configured"
+            return 1
+        fi
+    elif [[ "$mode" == "developer" ]]; then
+        if [[ -z "$DEV_TEAM_ID" ]] || [[ "$DEV_TEAM_ID" == "YYYYYYYYYY" ]]; then
+            echo "Error: DEV_TEAM_ID is not configured"
+            return 1
+        fi
+    fi
+    
+    return 0
+}

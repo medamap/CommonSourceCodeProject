@@ -1,0 +1,12 @@
+# Ignore all actual configuration and signing files
+config.sh
+*.mobileprovision
+*.provisionprofile
+*.p12
+*.cer
+*.key
+*.certSigningRequest
+
+# But keep the templates and READMEs
+!*.template
+!README.md

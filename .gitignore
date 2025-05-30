@@ -436,6 +436,37 @@ Thumbs.db
 
 # Generated executables (all machines)
 xcode/bin/
+xcode/build_*/
+xcode/buildbatch/v*_free_*/
+xcode/buildbatch/v*_dev_*/
+xcode/buildbatch/*.log
+xcode/buildbatch/build_*.log
+
+# Android build outputs
+androidstudio/app/build/
+androidstudio/.gradle/
+androidstudio/local.properties
+androidstudio/*.apk
+
+# Android Studio build batch outputs
+androidstudio/buildbatch/v*_release_apk/
+androidstudio/buildbatch/v*_debug_apk/
+androidstudio/buildbatch/*.log
+androidstudio/buildbatch/build_*.log
+
+# Gradle files
+*.iml
+.gradle/
+build/
+
+# Android Studio cache files
+.idea/
+*.iws
+*.ipr
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
 
 # Configuration files (user-specific)
 *.ini

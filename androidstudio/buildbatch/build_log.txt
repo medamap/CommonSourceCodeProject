@@ -1,0 +1,7 @@
+***********  X1 [subBatch/rbuild.sh] ***********
+subBatch/rbuild.sh: line 17: ./gradlew: Permission denied
+***********  X1turbo [subBatch/rbuild.sh] ***********
+subBatch/rbuild.sh: line 17: ./gradlew: Permission denied
+***********  X1turboZ [subBatch/rbuild.sh] ***********
+subBatch/rbuild.sh: line 17: ./gradlew: Permission denied
+ビルドプロセスが完了しました。
