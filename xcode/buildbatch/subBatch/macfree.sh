@@ -18,6 +18,9 @@ MODEL_DISPLAY=$(echo "$MODEL_NAME" | tr '[:lower:]' '[:upper:]')
 BUILD_TYPE="Release"
 PLATFORM="macOS"
 
+# Save current directory
+BUILDBATCH_DIR=$(pwd)
+
 # Move to xcode directory (parent of buildbatch)
 cd ..
 
@@ -26,7 +29,7 @@ echo "Building $MODEL_DISPLAY using existing build system..."
 ./build_machine.sh "$MODEL_NAME"
 
 # Return to buildbatch directory  
-cd buildbatch
+cd "$BUILDBATCH_DIR"
 
 # Create output directory with date
 DATESTR=$(date +"%Y%m%d")
