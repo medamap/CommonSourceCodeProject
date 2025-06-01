@@ -576,7 +576,9 @@ void MEMORY::draw_screen()
 			}
 		}
 	}
+#ifdef USE_SCREEN_FILTER
 	emu->screen_skip_line(true);
+#endif
 	emu->set_vm_screen_lines(200);
 #else
 	if(config.monitor_type != MONITOR_TYPE_GREEN) {

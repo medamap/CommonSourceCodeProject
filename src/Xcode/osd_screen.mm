@@ -38,7 +38,7 @@ void OSD::initialize_screen()
     vm_window_width_aspect = 640;
     vm_window_height_aspect = 400;
     
-    // Medamap and Claude: vm_screen_bufferを作成
+    // Medamap and Claude: vm_screen_bufferを作成（全機種で必要）
     create_bitmap(&vm_screen_buffer, vm_screen_width, vm_screen_height);
     
     if (vm_screen_buffer.initialized()) {
@@ -57,6 +57,11 @@ void OSD::initialize_screen()
     } else {
         printf("エラー: 画面バッファの初期化に失敗しました\n");
     }
+
+#ifdef USE_SCREEN_ROTATE
+    // 回転バッファの初期化（回転機能があるマシンのみ）
+    // Medamap and Claude: 必要に応じて追加の回転バッファを作成
+#endif
 }
 
 void OSD::release_screen()
@@ -69,7 +74,13 @@ void OSD::release_screen()
         metal_initialized = false;
     }
 #endif
+    // Medamap and Claude: vm_screen_bufferを解放（全機種で必要）
     release_bitmap(&vm_screen_buffer);
+
+#ifdef USE_SCREEN_ROTATE
+    // 回転バッファの解放（回転機能があるマシンのみ）
+    // Medamap and Claude: 必要に応じて追加の回転バッファを解放
+#endif
 }
 
 // Medamap and Claude: reload_bitmapは条件付きコンパイル
@@ -206,9 +217,11 @@ void OSD::set_vm_screen_size(int screen_width, int screen_height, int window_wid
     vm_window_width_aspect = window_width_aspect;
     vm_window_height_aspect = window_height_aspect;
     
+#ifdef USE_SCREEN_ROTATE
     // バッファの再作成
     release_bitmap(&vm_screen_buffer);
     create_bitmap(&vm_screen_buffer, vm_screen_width, vm_screen_height);
+#endif
 }
 
 void OSD::set_vm_screen_lines(int lines)

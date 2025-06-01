@@ -77,6 +77,7 @@ public:
     
     // 初期化・終了処理
     void initialize(const std::string& app_name = "CSCPEmulator", const std::string& ini_path = "");
+    void initializeForMachine(const std::string& machine_name); // 機種別パス自動生成版
     void shutdown();
     
     // 設定値の取得
@@ -141,6 +142,11 @@ private:
     std::string app_name;
     std::string ini_file_path;
     bool initialized;
+    
+    // 内部ヘルパーメソッド
+    std::string selectOrCreateEmulatorFolder();
+    std::string getDefaultEmulatorPath();
+    void createDirectoryIfNotExists(const std::string& path);
     
 #ifdef __APPLE__
     void* user_defaults; // NSUserDefaults*のvoidポインタ（ARC対応）

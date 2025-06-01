@@ -1438,10 +1438,20 @@ const _TCHAR *DLL_PREFIX get_application_path()
 		strncpy(app_path, [fullPath UTF8String], _MAX_PATH - 1);
 		app_path[_MAX_PATH - 1] = '\0';
 #else
-		// macOS - アプリ固有のサンドボックス内に配置
+		// macOS - 書類フォルダ直下のemulatorフォルダを使用
+		// Medamap and Claude: Documents/emulator/機種ROM/ 形式でパスを生成
 		const char* home = getenv("HOME");
 		if(home != NULL) {
-			snprintf(app_path, _MAX_PATH, "%s/Library/Application Support/com.cscp.emulator/", home);
+#ifdef CONFIG_NAME_STR
+			// CMakeから渡された機種名を使用
+			snprintf(app_path, _MAX_PATH, "%s/Documents/emulator/%sROM/", home, CONFIG_NAME_STR);
+#elif defined(CONFIG_NAME)
+			// ヘッダーで定義されたCONFIG_NAMEを使用
+			snprintf(app_path, _MAX_PATH, "%s/Documents/emulator/%sROM/", home, CONFIG_NAME);
+#else
+			// CONFIG_NAMEが未定義の場合はベースパスのみ
+			snprintf(app_path, _MAX_PATH, "%s/Documents/emulator/", home);
+#endif
 		} else {
 			strncpy(app_path, "./", _MAX_PATH - 1);
 		}

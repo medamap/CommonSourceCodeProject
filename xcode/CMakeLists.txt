@@ -5,7 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_OBJCXX_STANDARD 17)
 
 # Appleプラットフォーム前提
-set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
+# macOS 10.13 High Sierra以降に対応（Metal 2.0対応）
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
 
 # 機種名の設定（コマンドラインから指定可能）
 if(NOT DEFINED MACHINE)
@@ -46,8 +47,43 @@ add_library(cscp STATIC
 target_compile_definitions(cscp PRIVATE
     -D_IOS -D_XCODE
     -D${MACHINE_NAME}
+    -DCONFIG_NAME_STR="${MACHINE}"
     -DUSE_GUI
 )
+
+# 機種別の追加定義（Android版と同等の設定）
+# Medamap and Claude: Android版の機種別定義を正確に移植
+
+# 基本的にすべての機種で使用される定義
+target_compile_definitions(cscp PRIVATE
+    -D_RGB565
+    -D_EXTEND_MENU
+)
+
+# 機種固有の定義
+if(MACHINE STREQUAL "x1" OR MACHINE STREQUAL "x1turbo" OR MACHINE STREQUAL "x1turboz" OR MACHINE STREQUAL "x1twin")
+    target_compile_definitions(cscp PRIVATE -D_HAS_TENKEY -DUSE_TV_CONTROL)
+elseif(MACHINE STREQUAL "mz80k" OR MACHINE STREQUAL "mz80a" OR MACHINE STREQUAL "mz80b" OR 
+       MACHINE STREQUAL "mz700" OR MACHINE STREQUAL "mz800" OR MACHINE STREQUAL "mz1500")
+    # MZ80K/80A/80B/700/800/1500 は追加定義なし（基本定義のみ）
+elseif(MACHINE STREQUAL "mz2200" OR MACHINE STREQUAL "mz2500" OR MACHINE STREQUAL "mz2800" OR
+       MACHINE STREQUAL "mz3500" OR MACHINE STREQUAL "mz5500" OR MACHINE STREQUAL "mz6500" OR MACHINE STREQUAL "mz6550")
+    target_compile_definitions(cscp PRIVATE -D_HAS_TENKEY)
+elseif(MACHINE STREQUAL "msx1" OR MACHINE STREQUAL "msx2" OR MACHINE STREQUAL "msx2p")
+    target_compile_definitions(cscp PRIVATE -D_MSX_VDP_MESS)
+elseif(MACHINE STREQUAL "pc8801" OR MACHINE STREQUAL "pc8801ma" OR MACHINE STREQUAL "pc8801mk2")
+    target_compile_definitions(cscp PRIVATE -D_HAS_TENKEY)
+    set_source_files_properties(${SOURCES} PROPERTIES COMPILE_FLAGS "-Wno-narrowing")
+elseif(MACHINE STREQUAL "pc9801" OR MACHINE STREQUAL "pc9801e" OR MACHINE STREQUAL "pc9801ra" OR
+       MACHINE STREQUAL "pc9801u" OR MACHINE STREQUAL "pc9801vf" OR MACHINE STREQUAL "pc9801vm" OR MACHINE STREQUAL "pc9801vx")
+    target_compile_definitions(cscp PRIVATE -D_HAS_TENKEY)
+    set_source_files_properties(${SOURCES} PROPERTIES COMPILE_FLAGS "-Wno-narrowing")
+elseif(MACHINE STREQUAL "bubcom80")
+    target_compile_definitions(cscp PRIVATE -D_HAS_TENKEY)
+elseif(MACHINE STREQUAL "pcengine")
+    target_compile_definitions(cscp PRIVATE -D_HAS_TENKEY)
+    set_source_files_properties(${SOURCES} PROPERTIES COMPILE_FLAGS "-Wno-narrowing")
+endif()
 
 # GUI版の設定（macOSの場合はデフォルトでGUI版）
 if(NOT DEFINED USE_GUI)
@@ -68,10 +104,35 @@ add_executable(${MACHINE} ${SRC_DIR}/Xcode/xcode_main.mm)
 target_compile_definitions(${MACHINE} PRIVATE
     -D_IOS -D_XCODE
     -D${MACHINE_NAME}
+    -DCONFIG_NAME_STR="${MACHINE}"
 )
 
 if(USE_GUI)
     target_compile_definitions(${MACHINE} PRIVATE -DUSE_GUI)
+endif()
+
+# 機種別の追加定義（実行ファイル用）
+target_compile_definitions(${MACHINE} PRIVATE
+    -D_RGB565
+    -D_EXTEND_MENU
+)
+
+if(MACHINE STREQUAL "x1" OR MACHINE STREQUAL "x1turbo" OR MACHINE STREQUAL "x1turboz" OR MACHINE STREQUAL "x1twin")
+    target_compile_definitions(${MACHINE} PRIVATE -D_HAS_TENKEY -DUSE_TV_CONTROL)
+elseif(MACHINE STREQUAL "mz2200" OR MACHINE STREQUAL "mz2500" OR MACHINE STREQUAL "mz2800" OR
+       MACHINE STREQUAL "mz3500" OR MACHINE STREQUAL "mz5500" OR MACHINE STREQUAL "mz6500" OR MACHINE STREQUAL "mz6550")
+    target_compile_definitions(${MACHINE} PRIVATE -D_HAS_TENKEY)
+elseif(MACHINE STREQUAL "msx1" OR MACHINE STREQUAL "msx2" OR MACHINE STREQUAL "msx2p")
+    target_compile_definitions(${MACHINE} PRIVATE -D_MSX_VDP_MESS)
+elseif(MACHINE STREQUAL "pc8801" OR MACHINE STREQUAL "pc8801ma" OR MACHINE STREQUAL "pc8801mk2")
+    target_compile_definitions(${MACHINE} PRIVATE -D_HAS_TENKEY)
+elseif(MACHINE STREQUAL "pc9801" OR MACHINE STREQUAL "pc9801e" OR MACHINE STREQUAL "pc9801ra" OR
+       MACHINE STREQUAL "pc9801u" OR MACHINE STREQUAL "pc9801vf" OR MACHINE STREQUAL "pc9801vm" OR MACHINE STREQUAL "pc9801vx")
+    target_compile_definitions(${MACHINE} PRIVATE -D_HAS_TENKEY)
+elseif(MACHINE STREQUAL "bubcom80")
+    target_compile_definitions(${MACHINE} PRIVATE -D_HAS_TENKEY)
+elseif(MACHINE STREQUAL "pcengine")
+    target_compile_definitions(${MACHINE} PRIVATE -D_HAS_TENKEY)
 endif()
 
 # C++ 側のライブラリとリンクする

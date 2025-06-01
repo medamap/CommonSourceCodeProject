@@ -79,7 +79,11 @@ EMU::EMU()
 		#ifdef DEBUG_CONFIG_MANAGER
 		printf("[DEBUG] ConfigManager初期化中...\n");
 		#endif
-		configManager.initialize("CSCPEmulator_X1Turbo");
+#ifdef CONFIG_NAME
+		configManager.initializeForMachine(CONFIG_NAME);
+#else
+		configManager.initializeForMachine("unknown");
+#endif
 	}
 	
 	// ConfigManagerからconfig構造体に値を同期（インデックス形式で）
@@ -1877,7 +1881,7 @@ void EMU::write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path)
 // ----------------------------------------------------------------------------
 
 #ifdef USE_SOCKET
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) || defined(__APPLE__)
 int EMU::get_socket(int ch)
 #else
 SOCKET EMU::get_socket(int ch)

@@ -35,10 +35,6 @@ void OSD::release_socket()
     }
 }
 
-int OSD::get_socket(int ch)
-{
-    return soc[ch];
-}
 
 void OSD::notify_socket_connected(int ch)
 {
@@ -88,12 +84,12 @@ bool OSD::listen_socket(int ch)
     return false;
 }
 
-void OSD::send_socket_data_tcp(int ch, void* data, int size)
+void OSD::send_socket_data_tcp(int ch)
 {
     // TODO: TCPデータ送信
 }
 
-void OSD::send_socket_data_udp(int ch, void* data, int size, uint32_t ipaddr, int port)
+void OSD::send_socket_data_udp(int ch, uint32_t ipaddr, int port)
 {
     // TODO: UDPデータ送信
 }

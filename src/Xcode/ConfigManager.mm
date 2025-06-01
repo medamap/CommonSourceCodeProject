@@ -89,6 +89,35 @@ void ConfigManager::initialize(const std::string& app_name, const std::string& i
     printf("[ConfigManager] 初期化完了\n");
 }
 
+// 機種別パス自動生成版の初期化
+void ConfigManager::initializeForMachine(const std::string& machine_name) {
+    if (initialized) {
+        printf("[ConfigManager] 既に初期化済みです\n");
+        return;
+    }
+    
+    // emulatorフォルダのパスを決定（書類フォルダ固定）
+    std::string emulator_base_path = getDefaultEmulatorPath();
+    createDirectoryIfNotExists(emulator_base_path);
+    printf("[ConfigManager] 書類フォルダ固定: %s\n", emulator_base_path.c_str());
+    
+    // 機種別ROM フォルダパス生成: emulator/{machine_name}ROM/
+    std::string machine_rom_path = emulator_base_path + "/" + machine_name + "ROM";
+    
+    // 機種別ROM フォルダが存在しない場合は作成
+    createDirectoryIfNotExists(machine_rom_path);
+    
+    // INIファイルパス: emulator/{machine_name}ROM/{machine_name}.ini
+    std::string ini_path = machine_rom_path + "/" + machine_name + ".ini";
+    
+    printf("[ConfigManager] 機種別初期化: %s\n", machine_name.c_str());
+    printf("[ConfigManager] ROMフォルダ: %s\n", machine_rom_path.c_str());
+    printf("[ConfigManager] INIファイル: %s\n", ini_path.c_str());
+    
+    // 従来の初期化メソッドを呼び出し
+    initialize(machine_name, ini_path);
+}
+
 void ConfigManager::shutdown() {
     if (!initialized) {
         return;
@@ -283,7 +312,7 @@ int ConfigManager::getSoundVolumeR(int channel) {
 }
 
 bool ConfigManager::getSoundEnabled() {
-    return getBool(CONFIG_SOUND_ENABLED_KEY, true);
+    return getBool(CONFIG_SOUND_ENABLED_KEY, false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -734,7 +763,7 @@ void ConfigManager::setDefaultValues() {
     // 音声設定のデフォルト値
     setInt(CONFIG_SOUND_FREQUENCY_KEY, 5);      // インデックス5 = 44.1kHz
     setInt(CONFIG_SOUND_LATENCY_KEY, 1);        // インデックス1 = 100ms
-    setBool(CONFIG_SOUND_ENABLED_KEY, true);    // 音声有効
+    setBool(CONFIG_SOUND_ENABLED_KEY, false);   // 音声デフォルト無効
     
     // 音量設定のデフォルト値（各チャンネル）
     for (int i = 0; i < 8; i++) {
@@ -789,8 +818,8 @@ void ConfigManager::syncWithGlobalConfig() {
     config.filter_type = getInt(CONFIG_FILTER_TYPE_KEY, 0);
 #endif
 
-#if defined(__ANDROID__)
-    config.sound_on = getBool(CONFIG_SOUND_ENABLED_KEY, true);
+#if defined(__ANDROID__) || defined(__APPLE__)
+    config.sound_on = getBool(CONFIG_SOUND_ENABLED_KEY, false);
 #endif
     
     // 周波数インデックスを実際の周波数に変換して表示
@@ -863,5 +892,131 @@ extern "C" {
     void config_load_from_userdefaults(void) {
         ConfigManager::getInstance().loadFromUserDefaults();
     }
+#endif
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 内部ヘルパーメソッド実装
+////////////////////////////////////////////////////////////////////////////////
+
+// emulatorフォルダの選択または作成
+std::string ConfigManager::selectOrCreateEmulatorFolder() {
+#ifdef __APPLE__
+    @autoreleasepool {
+        // ユーザーにemulatorフォルダの場所を選択させる
+        NSAlert *alert = [[NSAlert alloc] init];
+        [alert setMessageText:@"Emulatorフォルダの設定"];
+        [alert setInformativeText:@"ROM、ディスク、設定ファイルを保存するemulatorフォルダの場所を選択してください。\nキャンセルした場合は、書類フォルダに自動作成されます。"];
+        [alert addButtonWithTitle:@"フォルダを選択"];
+        [alert addButtonWithTitle:@"キャンセル（自動設定）"];
+        [alert setAlertStyle:NSAlertStyleInformational];
+        
+        NSInteger response = [alert runModal];
+        
+        std::string emulator_path;
+        
+        if (response == NSAlertFirstButtonReturn) {
+            // フォルダ選択ダイアログを表示
+            NSOpenPanel *panel = [NSOpenPanel openPanel];
+            [panel setCanChooseFiles:NO];
+            [panel setCanChooseDirectories:YES];
+            [panel setAllowsMultipleSelection:NO];
+            [panel setCanCreateDirectories:YES];
+            [panel setPrompt:@"選択"];
+            [panel setMessage:@"emulatorフォルダの保存場所を選択してください"];
+            
+            NSInteger result = [panel runModal];
+            if (result == NSModalResponseOK) {
+                NSURL *selectedURL = [[panel URLs] firstObject];
+                std::string selected_path = [[selectedURL path] UTF8String];
+                emulator_path = selected_path + "/emulator";
+                printf("[ConfigManager] ユーザー選択パス: %s\n", emulator_path.c_str());
+            } else {
+                // キャンセルされた場合はデフォルトパスを使用
+                emulator_path = getDefaultEmulatorPath();
+                printf("[ConfigManager] キャンセルされました。デフォルトパスを使用: %s\n", emulator_path.c_str());
+            }
+        } else {
+            // 「キャンセル（自動設定）」が選択された場合
+            emulator_path = getDefaultEmulatorPath();
+            printf("[ConfigManager] 自動設定を選択: %s\n", emulator_path.c_str());
+        }
+        
+        // emulatorフォルダを作成
+        createDirectoryIfNotExists(emulator_path);
+        
+        return emulator_path;
+    }
+#else
+    // 非Apple環境では、単純にデフォルトパスを返す
+    std::string emulator_path = getDefaultEmulatorPath();
+    createDirectoryIfNotExists(emulator_path);
+    return emulator_path;
+#endif
+}
+
+// デフォルトのemulatorパスを取得
+std::string ConfigManager::getDefaultEmulatorPath() {
+#ifdef __APPLE__
+    @autoreleasepool {
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsDirectory = [paths objectAtIndex:0];
+        std::string documents_path = [documentsDirectory UTF8String];
+        return documents_path + "/emulator";
+    }
+#else
+    return "./emulator";
+#endif
+}
+
+// ディレクトリが存在しない場合は作成
+void ConfigManager::createDirectoryIfNotExists(const std::string& path) {
+#ifdef __APPLE__
+    @autoreleasepool {
+        NSString *nsPath = [NSString stringWithUTF8String:path.c_str()];
+        NSFileManager *fileManager = [NSFileManager defaultManager];
+        
+        BOOL isDirectory;
+        BOOL exists = [fileManager fileExistsAtPath:nsPath isDirectory:&isDirectory];
+        
+        if (!exists) {
+            NSError *error = nil;
+            // 読み書き可能な権限（0755）でディレクトリを作成
+            NSDictionary *attributes = @{NSFilePosixPermissions: @(0755)};
+            BOOL success = [fileManager createDirectoryAtPath:nsPath 
+                                  withIntermediateDirectories:YES 
+                                                   attributes:attributes 
+                                                        error:&error];
+            if (success) {
+                printf("[ConfigManager] ディレクトリを作成しました: %s\n", path.c_str());
+            } else {
+                printf("[ConfigManager] ディレクトリ作成に失敗: %s (%s)\n", 
+                       path.c_str(), [[error localizedDescription] UTF8String]);
+            }
+        } else if (!isDirectory) {
+            printf("[ConfigManager] 警告: パスがディレクトリではありません: %s\n", path.c_str());
+        } else {
+            printf("[ConfigManager] ディレクトリは既に存在します: %s\n", path.c_str());
+            
+            // 既存ディレクトリの権限をチェックして、書き込み可能でない場合は修正
+            NSDictionary *attrs = [fileManager attributesOfItemAtPath:nsPath error:nil];
+            NSNumber *permissions = attrs[NSFilePosixPermissions];
+            if (permissions && ([permissions intValue] & 0200) == 0) {
+                // 所有者の書き込み権限がない場合
+                printf("[ConfigManager] 警告: ディレクトリが読み取り専用です。権限を修正します: %s\n", path.c_str());
+                NSDictionary *newAttrs = @{NSFilePosixPermissions: @(0755)};
+                NSError *error = nil;
+                if (![fileManager setAttributes:newAttrs ofItemAtPath:nsPath error:&error]) {
+                    printf("[ConfigManager] 権限の修正に失敗: %s\n", [[error localizedDescription] UTF8String]);
+                } else {
+                    printf("[ConfigManager] 権限を修正しました (0755)\n");
+                }
+            }
+        }
+    }
+#else
+    // 非Apple環境では、標準ライブラリでディレクトリ作成
+    // TODO: 他のプラットフォーム向け実装
+    printf("[ConfigManager] ディレクトリ作成（非Apple環境）: %s\n", path.c_str());
 #endif
 }

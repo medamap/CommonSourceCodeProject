@@ -200,7 +200,7 @@ typedef struct {
     #endif
 	
 	// sound
-    #if defined(__ANDROID__) // Medamap
+    #if defined(__ANDROID__) || defined(__APPLE__) // Medamap
         bool sound_on;
     #endif
 	int sound_frequency;

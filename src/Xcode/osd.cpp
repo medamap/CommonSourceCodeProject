@@ -33,7 +33,7 @@ void OSD::initialize(int rate, int samples)
     
     // EMU側からrateとsamplesが渡されるので、ConfigManagerは使用せず
     // 音声有効/無効フラグのみConfigManagerから取得
-    bool sound_enabled = configManager.getBool("sound_enabled", true);       // 音声有効
+    bool sound_enabled = configManager.getBool("sound_enabled", false);      // 音声デフォルト無効
     
     // EMU側から渡されたrateとsamplesを使用
     if (rate == 0) {
@@ -68,6 +68,12 @@ void OSD::initialize(int rate, int samples)
     
     // Enable sound and start audio playback (ConfigManagerの設定に基づく)
     soundEnable = sound_enabled;
+    
+#if defined(__ANDROID__) || defined(__APPLE__)
+    // config.sound_onとの同期
+    config.sound_on = soundEnable;
+#endif
+    
     if (soundEnable) {
         start_sound();
     }

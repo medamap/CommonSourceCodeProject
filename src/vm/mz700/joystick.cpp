@@ -13,18 +13,22 @@
 void JOYSTICK::initialize()
 {
 	val_1x03 = 0x7e;
+#ifdef USE_JOYSTICK
 	joy_stat = emu->get_joy_buffer();
+#else
+	joy_stat = NULL;
+#endif
 
 	// register event
 	register_vline_event(this);
 }
 
 //		__           _______________________
-//	JA2	  \_________/__y1___/__y0___/       \__	JA2‚Íã‰º•ûŒü‚Ìó‘Ô‚ğPWM‚·‚é
+//	JA2	  \_________/__y1___/__y0___/       \__	JA2ï¿½Íã‰ºï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½Ô‚ï¿½PWMï¿½ï¿½ï¿½ï¿½
 //		__ _________ _______ _______ _______ __
-//	JA1	__X____A____X___B___X___R___X___L___X__	JA1‚Í¶‰E‚Æƒ{ƒ^ƒ“‚Ìó‘Ô‚ğ‚»‚Ì‚Ü‚Ü‘—‚é
+//	JA1	__X____A____X___B___X___R___X___L___X__	JA1ï¿½Íï¿½ï¿½Eï¿½Æƒ{ï¿½^ï¿½ï¿½ï¿½Ìï¿½Ô‚ï¿½ï¿½ï¿½ï¿½Ì‚Ü‚Ü‘ï¿½ï¿½ï¿½
 //
-//                |©  38 ¨|© 30¨|© 30¨|© 30¨|	(3.579545MHz)
+//                |ï¿½ï¿½  38 ï¿½ï¿½|ï¿½ï¿½ 30ï¿½ï¿½|ï¿½ï¿½ 30ï¿½ï¿½|ï¿½ï¿½ 30ï¿½ï¿½|	(3.579545MHz)
 //
 //	y1y0	UD
 //	 0 0	01
@@ -97,6 +101,7 @@ uint32_t JOYSTICK::read_io8(uint32_t addr)
 {
 	uint32_t val = 0x7e;
 
+#ifdef USE_JOYSTICK_TYPE
 	switch (config.joystick_type) {
 
 		case DEVICE_JOYSTICK_1X03:		// SHARP MZ-1X03
@@ -104,12 +109,12 @@ uint32_t JOYSTICK::read_io8(uint32_t addr)
 			break;
 
 		case DEVICE_JOYSTICK_JOY700:		// TSUKUMO JOY-700
-			if(joy_stat[0] & 0x01) val &= ~0x10;  // up    : JB2
-			if(joy_stat[0] & 0x02) val &= ~0x08;  // down  : JB1
-			if(joy_stat[0] & 0x04) val &= ~0x02;  // left  : JA1
-			if(joy_stat[0] & 0x08) val &= ~0x04;  // right : JA2
-			if(joy_stat[0] & 0x10) val &= ~0x1e;  // trigger A : ALL
-			if(joy_stat[0] & 0x20) val &= ~0x1e;  // trigger B : ALL
+			if(joy_stat && joy_stat[0] & 0x01) val &= ~0x10;  // up    : JB2
+			if(joy_stat && joy_stat[0] & 0x02) val &= ~0x08;  // down  : JB1
+			if(joy_stat && joy_stat[0] & 0x04) val &= ~0x02;  // left  : JA1
+			if(joy_stat && joy_stat[0] & 0x08) val &= ~0x04;  // right : JA2
+			if(joy_stat && joy_stat[0] & 0x10) val &= ~0x1e;  // trigger A : ALL
+			if(joy_stat && joy_stat[0] & 0x20) val &= ~0x1e;  // trigger B : ALL
 			break;
 
 		case DEVICE_JOYSTICK_AM7J:		// AM7J ATARI Joystick adaptor
@@ -120,14 +125,15 @@ uint32_t JOYSTICK::read_io8(uint32_t addr)
 		default:
 			break;
         }
+#endif
 
 	return val;
 }
 
 //
-// MZ-1X03 ‚Í /VBLK=H ‚Åƒ{ƒ^ƒ“‚Ìó‘Ô(‰Ÿ‚³‚ê‚Ä‚¢‚ê‚ÎL)
-//            /VBLK=L ‚ÅƒXƒeƒBƒbƒN‚ÌŒX‚«(PWM, 127.841kHz, (0`255)+10‚ÌLowƒpƒ‹ƒX) ‚ğo—Í‚·‚é
-//            /VBLK‚ª—§‚¿‰º‚ª‚Á‚Ä‚©‚ç 302 CPU clock‘Ò‚Á‚½ŒãA28 CPU clock ’PˆÊ‚ÌLowƒpƒ‹ƒX‚ğo—Í
+// MZ-1X03 ï¿½ï¿½ /VBLK=H ï¿½Åƒ{ï¿½^ï¿½ï¿½ï¿½Ìï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½L)
+//            /VBLK=L ï¿½ÅƒXï¿½eï¿½Bï¿½bï¿½Nï¿½ÌŒXï¿½ï¿½(PWM, 127.841kHz, (0ï¿½`255)+10ï¿½ï¿½Lowï¿½pï¿½ï¿½ï¿½X) ï¿½ï¿½ï¿½oï¿½Í‚ï¿½ï¿½ï¿½
+//            /VBLKï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ 302 CPU clockï¿½Ò‚ï¿½ï¿½ï¿½ï¿½ï¿½A28 CPU clock ï¿½Pï¿½Ê‚ï¿½Lowï¿½pï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½oï¿½ï¿½
 //
 uint64_t JOYSTICK::pulse_width_1x03(uint32_t js, uint32_t mmin, uint32_t mmax)
 {
@@ -138,23 +144,27 @@ uint64_t JOYSTICK::pulse_width_1x03(uint32_t js, uint32_t mmin, uint32_t mmax)
 
 void JOYSTICK::event_vline(int v, int clock)
 {
+#ifdef USE_JOYSTICK_TYPE
 	if (config.joystick_type == DEVICE_JOYSTICK_1X03) {
 		if (v == 0) {
 			// trigger
 			val_1x03 = 0x7e;
-			if(joy_stat[0] & 0x10) val_1x03 &= ~0x02;
-			if(joy_stat[0] & 0x20) val_1x03 &= ~0x04;
-			if(joy_stat[1] & 0x10) val_1x03 &= ~0x08;
-			if(joy_stat[1] & 0x20) val_1x03 &= ~0x10;
+			if(joy_stat && joy_stat[0] & 0x10) val_1x03 &= ~0x02;
+			if(joy_stat && joy_stat[0] & 0x20) val_1x03 &= ~0x04;
+			if(joy_stat && joy_stat[1] & 0x10) val_1x03 &= ~0x08;
+			if(joy_stat && joy_stat[1] & 0x20) val_1x03 &= ~0x10;
 		} else if (v == 200) {
 			// stick (PWM)
 			val_1x03 &= ~(0x06 | 0x18);
-			register_event_by_clock(this, EVENT_1X03_X1, pulse_width_1x03(joy_stat[0], 0x04, 0x08), false, NULL);
-			register_event_by_clock(this, EVENT_1X03_Y1, pulse_width_1x03(joy_stat[0], 0x01, 0x02), false, NULL);
-			register_event_by_clock(this, EVENT_1X03_X2, pulse_width_1x03(joy_stat[1], 0x04, 0x08), false, NULL);
-			register_event_by_clock(this, EVENT_1X03_Y2, pulse_width_1x03(joy_stat[1], 0x01, 0x02), false, NULL);
+			if(joy_stat) {
+				register_event_by_clock(this, EVENT_1X03_X1, pulse_width_1x03(joy_stat[0], 0x04, 0x08), false, NULL);
+				register_event_by_clock(this, EVENT_1X03_Y1, pulse_width_1x03(joy_stat[0], 0x01, 0x02), false, NULL);
+				register_event_by_clock(this, EVENT_1X03_X2, pulse_width_1x03(joy_stat[1], 0x04, 0x08), false, NULL);
+				register_event_by_clock(this, EVENT_1X03_Y2, pulse_width_1x03(joy_stat[1], 0x01, 0x02), false, NULL);
+			}
 		}
 	}
+#endif
 }
 
 void JOYSTICK::event_callback(int event_id, int err)

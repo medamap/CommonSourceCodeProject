@@ -71,16 +71,8 @@
 
 VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 {
-	// TODO: Remove debug output after ROM loading stabilization
-	#ifdef DEBUG_X1_ROM
-	bool sub_rom_exists = FILEIO::IsFileExisting(create_local_path(SUB_ROM_FILE_NAME));
-	bool kbd_rom_exists = FILEIO::IsFileExisting(create_local_path(KBD_ROM_FILE_NAME));
-	printf("[DEBUG] SUB_ROM_FILE_NAME = %s, exists = %d\n", SUB_ROM_FILE_NAME, sub_rom_exists);
-	printf("[DEBUG] KBD_ROM_FILE_NAME = %s, exists = %d\n", KBD_ROM_FILE_NAME, kbd_rom_exists);
-	pseudo_sub_cpu = !(sub_rom_exists && kbd_rom_exists);
-	#else
+	// Medamap and Claude: ROM存在チェックと疑似CPUモード判定
 	pseudo_sub_cpu = !(FILEIO::IsFileExisting(create_local_path(SUB_ROM_FILE_NAME)) && FILEIO::IsFileExisting(create_local_path(KBD_ROM_FILE_NAME)));
-	#endif
 	
 	sound_type = config.sound_type;
 	

@@ -32,8 +32,14 @@ show_help() {
     echo "  msx2       - MSX2"
     echo "  fm7        - FM-7"
     echo "  fm77       - FM-77"
-    echo "  mz2500     - MZ-2500"
+    echo "  mz80k      - MZ-80K"
+    echo "  mz80a      - MZ-80A"
+    echo "  mz80b      - MZ-80B"
     echo "  mz700      - MZ-700"
+    echo "  mz800      - MZ-800"
+    echo "  mz1500     - MZ-1500"
+    echo "  mz2200     - MZ-2200"
+    echo "  mz2500     - MZ-2500"
     echo "  colecovision - ColecoVision"
     echo ""
     echo "オプション:"
@@ -125,7 +131,8 @@ fi
 # 利用可能な機種リスト
 AVAILABLE_MACHINES=(
     "x1turbo" "x1" "pc8801" "pc9801" "msx1" "msx2" 
-    "fm7" "fm77" "mz2500" "mz700" "pc6001" "colecovision"
+    "fm7" "fm77" "mz80k" "mz80a" "mz80b" "mz700" 
+    "mz800" "mz1500" "mz2200" "mz2500" "pc6001" "colecovision"
 )
 
 # 機種名を小文字に変換
@@ -192,7 +199,7 @@ log_info "CMake設定を実行中..."
 CMAKE_ARGS=(
     "-DCMAKE_BUILD_TYPE=$BUILD_TYPE"
     "-DMACHINE=$MACHINE"
-    "-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0"
+    "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13"
     "$SCRIPT_DIR"
 )
 
@@ -227,7 +234,7 @@ fi
 log_success "ビルド完了"
 
 # 実行ファイルの確認
-EXECUTABLE="$BUILD_DIR/cscp_exec"
+EXECUTABLE="$BUILD_DIR/bin/$MACHINE"
 if [[ -f "$EXECUTABLE" ]]; then
     log_success "実行ファイルが生成されました: $EXECUTABLE"
     

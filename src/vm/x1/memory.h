@@ -16,6 +16,8 @@
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
+// Medamap and Claude: CONFIG_NAME定義のためx1.hをインクルード
+#include "x1.h"
 
 class MEMORY : public DEVICE
 {

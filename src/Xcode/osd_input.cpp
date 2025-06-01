@@ -125,8 +125,10 @@ void OSD::initialize_input()
 #endif
     
     // マウス状態初期化
+#ifdef USE_MOUSE
     mouse_status[0] = mouse_status[1] = mouse_status[2] = 0;
     mouse_enabled = false;
+#endif
     
     // タッチ状態初期化
 #ifdef USE_TOUCH
@@ -150,8 +152,10 @@ void OSD::release_input()
     memset(joy_status, 0, sizeof(joy_status));
 #endif
     
+#ifdef USE_MOUSE
     // マウス状態クリア
     mouse_status[0] = mouse_status[1] = mouse_status[2] = 0;
+#endif
     
 #ifdef USE_TOUCH
     memset(touch_status, 0, sizeof(touch_status));

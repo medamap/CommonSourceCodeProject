@@ -63,6 +63,12 @@
 #define SOUND_RATE_DEFAULT	5
 #endif
 
+// Medamap and Claude: Apple platforms でプリンター機能を有効化
+#if defined(__APPLE__)
+// USE_PRINTER は各機種のヘッダーで定義されている場合はそのまま有効
+// 無効化しない（Androidのみ無効化）
+#endif
+
 // OS dependent header files should be included in each osd.h
 // Please do not include them in emu.h
 
@@ -404,7 +410,7 @@ public:
 	
 	// socket
 #ifdef USE_SOCKET
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) || defined(__APPLE__)
 	int get_socket(int ch);
 #else
     SOCKET get_socket(int ch);

@@ -252,7 +252,9 @@
                 
             case ID_SPECIAL_RESET:
                 printf("NMIが実行されました\n");
+#ifdef USE_SPECIAL_RESET
                 emu->special_reset();
+#endif
                 break;
                 
             case ID_CPU_POWER0:
@@ -416,6 +418,7 @@
                 // TODO: 最近使用したファイルの実装
                 break;
                 
+#ifdef USE_HARD_DISK
             case ID_OPEN_HD1:
             case ID_OPEN_HD2:
             case ID_OPEN_HD3:
@@ -449,6 +452,7 @@
                 printf("最近使用したハードディスク: HD%d\n", actionId - ID_RECENT_HD1);
                 // TODO: 最近使用したハードディスクの実装
                 break;
+#endif
                 
             // CMT Recent
             case ID_RECENT_TAPE1:
@@ -477,7 +481,9 @@
                         case ID_VM_DRIVE_TYPE7: driveType = 7; break; // HARD DISK
                     }
                     printf("ブートデバイス設定が変更されました: %d\n", driveType);
+#ifdef USE_DRIVE_TYPE
                     config.drive_type = driveType;
+#endif
                     emu->update_config();
                     
                     // 設定を保存
@@ -494,7 +500,9 @@
                 {
                     int keyboardType = (actionId == ID_VM_KEYBOARD_TYPE0) ? 0 : 1;
                     printf("キーボードタイプが変更されました: Mode %c\n", keyboardType ? 'B' : 'A');
+#ifdef USE_KEYBOARD_TYPE
                     config.keyboard_type = keyboardType;
+#endif
                     emu->update_config();
                     
                     emulator_args_t* args = (emulator_args_t*)self.delayedArgs;
@@ -511,7 +519,9 @@
                 {
                     int soundType = actionId - ID_VM_SOUND_TYPE0;
                     printf("サウンド設定が変更されました: %d\n", soundType);
+#ifdef USE_SOUND_TYPE
                     config.sound_type = soundType;
+#endif
                     emu->update_config();
                     
                     emulator_args_t* args = (emulator_args_t*)self.delayedArgs;
@@ -579,7 +589,9 @@
                 {
                     int monitorType = (actionId == ID_VM_MONITOR_TYPE0) ? 0 : 1;
                     printf("モニタータイプが変更されました: %s\n", monitorType ? "Standard" : "High Resolution");
+#ifdef USE_MONITOR_TYPE
                     config.monitor_type = monitorType;
+#endif
                     emu->update_config();
                     
                     emulator_args_t* args = (emulator_args_t*)self.delayedArgs;
@@ -591,8 +603,12 @@
                 
             case ID_VM_MONITOR_SCANLINE:
                 {
+#ifdef USE_SCANLINE
                     config.scan_line = !config.scan_line;
                     printf("スキャンライン設定が切り替えられました: %s\n", config.scan_line ? "ON" : "OFF");
+#else
+                    printf("スキャンライン設定はこの機種ではサポートされていません\n");
+#endif
                     emu->update_config();
                     
                     emulator_args_t* args = (emulator_args_t*)self.delayedArgs;
@@ -612,7 +628,9 @@
                     int printerType = actionId - ID_VM_PRINTER_TYPE0;
                     const char* printerNames[] = {"File", "MZ-1P17", "PC-PR201", "JAST SOUND", "None"};
                     printf("プリンタータイプが変更されました: %s\n", printerNames[printerType]);
+#ifdef USE_PRINTER_TYPE
                     config.printer_type = printerType;
+#endif
                     emu->update_config();
                     
                     emulator_args_t* args = (emulator_args_t*)self.delayedArgs;
@@ -631,7 +649,9 @@
                     int serialType = actionId - ID_VM_SERIAL_TYPE0;
                     const char* serialNames[] = {"Physical Comm Port", "Named Pipe", "MIDI Device", "None"};
                     printf("シリアル設定が変更されました: %s\n", serialNames[serialType]);
+#ifdef USE_SERIAL_TYPE
                     config.serial_type = serialType;
+#endif
                     emu->update_config();
                     
                     emulator_args_t* args = (emulator_args_t*)self.delayedArgs;

@@ -904,7 +904,9 @@ void CRTC::draw_screen()
 			}
 		}
 	}
+#ifdef USE_SCREEN_FILTER
 	emu->screen_skip_line(monitor_200line);
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -1920,7 +1922,9 @@ void CRTC::draw_screen_2000()
 			my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		}
 	}
+#ifdef USE_SCREEN_FILTER
 	emu->screen_skip_line(true);
+#endif
 }
 
 void CRTC::draw_screen_80b()
@@ -1995,7 +1999,9 @@ void CRTC::draw_screen_80b()
 			my_memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		}
 	}
+#ifdef USE_SCREEN_FILTER
 	emu->screen_skip_line(true);
+#endif
 }
 
 #define STATE_VERSION	2
@@ -2055,11 +2061,7 @@ bool CRTC::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateArray(palette256, sizeof(palette256), 1);
 	state_fio->StateArray(palette256txt, sizeof(palette256txt), 1);
 	state_fio->StateArray(&palette256pri[0][0], sizeof(palette256pri), 1);
-#if !defined(__ANDROID__)
-	state_fio->StateValue((uint32_t)prev256);
-#else
-    state_fio->StateValue(prev256);
-#endif
+	state_fio->StateValue(prev256);
 	state_fio->StateValue(update256);
 	state_fio->StateArray(&map_addr[0][0], sizeof(map_addr), 1);
 	state_fio->StateArray(&map_hdsc[0][0], sizeof(map_hdsc), 1);

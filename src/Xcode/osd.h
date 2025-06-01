@@ -52,7 +52,7 @@
 #endif
 
 #ifdef USE_SOCKET
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) || defined(__APPLE__)
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -660,6 +660,10 @@ public:
 	
 	// common printer
 #ifdef USE_PRINTER
+	// printer-specific functions here
+#endif
+	
+	// bitmap functions (needed by all machines)
 	void create_bitmap(bitmap_t *bitmap, int width, int height);
 	void release_bitmap(bitmap_t *bitmap);
 	void create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic);
@@ -673,7 +677,6 @@ public:
 	void draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b);
 	void draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, uint8_t g, uint8_t b);
 	void stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height);
-#endif
 	void write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path);
 	
 	// common socket
@@ -709,6 +712,7 @@ public:
 	bool vista_or_later;
 
 	bitmap_t* getScreenBuffer();
+
 
 	bool soundEnable = false;
 };

@@ -116,8 +116,8 @@ void initialize_config()
             config.sound_frequency = 6;	// 48KHz
         #endif
 	#endif
-        #if defined(__ANDROID__)
-            config.sound_on = true;
+        #if defined(__ANDROID__) || defined(__APPLE__)
+            config.sound_on = false;
             config.sound_latency = 1;	// 100msec
             config.sound_strict_rendering = true;
         #else
@@ -357,7 +357,7 @@ void load_config(const _TCHAR* config_path)
     #endif
 
 	// sound
-#if defined(__ANDROID__) // Medamap
+#if defined(__ANDROID__) || defined(__APPLE__) // Medamap
     config.sound_on = MyGetPrivateProfileInt(_T("Sound"), _T("SoundOn"), config.sound_on, config_path);
 #endif
 	config.sound_frequency = MyGetPrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
@@ -627,7 +627,7 @@ void save_config(const _TCHAR* config_path)
     #endif
 
 	// sound
-#if defined(__ANDROID__) // Medamap
+#if defined(__ANDROID__) || defined(__APPLE__) // Medamap
     MyWritePrivateProfileInt(_T("Sound"), _T("SoundOn"), config.sound_on, config_path);
 #endif
 	MyWritePrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);

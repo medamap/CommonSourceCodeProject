@@ -254,6 +254,7 @@ void on_tape_selected(const char* file_path, int drive_index, void* user_data)
     }
 }
 
+#ifdef USE_HARD_DISK
 void on_hard_disk_selected(const char* file_path, int drive_index, void* user_data)
 {
     if (!emu) return;
@@ -266,6 +267,7 @@ void on_hard_disk_selected(const char* file_path, int drive_index, void* user_da
     printf("ハードディスクを挿入: ドライブ%d, ファイル: %s\n", drive_index, file_path);
     emu->open_hard_disk(drive_index, file_path);
 }
+#endif
 
 #ifdef USE_CART
 void on_cart_selected(const char* file_path, int drive_index, void* user_data)
@@ -325,7 +327,9 @@ void process_menu_event(int menuId, EMU* emu)
             break;
             
         case ID_SPECIAL_RESET:
+#ifdef USE_SPECIAL_RESET
             emu->special_reset();
+#endif
             break;
             
         case ID_CPU_POWER0:
@@ -343,6 +347,20 @@ void process_menu_event(int menuId, EMU* emu)
             
         case ID_DRIVE_VM_IN_OPECODE:
             config.drive_vm_in_opecode = !config.drive_vm_in_opecode;
+            break;
+            
+        case ID_SOUND_ON:
+            // Android版と同じ実装：reset_sound() -> トグル -> config同期
+            emu->get_osd()->reset_sound();
+            emu->get_osd()->soundEnable = !(emu->get_osd()->soundEnable);
+#if defined(__ANDROID__) || defined(__APPLE__)
+            config.sound_on = emu->get_osd()->soundEnable;
+#endif
+#ifdef __APPLE__
+            // ConfigManagerにも反映
+            ConfigManager::getInstance().setSoundEnabled(emu->get_osd()->soundEnable);
+#endif
+            printf("音声切り替え: %s\n", emu->get_osd()->soundEnable ? "ON" : "OFF");
             break;
 
 #ifdef USE_FLOPPY_DISK
@@ -535,19 +553,7 @@ void process_menu_event(int menuId, EMU* emu)
             break;
 #endif
 
-        // 音声設定メニュー
-        case ID_SOUND_ON:
-            // TODO: sound_onはconfig_tにないので、OSDのsoundEnableを使用
-            if (osd) {
-                osd->soundEnable = !osd->soundEnable;
-                printf("音声ON/OFF切り替え: %s\n", osd->soundEnable ? "ON" : "OFF");
-                if (osd->soundEnable) {
-                    osd->start_sound();
-                } else {
-                    osd->stop_sound();
-                }
-            }
-            break;
+        // ID_SOUND_ONは上記で既に実装済み
             
         case ID_SOUND_FREQ0: // 2000Hz
         case ID_SOUND_FREQ1: // 4000Hz  

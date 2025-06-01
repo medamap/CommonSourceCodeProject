@@ -4,7 +4,7 @@
 
 #include "menu.h"
 #include "BaseMenu.h"
-#include "../../res/resource.h"
+#include "../res/resource.h"
 
 // BaseMenu を継承して Menu クラスを作成する
 Menu::Menu() {
