@@ -2,3 +2,7 @@
 	path = oboe
 	url = https://github.com/google/oboe.git
 	branch = tag: 1.8.1
+[submodule "CSCP-Reference"]
+	path = CSCP-Reference
+	url = https://github.com/medamap/CommonSourceCodeProject.git
+	branch = feature/apple-platform-support
