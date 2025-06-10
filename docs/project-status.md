@@ -16,22 +16,27 @@
    - docs構造作成済み
 
 ## 進行中タスク
-1. MB8877構造調査
-   - 担当: InvestigationAgent-MB8877
-   - 指示書: docs/instructions/investigation-mb8877-structure.md
+1. wd_fdc.cpp構造調査
+   - 担当: InvestigationAgent-WD_FDC
+   - 指示書: docs/instructions/investigation-wd-fdc-structure.md
    - ステータス: 未開始
 
 ## 今後の予定タスク
-1. wd_fdc.cpp構造調査
-2. 移植計画策定
-3. テストスイート作成
-4. 実装作業
-5. 検証作業
+1. 移植計画策定
+2. テストスイート作成
+3. 実装作業
+4. 検証作業
 
 ## エージェント稼働履歴
 | エージェント名 | 開始時刻 | 終了時刻 | 成果物 |
 |--------------|---------|---------|--------|
 | PMエージェント | 2025/06/10 21:30 | 稼働中 | 初期セットアップ完了 |
+| InvestigationAgent-MB8877 | - | 完了 | docs/reports/mb8877-structure-analysis.md |
+
+## 完了タスク
+1. MB8877構造調査
+   - 成果: 33個のパブリックメソッド、7種類のイベント機構を文書化
+   - 特記事項: FM7/X1用特殊ディスク対応、MB89311拡張モードサポート確認
 
 ## 次のアクション
-- InvestigationAgent-MB8877による調査開始待ち
+- InvestigationAgent-WD_FDCによる調査開始待ち
