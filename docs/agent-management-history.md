@@ -12,9 +12,11 @@
 - **作成した指示書**:
   - docs/instructions/investigation-mb8877-structure.md
   - docs/instructions/investigation-wd-fdc-structure.md
+  - docs/instructions/planning-porting-strategy.md
 - **受け取ったレポート**:
   - docs/reports/mb8877-structure-analysis.md
   - docs/reports/wd-fdc-structure-analysis.md
+  - docs/reports/porting-strategy-plan.md
 
 ### 2. InvestigationAgent-MB8877
 - **役割**: mb8877.cpp/hの構造解析
@@ -42,6 +44,20 @@
   - 段階的移植戦略（3フェーズ）を提案
   - MB8877特有機能（MB89311拡張、特殊ディスク、ノイズ再生）の移植方法を明確化
 
+### 4. PlanningAgent-PortingStrategy
+- **役割**: MB8877からwd_fdcへの移植戦略策定
+- **指示書**: docs/instructions/planning-porting-strategy.md
+- **開始日時**: -
+- **終了日時**: 2025/01/10
+- **ステータス**: 完了
+- **成果物**: docs/reports/porting-strategy-plan.md
+- **主な成果**:
+  - 3段階のフェーズドアプローチ（基本互換レイヤー、拡張機能、最適化）を策定
+  - ラッパークラス方式によるインターフェース維持戦略を提案
+  - 総実装期間5-8週間（2-3名体制）の詳細計画を作成
+  - 高リスク項目（タイミング互換性、ステートマシン変換）の対策を明確化
+  - 4つの実装エージェント（BasicWrapper、ExtendedFeatures、Compatibility、Performance）の役割分担を提案
+
 ## 次回更新予定
-- 移植計画策定エージェントの指示書作成時
+- Phase 1実装エージェントの開始時
 - 新規エージェントの開始時
