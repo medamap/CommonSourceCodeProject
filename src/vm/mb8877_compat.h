@@ -16,9 +16,8 @@
 #include "../emu.h"
 #include "device.h"
 
-// Forward declarations to avoid including MAME headers directly
-class wd_fdc_device_base;
-class floppy_image_device;
+// Inspired by MAME's wd_fdc implementation (BSD-3-Clause)
+// Adapted for CommonSourceCodeProject compatibility
 
 #define SIG_MB8877_ACCESS	0
 #define SIG_MB8877_DRIVEREG	1
@@ -32,11 +31,114 @@ class NOISE;
 class MB8877 : public DEVICE
 {
 private:
-	// MAME wd_fdc instance (implementation detail)
-	wd_fdc_device_base* m_fdc;
-	
-	// Floppy image devices for MAME interface
-	floppy_image_device* m_floppies[MAX_DRIVE];
+	// FDC state machine states (from MAME wd_fdc)
+	enum {
+		// General "doing nothing" state
+		IDLE,
+
+		// Main states - the commands
+		RESTORE,
+		SEEK,
+		STEP,
+		READ_SECTOR,
+		READ_TRACK,
+		READ_ID,
+		WRITE_TRACK,
+		WRITE_SECTOR,
+
+		// Sub states
+		SPINUP,
+		SPINUP_WAIT,
+		SPINUP_DONE,
+
+		SETTLE_WAIT,
+		SETTLE_DONE,
+
+		WRITE_PROTECT_WAIT,
+		WRITE_PROTECT_DONE,
+
+		DATA_LOAD_WAIT,
+		DATA_LOAD_WAIT_DONE,
+
+		SEEK_MOVE,
+		SEEK_WAIT_STEP_TIME,
+		SEEK_WAIT_STEP_TIME_DONE,
+		SEEK_WAIT_STABILIZATION_TIME,
+		SEEK_WAIT_STABILIZATION_TIME_DONE,
+		SEEK_DONE,
+
+		WAIT_INDEX,
+		WAIT_INDEX_DONE,
+
+		SCAN_ID,
+		SCAN_ID_FAILED,
+
+		SECTOR_READ,
+		SECTOR_WRITE,
+		TRACK_DONE,
+
+		// Live states for sector/track operations
+		SEARCH_ADDRESS_MARK_HEADER,
+		READ_HEADER_BLOCK_HEADER,
+		READ_DATA_BLOCK_HEADER,
+		READ_ID_BLOCK_TO_LOCAL,
+		READ_ID_BLOCK_TO_DMA,
+		READ_ID_BLOCK_TO_DMA_BYTE,
+		SEARCH_ADDRESS_MARK_DATA,
+		SEARCH_ADDRESS_MARK_DATA_FAILED,
+		READ_SECTOR_DATA,
+		READ_SECTOR_DATA_BYTE,
+		READ_TRACK_DATA,
+		READ_TRACK_DATA_BYTE,
+		WRITE_TRACK_DATA,
+		WRITE_BYTE,
+		WRITE_BYTE_DONE,
+		WRITE_SECTOR_PRE,
+		WRITE_SECTOR_PRE_BYTE
+	};
+
+	// Status register bits (MAME compatible)
+	enum {
+		S_BUSY = 0x01,
+		S_DRQ  = 0x02,
+		S_IP   = 0x02,  // Index pulse (Type I)
+		S_TR00 = 0x04,
+		S_LOST = 0x04,
+		S_CRC  = 0x08,
+		S_RNF  = 0x10,  // Record not found
+		S_HLD  = 0x20,  // Head loaded (Type I)
+		S_DDM  = 0x20,  // Deleted data mark (Type II/III)
+		S_WP   = 0x40,  // Write protect
+		S_NRDY = 0x80   // Not ready
+	};
+
+	// Command types
+	enum {
+		TYPE_I   = 0,  // Restore, Seek, Step
+		TYPE_II  = 1,  // Read/Write Sector
+		TYPE_III = 2,  // Read Address, Read/Write Track
+		TYPE_IV  = 3   // Force Interrupt
+	};
+
+	// Live operation info (for sector/track operations)
+	struct live_info {
+		enum { PT_NONE, PT_CRC_1, PT_CRC_2 };
+
+		int state, next_state;
+		uint32_t shift_reg;
+		uint16_t crc;
+		int bit_counter, byte_counter, previous_type;
+		bool data_separator_phase, data_bit_context;
+		uint8_t data_reg;
+		uint8_t idbuf[6];
+		int cur_track_position;
+		int track_position_increment;
+		bool byte_ready;
+	};
+
+	// State machine
+	int main_state, sub_state;
+	live_info cur_live;
 	
 	// Output signals
 	outputs_t outputs_irq;
