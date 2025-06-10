@@ -1,0 +1,263 @@
+/*
+	MB8877 Compatibility Layer for WD FDC
+	
+	This wrapper provides MB8877 interface compatibility using MAME's wd_fdc implementation
+	
+	Author : Claude AI Assistant
+	Date   : 2025.01.11
+	
+	[ MB8877 / MB8876 / MB8866 / MB89311 Compatibility Wrapper ]
+*/
+
+#ifndef _MB8877_COMPAT_H_
+#define _MB8877_COMPAT_H_
+
+#include "vm.h"
+#include "../emu.h"
+#include "device.h"
+
+// Forward declarations to avoid including MAME headers directly
+class wd_fdc_device_base;
+class floppy_image_device;
+
+#define SIG_MB8877_ACCESS	0
+#define SIG_MB8877_DRIVEREG	1
+#define SIG_MB8877_SIDEREG	2
+#define SIG_MB8877_MOTOR	3
+
+class DISK;
+class NOISE;
+
+// MB8877 compatibility wrapper class
+class MB8877 : public DEVICE
+{
+private:
+	// MAME wd_fdc instance (implementation detail)
+	wd_fdc_device_base* m_fdc;
+	
+	// Floppy image devices for MAME interface
+	floppy_image_device* m_floppies[MAX_DRIVE];
+	
+	// Output signals
+	outputs_t outputs_irq;
+	outputs_t outputs_drq;
+	outputs_t outputs_rdy;
+	
+	// Drive noise
+	NOISE* d_noise_seek;
+	NOISE* d_noise_head_down;
+	NOISE* d_noise_head_up;
+	
+	// Drive info - maintains compatibility with original
+	struct {
+		int track;
+		int index;
+		bool access;
+		bool head_load;
+		// write track
+		bool id_written;
+		bool sector_found;
+		int sector_length;
+		int sector_index;
+		int side;
+		bool side_changed;
+		// timing
+		int cur_position;
+		int next_trans_position;
+		int bytes_before_2nd_drq;
+		int next_am1_position;
+		uint32_t prev_clock;
+	} fdc[MAX_DRIVE];
+	
+	// Original DISK array for compatibility
+	DISK* disk[MAX_DRIVE];
+	
+	// Registers - maintain original interface
+	uint8_t status, status_tmp;
+	uint8_t cmdreg, cmdreg_tmp;
+	uint8_t trkreg;
+	uint8_t secreg;
+	uint8_t datareg;
+	uint8_t drvreg;
+	uint8_t sidereg;
+	uint8_t cmdtype;
+	
+	// Event system
+	int register_id[8];
+	
+	// Status flags
+	bool now_search;
+	bool now_seek;
+	bool sector_changed;
+	int no_command;
+	int seektrk;
+	bool seekvct;
+	bool motor_on;
+	bool drive_sel;
+	
+#ifdef HAS_MB89311
+	// MB89311 extended mode
+	bool extended_mode;
+#endif
+	
+	// Timing
+	uint32_t prev_drq_clock;
+	uint32_t seekend_clock;
+	
+	// Internal helper methods
+	void update_fdc_status();
+	void convert_command(uint8_t mb8877_cmd);
+	uint8_t convert_status_to_mb8877();
+	void setup_floppy_images();
+	void sync_disk_to_floppy(int drv);
+	void sync_floppy_to_disk(int drv);
+	
+	// Event handling
+	void cancel_my_event(int event);
+	void register_my_event(int event, double usec);
+	void register_seek_event(bool first);
+	void register_drq_event(int bytes);
+	void register_lost_event(int bytes);
+	
+	// Status helpers
+	int get_cur_position();
+	double get_usec_to_start_trans(bool first_sector);
+	double get_usec_to_next_trans_pos(bool delay);
+	double get_usec_to_detect_index_hole(int count, bool delay);
+	
+	// Image handler helpers
+	uint8_t search_track();
+	uint8_t search_sector();
+	uint8_t search_addr();
+	
+	// Command processing
+	void process_cmd();
+	void cmd_restore();
+	void cmd_seek();
+	void cmd_step();
+	void cmd_stepin();
+	void cmd_stepout();
+	void cmd_readdata(bool first_sector);
+	void cmd_writedata(bool first_sector);
+	void cmd_readaddr();
+	void cmd_readtrack();
+	void cmd_writetrack();
+#ifdef HAS_MB89311
+	void cmd_format();
+#endif
+	void cmd_forceint();
+	void update_head_flag(int drv, bool head_load);
+	void update_ready();
+	
+	// IRQ/DMA
+	void set_irq(bool val);
+	void set_drq(bool val);
+	
+public:
+	MB8877(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		initialize_output_signals(&outputs_irq);
+		initialize_output_signals(&outputs_drq);
+		initialize_output_signals(&outputs_rdy);
+		d_noise_seek = NULL;
+		d_noise_head_down = NULL;
+		d_noise_head_up = NULL;
+		// these parameters may be modified before calling initialize()
+		drvreg = sidereg = 0;
+		motor_on = drive_sel = false;
+		m_fdc = NULL;
+		for(int i = 0; i < MAX_DRIVE; i++) {
+			m_floppies[i] = NULL;
+		}
+#if defined(HAS_MB89311)
+		set_device_name(_T("MB89311 FDC"));
+#elif defined(HAS_MB8866)
+		set_device_name(_T("MB8866 FDC"));
+#elif defined(HAS_MB8876)
+		set_device_name(_T("MB8876 FDC"));
+#else
+		set_device_name(_T("MB8877 FDC"));
+#endif
+	}
+	~MB8877();
+	
+	// common functions - maintain exact original interface
+	void initialize();
+	void release();
+	void reset();
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t read_dma_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int ch);
+	void event_callback(int event_id, int err);
+	void update_config();
+#ifdef USE_DEBUGGER
+	bool is_debugger_available()
+	{
+		return true;
+	}
+	bool get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+#endif
+	bool process_state(FILEIO* state_fio, bool loading);
+	
+	// unique functions - maintain exact original interface
+	void set_context_irq(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_irq, device, id, mask);
+	}
+	void set_context_drq(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_drq, device, id, mask);
+	}
+	void set_context_rdy(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_rdy, device, id, mask);
+	}
+	void set_context_noise_seek(NOISE* device)
+	{
+		d_noise_seek = device;
+	}
+	NOISE* get_context_noise_seek()
+	{
+		return d_noise_seek;
+	}
+	void set_context_noise_head_down(NOISE* device)
+	{
+		d_noise_head_down = device;
+	}
+	NOISE* get_context_noise_head_down()
+	{
+		return d_noise_head_down;
+	}
+	void set_context_noise_head_up(NOISE* device)
+	{
+		d_noise_head_up = device;
+	}
+	NOISE* get_context_noise_head_up()
+	{
+		return d_noise_head_up;
+	}
+	DISK* get_disk_handler(int drv)
+	{
+		return disk[drv];
+	}
+	void open_disk(int drv, const _TCHAR* file_path, int bank);
+	void close_disk(int drv);
+	bool is_disk_inserted(int drv);
+	bool is_disk_changed(int drv);
+	void is_disk_protected(int drv, bool value);
+	bool is_disk_protected(int drv);
+	bool is_drive_ready();
+	bool is_drive_ready(int drv);
+	uint8_t get_media_type(int drv);
+	void set_drive_type(int drv, uint8_t type);
+	uint8_t get_drive_type(int drv);
+	void set_drive_rpm(int drv, int rpm);
+	void set_drive_mfm(int drv, bool mfm);
+	void set_track_size(int drv, int size);
+	uint8_t fdc_status();
+};
+
+#endif
