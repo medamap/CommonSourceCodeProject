@@ -14,6 +14,7 @@
   - docs/instructions/investigation-wd-fdc-structure.md
 - **受け取ったレポート**:
   - docs/reports/mb8877-structure-analysis.md
+  - docs/reports/wd-fdc-structure-analysis.md
 
 ### 2. InvestigationAgent-MB8877
 - **役割**: mb8877.cpp/hの構造解析
@@ -31,16 +32,16 @@
 ### 3. InvestigationAgent-WD_FDC
 - **役割**: MAMEのwd_fdc.cpp/hの構造解析
 - **指示書**: docs/instructions/investigation-wd-fdc-structure.md
-- **開始日時**: 未開始
-- **終了日時**: -
-- **ステータス**: 待機中
-- **成果物**: （予定）docs/reports/wd-fdc-structure-analysis.md
-- **期待される成果**:
-  - wd_fdcのステートマシン構造の解析
-  - MB8877との機能対応表の作成
-  - 移植方針の提案
+- **開始日時**: -
+- **終了日時**: 2025/06/10
+- **ステータス**: 完了
+- **成果物**: docs/reports/wd-fdc-structure-analysis.md
+- **主な成果**:
+  - wd_fdcのステートマシン駆動アーキテクチャを完全解析
+  - MB8877との詳細な機能対応表（56項目）を作成
+  - 段階的移植戦略（3フェーズ）を提案
+  - MB8877特有機能（MB89311拡張、特殊ディスク、ノイズ再生）の移植方法を明確化
 
 ## 次回更新予定
-- InvestigationAgent-WD_FDCの開始時
-- InvestigationAgent-WD_FDCからのレポート受領時
-- 新規エージェントの指示書作成時
+- 移植計画策定エージェントの指示書作成時
+- 新規エージェントの開始時
