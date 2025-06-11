@@ -8,7 +8,9 @@
 */
 
 #include <stdlib.h>
-#include <malloc.h> 
+#if defined(_WIN32) || defined(_WIN64)
+#include <malloc.h>
+#endif
 #include "fifo.h"
 #include "fileio.h"
 

@@ -8,13 +8,13 @@
 */
 
 #include <stdlib.h>
-#if defined(__ANDROID__)
-#include <unistd.h>
+#if defined(_WIN32) || defined(_WIN64)
+#include <io.h>
 #include <fcntl.h>
 #else
-#include <io.h>
-#endif
+#include <unistd.h>
 #include <fcntl.h>
+#endif
 #include "vm/device.h"
 #include "vm/debugger.h"
 #include "vm/vm.h"

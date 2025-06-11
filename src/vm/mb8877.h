@@ -1,19 +1,23 @@
 /*
-	Skelton for retropc emulator
-
-	Origin : XM7
-	Author : Takeda.Toshiya
-	Date   : 2006.12.06 -
-
-	[ MB8877 / MB8876 / MB8866 / MB89311 ]
+	MB8877 Compatibility Layer for WD FDC
+	
+	This wrapper provides MB8877 interface compatibility using MAME's wd_fdc implementation
+	
+	Author : Claude AI Assistant
+	Date   : 2025.01.11
+	
+	[ MB8877 / MB8876 / MB8866 / MB89311 Compatibility Wrapper ]
 */
 
-#ifndef _MB8877_H_ 
-#define _MB8877_H_
+#ifndef _MB8877_COMPAT_H_
+#define _MB8877_COMPAT_H_
 
 #include "vm.h"
 #include "../emu.h"
 #include "device.h"
+
+// Inspired by MAME's wd_fdc implementation (BSD-3-Clause)
+// Adapted for CommonSourceCodeProject compatibility
 
 #define SIG_MB8877_ACCESS	0
 #define SIG_MB8877_DRIVEREG	1
@@ -23,20 +27,130 @@
 class DISK;
 class NOISE;
 
+// MB8877 compatibility wrapper class
 class MB8877 : public DEVICE
 {
 private:
-	// output signals
+	// FDC state machine states (from MAME wd_fdc)
+	enum {
+		// General "doing nothing" state
+		IDLE,
+
+		// Main states - the commands
+		RESTORE,
+		SEEK,
+		STEP,
+		READ_SECTOR,
+		READ_TRACK,
+		READ_ID,
+		WRITE_TRACK,
+		WRITE_SECTOR,
+
+		// Sub states
+		SPINUP,
+		SPINUP_WAIT,
+		SPINUP_DONE,
+
+		SETTLE_WAIT,
+		SETTLE_DONE,
+
+		WRITE_PROTECT_WAIT,
+		WRITE_PROTECT_DONE,
+
+		DATA_LOAD_WAIT,
+		DATA_LOAD_WAIT_DONE,
+
+		SEEK_MOVE,
+		SEEK_WAIT_STEP_TIME,
+		SEEK_WAIT_STEP_TIME_DONE,
+		SEEK_WAIT_STABILIZATION_TIME,
+		SEEK_WAIT_STABILIZATION_TIME_DONE,
+		SEEK_DONE,
+
+		WAIT_INDEX,
+		WAIT_INDEX_DONE,
+
+		SCAN_ID,
+		SCAN_ID_FAILED,
+
+		SECTOR_READ,
+		SECTOR_WRITE,
+		TRACK_DONE,
+
+		// Live states for sector/track operations
+		SEARCH_ADDRESS_MARK_HEADER,
+		READ_HEADER_BLOCK_HEADER,
+		READ_DATA_BLOCK_HEADER,
+		READ_ID_BLOCK_TO_LOCAL,
+		READ_ID_BLOCK_TO_DMA,
+		READ_ID_BLOCK_TO_DMA_BYTE,
+		SEARCH_ADDRESS_MARK_DATA,
+		SEARCH_ADDRESS_MARK_DATA_FAILED,
+		READ_SECTOR_DATA,
+		READ_SECTOR_DATA_BYTE,
+		READ_TRACK_DATA,
+		READ_TRACK_DATA_BYTE,
+		WRITE_TRACK_DATA,
+		WRITE_BYTE,
+		WRITE_BYTE_DONE,
+		WRITE_SECTOR_PRE,
+		WRITE_SECTOR_PRE_BYTE
+	};
+
+	// Status register bits (MAME compatible)
+	enum {
+		S_BUSY = 0x01,
+		S_DRQ  = 0x02,
+		S_IP   = 0x02,  // Index pulse (Type I)
+		S_TR00 = 0x04,
+		S_LOST = 0x04,
+		S_CRC  = 0x08,
+		S_RNF  = 0x10,  // Record not found
+		S_HLD  = 0x20,  // Head loaded (Type I)
+		S_DDM  = 0x20,  // Deleted data mark (Type II/III)
+		S_WP   = 0x40,  // Write protect
+		S_NRDY = 0x80   // Not ready
+	};
+
+	// Command types
+	enum {
+		TYPE_I   = 0,  // Restore, Seek, Step
+		TYPE_II  = 1,  // Read/Write Sector
+		TYPE_III = 2,  // Read Address, Read/Write Track
+		TYPE_IV  = 3   // Force Interrupt
+	};
+
+	// Live operation info (for sector/track operations)
+	struct live_info {
+		enum { PT_NONE, PT_CRC_1, PT_CRC_2 };
+
+		int state, next_state;
+		uint32_t shift_reg;
+		uint16_t crc;
+		int bit_counter, byte_counter, previous_type;
+		bool data_separator_phase, data_bit_context;
+		uint8_t data_reg;
+		uint8_t idbuf[6];
+		int cur_track_position;
+		int track_position_increment;
+		bool byte_ready;
+	};
+
+	// State machine
+	int main_state, sub_state;
+	live_info cur_live;
+	
+	// Output signals
 	outputs_t outputs_irq;
 	outputs_t outputs_drq;
 	outputs_t outputs_rdy;
 	
-	// drive noise
+	// Drive noise
 	NOISE* d_noise_seek;
 	NOISE* d_noise_head_down;
 	NOISE* d_noise_head_up;
 	
-	// drive info
+	// Drive info - maintains compatibility with original
 	struct {
 		int track;
 		int index;
@@ -56,9 +170,11 @@ private:
 		int next_am1_position;
 		uint32_t prev_clock;
 	} fdc[MAX_DRIVE];
+	
+	// Original DISK array for compatibility
 	DISK* disk[MAX_DRIVE];
 	
-	// registor
+	// Registers - maintain original interface
 	uint8_t status, status_tmp;
 	uint8_t cmdreg, cmdreg_tmp;
 	uint8_t trkreg;
@@ -68,16 +184,10 @@ private:
 	uint8_t sidereg;
 	uint8_t cmdtype;
 	
-	// event
+	// Event system
 	int register_id[8];
 	
-	void cancel_my_event(int event);
-	void register_my_event(int event, double usec);
-	void register_seek_event(bool first);
-	void register_drq_event(int bytes);
-	void register_lost_event(int bytes);
-	
-	// status
+	// Status flags
 	bool now_search;
 	bool now_seek;
 	bool sector_changed;
@@ -88,25 +198,41 @@ private:
 	bool drive_sel;
 	
 #ifdef HAS_MB89311
-	// MB89311
+	// MB89311 extended mode
 	bool extended_mode;
 #endif
 	
-	// timing
+	// Timing
 	uint32_t prev_drq_clock;
 	uint32_t seekend_clock;
 	
+	// Internal helper methods
+	void update_fdc_status();
+	void convert_command(uint8_t mb8877_cmd);
+	uint8_t convert_status_to_mb8877();
+	void setup_floppy_images();
+	void sync_disk_to_floppy(int drv);
+	void sync_floppy_to_disk(int drv);
+	
+	// Event handling
+	void cancel_my_event(int event);
+	void register_my_event(int event, double usec);
+	void register_seek_event(bool first);
+	void register_drq_event(int bytes);
+	void register_lost_event(int bytes);
+	
+	// Status helpers
 	int get_cur_position();
 	double get_usec_to_start_trans(bool first_sector);
 	double get_usec_to_next_trans_pos(bool delay);
 	double get_usec_to_detect_index_hole(int count, bool delay);
 	
-	// image handler
+	// Image handler helpers
 	uint8_t search_track();
 	uint8_t search_sector();
 	uint8_t search_addr();
 	
-	// command
+	// Command processing
 	void process_cmd();
 	void cmd_restore();
 	void cmd_seek();
@@ -125,7 +251,7 @@ private:
 	void update_head_flag(int drv, bool head_load);
 	void update_ready();
 	
-	// irq/dma
+	// IRQ/DMA
 	void set_irq(bool val);
 	void set_drq(bool val);
 	
@@ -141,6 +267,10 @@ public:
 		// these parameters may be modified before calling initialize()
 		drvreg = sidereg = 0;
 		motor_on = drive_sel = false;
+		m_fdc = NULL;
+		for(int i = 0; i < MAX_DRIVE; i++) {
+			m_floppies[i] = NULL;
+		}
 #if defined(HAS_MB89311)
 		set_device_name(_T("MB89311 FDC"));
 #elif defined(HAS_MB8866)
@@ -151,9 +281,9 @@ public:
 		set_device_name(_T("MB8877 FDC"));
 #endif
 	}
-	~MB8877() {}
+	~MB8877();
 	
-	// common functions
+	// common functions - maintain exact original interface
 	void initialize();
 	void release();
 	void reset();
@@ -174,7 +304,7 @@ public:
 #endif
 	bool process_state(FILEIO* state_fio, bool loading);
 	
-	// unique functions
+	// unique functions - maintain exact original interface
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_irq, device, id, mask);

@@ -14,7 +14,9 @@
 
 #include "mb8877_compat.h"
 #include "disk.h"
+#ifndef STANDALONE_TEST
 #include "noise.h"
+#endif
 #include "../fileio.h"
 
 // MB8877 Register addresses
@@ -23,6 +25,11 @@
 #define FDC_TRACK	1
 #define FDC_SECTOR	2
 #define FDC_DATA	3
+
+// Drive selection mask
+#ifndef DRIVE_MASK
+#define DRIVE_MASK	0x03
+#endif
 
 // MB8877 Status register bits
 #define FDC_ST_BUSY		0x01
@@ -63,12 +70,16 @@ void MB8877::initialize()
 {
 	// Initialize DISK handlers
 	for(int i = 0; i < MAX_DRIVE; i++) {
-		disk[i] = new DISK(vm, emu);
+#ifndef _ANY2D88
+		disk[i] = new DISK(emu);
+#else
+		disk[i] = new DISK();
+#endif
 		disk[i]->set_device_name(_T("%s/Disk #%d"), this_device_name, i + 1);
-		disk[i]->initialize();
 	}
 	
 	// Initialize noise
+#ifndef STANDALONE_TEST
 	if(d_noise_seek != NULL) {
 		d_noise_seek->set_device_name(_T("Noise Player (FDD Seek)"));
 		if(!d_noise_seek->load_wav_file(_T("FDDSEEK.WAV"))) {
@@ -88,6 +99,7 @@ void MB8877::initialize()
 		d_noise_head_up->load_wav_file(_T("HEADUP.WAV"));
 		d_noise_head_up->set_mute(!config.sound_noise_fdd);
 	}
+#endif
 	
 	// Initialize FDC state
 	memset(fdc, 0, sizeof(fdc));
@@ -101,7 +113,7 @@ void MB8877::release()
 	// Release DISK handlers
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		if(disk[i]) {
-			disk[i]->release();
+			// disk[i]->release(); // Not available in standalone mode
 			delete disk[i];
 			disk[i] = NULL;
 		}
@@ -434,7 +446,7 @@ void MB8877::write_signal(int id, uint32_t data, uint32_t mask)
 		// Drive select
 		drvreg = data & DRIVE_MASK;
 		drive_sel = true;
-		seekend_clock = get_current_clock();
+		seekend_clock = emu->emu->get_current_clock();
 		update_ready();
 	} else if(id == SIG_MB8877_SIDEREG) {
 		// Side select
@@ -491,10 +503,14 @@ void MB8877::event_callback(int event_id, int err)
 		// Seek operation
 		if(seektrk > fdc[drvreg].track) {
 			fdc[drvreg].track++;
+#ifndef STANDALONE_TEST
 			if(d_noise_seek != NULL) d_noise_seek->play();
+#endif
 		} else if(seektrk < fdc[drvreg].track) {
 			fdc[drvreg].track--;
+#ifndef STANDALONE_TEST
 			if(d_noise_seek != NULL) d_noise_seek->play();
+#endif
 		}
 		if((cmdreg & 0x10) || ((cmdreg & 0xf0) == 0)) {
 			trkreg = fdc[drvreg].track;
@@ -503,7 +519,7 @@ void MB8877::event_callback(int event_id, int err)
 			register_seek_event(false);
 			break;
 		}
-		seekend_clock = get_current_clock();
+		seekend_clock = emu->emu->get_current_clock();
 #ifdef HAS_MB89311
 		if(extended_mode) {
 			if((cmdreg & 0xf4) == 0x44) {
@@ -564,7 +580,7 @@ void MB8877::event_callback(int event_id, int err)
 				register_lost_event(1);
 			}
 			fdc[drvreg].cur_position = fdc[drvreg].next_trans_position;
-			fdc[drvreg].prev_clock = prev_drq_clock = get_current_clock();
+			fdc[drvreg].prev_clock = prev_drq_clock = emu->emu->get_current_clock();
 			set_drq(true);
 			drive_sel = false;
 		}
@@ -584,7 +600,7 @@ void MB8877::event_callback(int event_id, int err)
 			   main_state == READ_ID) {
 				fdc[drvreg].index++;
 			}
-			fdc[drvreg].prev_clock = prev_drq_clock = get_current_clock();
+			fdc[drvreg].prev_clock = prev_drq_clock = emu->emu->get_current_clock();
 			set_drq(true);
 		}
 		break;
@@ -1804,13 +1820,17 @@ void MB8877::update_head_flag(int drv, bool head_load)
 	
 	if(fdc[drv].head_load != head_load) {
 		if(head_load) {
+#ifndef STANDALONE_TEST
 			if(d_noise_head_down != NULL) {
 				d_noise_head_down->play();
 			}
+#endif
 		} else {
+#ifndef STANDALONE_TEST
 			if(d_noise_head_up != NULL) {
 				d_noise_head_up->play();
 			}
+#endif
 		}
 		fdc[drv].head_load = head_load;
 	}
@@ -2054,6 +2074,7 @@ uint8_t MB8877::fdc_status()
 // Update config
 void MB8877::update_config()
 {
+#ifndef STANDALONE_TEST
 	if(d_noise_seek != NULL) {
 		d_noise_seek->set_mute(!config.sound_noise_fdd);
 	}
@@ -2063,6 +2084,7 @@ void MB8877::update_config()
 	if(d_noise_head_up != NULL) {
 		d_noise_head_up->set_mute(!config.sound_noise_fdd);
 	}
+#endif
 }
 
 // State save/load

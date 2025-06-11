@@ -10,6 +10,10 @@
 
 	[ common ]
 */
+#include <climits>  // For INT_MAX
+#include <wchar.h>  // For vswprintf
+#include <string>   // For std::string
+#include <cctype>   // For std::toupper
 #if defined(__ANDROID__)
     #include <sys/types.h>
     #include <sys/stat.h>
@@ -389,7 +393,7 @@ int DLL_PREFIX my_swprintf_s(wchar_t *buffer, size_t sizeOfBuffer, const wchar_t
 #else
 	va_list ap;
 	va_start(ap, format);
-	int result = vswprintf(buffer, format, ap);
+	int result = vswprintf(buffer, sizeOfBuffer, format, ap);
 	va_end(ap);
 	return result;
 #endif
@@ -1422,6 +1426,7 @@ const _TCHAR *DLL_PREFIX get_application_path()
 
     	return (const _TCHAR *)app_path;
 #else
+#if defined(_USE_QT)
 #if defined(Q_OS_WIN)
 		std::string delim = "\\";
 #else
@@ -1433,6 +1438,10 @@ const _TCHAR *DLL_PREFIX get_application_path()
 		std::string cpath = csppath + my_procname + delim;
 		_my_mkdir(cpath);
 		strncpy(app_path, cpath.c_str(), _MAX_PATH - 1);
+#else
+		// For non-Qt builds, use current directory
+		my_tcscpy_s(app_path, _MAX_PATH, _T("./"));
+#endif
 #endif
 		initialized = true;
 	}

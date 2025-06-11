@@ -111,8 +111,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if !defined(__ANDROID__)
+#if defined(_WIN32) || defined(_WIN64)
 #include <io.h>
+#elif !defined(__ANDROID__)
+#include <unistd.h>
 #endif
 #ifdef _MSC_VER
 	#if _MSC_VER < 1920
@@ -226,6 +228,13 @@
 	#endif
 	#ifndef LPCTSTR
 		typedef const _TCHAR* LPCTSTR;
+	#endif
+	#ifndef LONG_PTR
+		#if defined(__LP64__) || defined(_LP64)
+			typedef long long LONG_PTR;
+		#else
+			typedef long LONG_PTR;
+		#endif
 	#endif
 	#ifndef BOOL
 		typedef int BOOL;

@@ -13,10 +13,10 @@
 extern bool run_register_tests();
 extern bool run_type1_command_tests();
 extern bool run_type2_command_tests();
-// extern bool run_type3_command_tests();
-// extern bool run_type4_command_tests();
-// extern bool run_error_handling_tests();
-// extern bool run_timing_tests();
+extern bool run_type3_command_tests();
+extern bool run_type4_command_tests();
+extern bool run_error_handling_tests();
+extern bool run_timing_tests();
 
 int main() {
 	printf("===========================================\n");
@@ -66,12 +66,52 @@ int main() {
 		printf("✗ Type II command tests FAILED\n");
 	}
 	
-	// Placeholder for remaining tests
-	printf("\n[4/8] Type III Command Tests - NOT IMPLEMENTED\n");
-	printf("[5/8] Type IV Command Tests - NOT IMPLEMENTED\n");
-	printf("[6/8] Error Handling Tests - NOT IMPLEMENTED\n");
-	printf("[7/8] Timing Verification Tests - NOT IMPLEMENTED\n");
-	printf("[8/8] Compatibility Tests - NOT IMPLEMENTED\n");
+	// Run Type III command tests
+	printf("\n[4/8] Running Type III Command Tests...\n");
+	total_test_suites++;
+	if (run_type3_command_tests()) {
+		passed_test_suites++;
+		printf("✓ Type III command tests PASSED\n");
+	} else {
+		all_passed = false;
+		printf("✗ Type III command tests FAILED\n");
+	}
+	
+	// Run Type IV command tests
+	printf("\n[5/8] Running Type IV Command Tests...\n");
+	total_test_suites++;
+	if (run_type4_command_tests()) {
+		passed_test_suites++;
+		printf("✓ Type IV command tests PASSED\n");
+	} else {
+		all_passed = false;
+		printf("✗ Type IV command tests FAILED\n");
+	}
+	
+	// Run error handling tests
+	printf("\n[6/8] Running Error Handling Tests...\n");
+	total_test_suites++;
+	if (run_error_handling_tests()) {
+		passed_test_suites++;
+		printf("✓ Error handling tests PASSED\n");
+	} else {
+		all_passed = false;
+		printf("✗ Error handling tests FAILED\n");
+	}
+	
+	// Run timing verification tests
+	printf("\n[7/8] Running Timing Verification Tests...\n");
+	total_test_suites++;
+	if (run_timing_tests()) {
+		passed_test_suites++;
+		printf("✓ Timing verification tests PASSED\n");
+	} else {
+		all_passed = false;
+		printf("✗ Timing verification tests FAILED\n");
+	}
+	
+	// Placeholder for compatibility tests
+	printf("\n[8/8] Compatibility Tests - NOT IMPLEMENTED\n");
 	
 	time_t end_time = time(nullptr);
 	double elapsed = difftime(end_time, start_time);

@@ -3,7 +3,7 @@
 # Date: 2025.01.11
 
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST
+CXXFLAGS = -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88
 LDFLAGS = 
 
 # Source directories
@@ -20,10 +20,7 @@ COMMON_SRCS = \
 
 # VM source files
 VM_SRCS = \
-	$(VM_DIR)/device.cpp \
-	$(VM_DIR)/event.cpp \
-	$(VM_DIR)/disk.cpp \
-	$(VM_DIR)/noise.cpp
+	$(VM_DIR)/disk.cpp
 
 # MB8877 implementation
 MB8877_SRCS = \
@@ -33,7 +30,11 @@ MB8877_SRCS = \
 TEST_SRCS = \
 	test_mb8877_registers.cpp \
 	test_mb8877_type1_commands.cpp \
-	test_mb8877_type2_commands.cpp
+	test_mb8877_type2_commands.cpp \
+	test_mb8877_type3_commands.cpp \
+	test_mb8877_type4_commands.cpp \
+	test_mb8877_error_handling.cpp \
+	test_mb8877_timing.cpp
 
 # Object files
 COMMON_OBJS = $(COMMON_SRCS:.cpp=.o)
@@ -45,7 +46,11 @@ TEST_OBJS = $(TEST_SRCS:.cpp=.o)
 TESTS = \
 	test_registers \
 	test_type1_commands \
-	test_type2_commands
+	test_type2_commands \
+	test_type3_commands \
+	test_type4_commands \
+	test_error_handling \
+	test_timing
 
 # Main test runner
 TEST_RUNNER = run_all_tests
@@ -62,6 +67,18 @@ test_type1_commands: test_mb8877_type1_commands.o $(COMMON_OBJS) $(VM_OBJS) $(MB
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 test_type2_commands: test_mb8877_type2_commands.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+test_type3_commands: test_mb8877_type3_commands.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+test_type4_commands: test_mb8877_type4_commands.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+test_error_handling: test_mb8877_error_handling.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+test_timing: test_mb8877_timing.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 # Main test runner
@@ -92,6 +109,22 @@ test-type2: test_type2_commands
 	@mkdir -p results
 	./test_type2_commands
 
+test-type3: test_type3_commands
+	@mkdir -p results
+	./test_type3_commands
+
+test-type4: test_type4_commands
+	@mkdir -p results
+	./test_type4_commands
+
+test-error: test_error_handling
+	@mkdir -p results
+	./test_error_handling
+
+test-timing: test_timing
+	@mkdir -p results
+	./test_timing
+
 # Clean up
 clean:
 	rm -f *.o $(SRC_DIR)/*.o $(VM_DIR)/*.o
@@ -106,6 +139,10 @@ help:
 	@echo "  test-registers    - Run register tests only"
 	@echo "  test-type1        - Run Type I command tests only"
 	@echo "  test-type2        - Run Type II command tests only"
+	@echo "  test-type3        - Run Type III command tests only"
+	@echo "  test-type4        - Run Type IV command tests only"
+	@echo "  test-error        - Run error handling tests only"
+	@echo "  test-timing       - Run timing verification tests only"
 	@echo "  clean             - Clean build files"
 	@echo "  help              - Show this help"
 
@@ -117,4 +154,8 @@ help:
 test_mb8877_registers.o: test_mb8877_registers.cpp test_framework.h mock_environment.h
 test_mb8877_type1_commands.o: test_mb8877_type1_commands.cpp test_framework.h mock_environment.h
 test_mb8877_type2_commands.o: test_mb8877_type2_commands.cpp test_framework.h mock_environment.h
+test_mb8877_type3_commands.o: test_mb8877_type3_commands.cpp test_framework.h mock_environment.h
+test_mb8877_type4_commands.o: test_mb8877_type4_commands.cpp test_framework.h mock_environment.h
+test_mb8877_error_handling.o: test_mb8877_error_handling.cpp test_framework.h mock_environment.h
+test_mb8877_timing.o: test_mb8877_timing.cpp test_framework.h mock_environment.h
 run_all_tests.o: run_all_tests.cpp test_framework.h

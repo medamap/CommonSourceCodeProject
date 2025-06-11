@@ -9,18 +9,61 @@
 #define _MOCK_ENVIRONMENT_H_
 
 #include "../src/common.h"
+
+// Define MAX_DRIVE if not already defined
+#ifndef MAX_DRIVE
+#define MAX_DRIVE 4
+#endif
+
+// Define missing constants for standalone testing
+#ifndef FRAMES_PER_SEC
+#define FRAMES_PER_SEC 60
+#endif
+
+#ifndef LINES_PER_FRAME  
+#define LINES_PER_FRAME 262
+#endif
+
+#ifndef CPU_CLOCKS
+#define CPU_CLOCKS 4000000
+#endif
+
+// Prevent including the real EMU class
+#define _EMU_H_
+
+// Forward declarations
+class EMU;
+class VM_TEMPLATE;
+class FILEIO;
+
+// Basic EMU class for testing
+class EMU {
+public:
+	virtual ~EMU() {}
+	virtual uint32_t get_current_clock() { return 0; }
+	virtual uint32_t get_cpu_clock(int) { return 4000000; }
+	virtual bool is_frame_skippable() { return false; }
+	virtual void out_debug_log(const _TCHAR* format, ...) {}
+	virtual void force_out_debug_log(const _TCHAR* format, ...) {}
+};
+
 #include "../src/fileio.h"
+#include "../src/vm/vm_template.h"
+#include "../src/vm/device.h"
+#include "../src/vm/event.h"
+#include "../src/vm/disk.h"
+#include "../src/vm/noise.h"
 #include <cstring>
 #include <vector>
 
 // Mock VM_TEMPLATE
 class MockVM : public VM_TEMPLATE {
 public:
-	MockVM() {}
+	MockVM(EMU* parent_emu) : VM_TEMPLATE(parent_emu) {}
 	virtual ~MockVM() {}
 };
 
-// Mock EMU class
+// Mock EMU class  
 class MockEMU : public EMU {
 public:
 	uint32_t current_cpu_clock;
@@ -30,11 +73,6 @@ public:
 	uint32_t get_current_clock() { return 0; }
 	uint32_t get_cpu_clock(int) { return current_cpu_clock; }
 	bool is_frame_skippable() { return false; }
-	
-	// Add other required methods as stubs
-	void out_debug_log(const _TCHAR* format, ...) {
-		// Silent for tests unless debugging
-	}
 };
 
 // Mock EVENT class
@@ -59,7 +97,7 @@ public:
 		current_clock = 0;
 	}
 	
-	int register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id) {
+	void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id) {
 		static int next_id = 1;
 		EventInfo info;
 		info.device_id = next_id;
@@ -71,7 +109,7 @@ public:
 		if (register_id) {
 			*register_id = next_id;
 		}
-		return next_id++;
+		next_id++;
 	}
 	
 	void cancel_event(DEVICE* device, int register_id) {
@@ -103,7 +141,7 @@ private:
 	int current_sector;
 	
 public:
-	MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK(parent_vm, parent_emu) {
+	MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
 		inserted = false;
 		write_protected = false;
 		track_buffer = nullptr;

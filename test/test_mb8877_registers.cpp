@@ -7,19 +7,23 @@
 
 #include "test_framework.h"
 #include "mock_environment.h"
+
+// Prevent including real emu.h
+#define _EMU_H_
+
 #include "../src/vm/mb8877_compat.h"
 
 // Test register access patterns
 void test_register_basic_access(TestFramework& test) {
 	TEST_SECTION("Basic Register Access");
 	
-	MockVM vm;
 	MockEMU emu;
+	MockVM vm(&emu);
 	MockEVENT event(&vm, &emu);
 	
 	// Create MB8877 instance
 	MB8877 fdc(&vm, &emu);
-	fdc.set_context_event_manager(&event, 0, 0, 0);
+	fdc.set_context_event_manager(&event);
 	fdc.initialize();
 	fdc.reset();
 	
@@ -46,12 +50,12 @@ void test_register_basic_access(TestFramework& test) {
 void test_status_register_bits(TestFramework& test) {
 	TEST_SECTION("Status Register Bit Operations");
 	
-	MockVM vm;
 	MockEMU emu;
+	MockVM vm(&emu);
 	MockEVENT event(&vm, &emu);
 	
 	MB8877 fdc(&vm, &emu);
-	fdc.set_context_event_manager(&event, 0, 0, 0);
+	fdc.set_context_event_manager(&event);
 	fdc.initialize();
 	fdc.reset();
 	
@@ -73,12 +77,12 @@ void test_mb8866_inverted_bus(TestFramework& test) {
 	TEST_SECTION("MB8866/MB8876 Inverted Bus Test");
 	
 	#ifdef HAS_MB8866
-	MockVM vm;
 	MockEMU emu;
+	MockVM vm(&emu);
 	MockEVENT event(&vm, &emu);
 	
 	MB8877 fdc(&vm, &emu);
-	fdc.set_context_event_manager(&event, 0, 0, 0);
+	fdc.set_context_event_manager(&event);
 	fdc.initialize();
 	fdc.reset();
 	
@@ -98,12 +102,12 @@ void test_mb8866_inverted_bus(TestFramework& test) {
 void test_command_register_types(TestFramework& test) {
 	TEST_SECTION("Command Register Type Detection");
 	
-	MockVM vm;
 	MockEMU emu;
+	MockVM vm(&emu);
 	MockEVENT event(&vm, &emu);
 	
 	MB8877 fdc(&vm, &emu);
-	fdc.set_context_event_manager(&event, 0, 0, 0);
+	fdc.set_context_event_manager(&event);
 	fdc.initialize();
 	fdc.reset();
 	
@@ -133,14 +137,14 @@ void test_command_register_types(TestFramework& test) {
 void test_drq_irq_signals(TestFramework& test) {
 	TEST_SECTION("DRQ and IRQ Signal Tests");
 	
-	MockVM vm;
 	MockEMU emu;
+	MockVM vm(&emu);
 	MockEVENT event(&vm, &emu);
 	SignalCapture irq_capture(&vm, &emu);
 	SignalCapture drq_capture(&vm, &emu);
 	
 	MB8877 fdc(&vm, &emu);
-	fdc.set_context_event_manager(&event, 0, 0, 0);
+	fdc.set_context_event_manager(&event);
 	fdc.set_context_irq(&irq_capture, 0, 0xFFFFFFFF);
 	fdc.set_context_drq(&drq_capture, 0, 0xFFFFFFFF);
 	fdc.initialize();

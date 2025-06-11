@@ -16,6 +16,11 @@
 #include "../emu.h"
 #include "device.h"
 
+// Define MAX_DRIVE if not already defined
+#ifndef MAX_DRIVE
+#define MAX_DRIVE 4
+#endif
+
 // Inspired by MAME's wd_fdc implementation (BSD-3-Clause)
 // Adapted for CommonSourceCodeProject compatibility
 
@@ -267,10 +272,6 @@ public:
 		// these parameters may be modified before calling initialize()
 		drvreg = sidereg = 0;
 		motor_on = drive_sel = false;
-		m_fdc = NULL;
-		for(int i = 0; i < MAX_DRIVE; i++) {
-			m_floppies[i] = NULL;
-		}
 #if defined(HAS_MB89311)
 		set_device_name(_T("MB89311 FDC"));
 #elif defined(HAS_MB8866)

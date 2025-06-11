@@ -53,25 +53,25 @@ public:
 	
 	void assert_equal(int expected, int actual, const char* test_name) {
 		char message[256];
-		sprintf(message, "Expected %d, got %d", expected, actual);
+		snprintf(message, sizeof(message), "Expected %d, got %d", expected, actual);
 		assert_true(expected == actual, test_name, message);
 	}
 	
 	void assert_equal_hex(uint8_t expected, uint8_t actual, const char* test_name) {
 		char message[256];
-		sprintf(message, "Expected 0x%02X, got 0x%02X", expected, actual);
+		snprintf(message, sizeof(message), "Expected 0x%02X, got 0x%02X", expected, actual);
 		assert_true(expected == actual, test_name, message);
 	}
 	
 	void assert_equal_hex16(uint16_t expected, uint16_t actual, const char* test_name) {
 		char message[256];
-		sprintf(message, "Expected 0x%04X, got 0x%04X", expected, actual);
+		snprintf(message, sizeof(message), "Expected 0x%04X, got 0x%04X", expected, actual);
 		assert_true(expected == actual, test_name, message);
 	}
 	
 	void assert_not_equal(int expected, int actual, const char* test_name) {
 		char message[256];
-		sprintf(message, "Expected not %d, but got %d", expected, actual);
+		snprintf(message, sizeof(message), "Expected not %d, but got %d", expected, actual);
 		assert_true(expected != actual, test_name, message);
 	}
 	
@@ -81,12 +81,12 @@ public:
 		
 		if (!equal) {
 			char message[1024];
-			sprintf(message, "Memory mismatch at byte:");
+			snprintf(message, sizeof(message), "Memory mismatch at byte:");
 			for (size_t i = 0; i < size && i < 16; i++) {
 				if (expected[i] != actual[i]) {
 					char temp[64];
-					sprintf(temp, " [%zu] exp:0x%02X act:0x%02X", i, expected[i], actual[i]);
-					strcat(message, temp);
+					snprintf(temp, sizeof(temp), " [%zu] exp:0x%02X act:0x%02X", i, expected[i], actual[i]);
+					strncat(message, temp, sizeof(message) - strlen(message) - 1);
 					break;
 				}
 			}

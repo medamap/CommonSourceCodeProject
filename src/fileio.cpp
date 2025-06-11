@@ -936,10 +936,10 @@ int FILEIO::Ftprintf(const _TCHAR* format, ...)
 	} else
 #endif
 	if(fp != NULL) {
-#if !defined(__ANDROID__)
+#if defined(_WIN32) || defined(_WIN64)
 		return my_ftprintf_s(fp, _T("%s"), buffer);
 #else
-        return my_fprintf_s(fp, "%s", buffer);
+        return fprintf(fp, "%s", tchar_to_char(buffer));
 #endif
 	}
 	return 0;
