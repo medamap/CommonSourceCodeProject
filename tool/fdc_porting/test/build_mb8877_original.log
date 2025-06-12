@@ -1,0 +1,892 @@
+g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_registers.cpp -o test_mb8877_registers.o
+In file included from test_mb8877_registers.cpp:15:
+./mock_environment.h:50:29: warning: unused parameter 'ptr' [-Wunused-parameter]
+   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
+      |                                    ^
+./mock_environment.h:50:41: warning: unused parameter 'size' [-Wunused-parameter]
+   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
+      |                                                ^
+./mock_environment.h:50:54: warning: unused parameter 'nmemb' [-Wunused-parameter]
+   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
+      |                                                             ^
+./mock_environment.h:51:36: warning: unused parameter 'ptr' [-Wunused-parameter]
+   51 |         virtual size_t fwrite(const void* ptr, size_t size, size_t nmemb) { return size * nmemb; }
+      |                                           ^
+./mock_environment.h:52:41: warning: unused parameter 'x' [-Wunused-parameter]
+   52 |         virtual bool StateCheckUint32(uint32_t x) { return true; }
+      |                                                ^
+./mock_environment.h:53:39: warning: unused parameter 'x' [-Wunused-parameter]
+   53 |         virtual bool StateCheckInt32(int32_t x) { return true; }
+      |                                              ^
+./mock_environment.h:54:36: warning: unused parameter 'x' [-Wunused-parameter]
+   54 |         virtual void StateValue(uint32_t& x) {}
+      |                                           ^
+./mock_environment.h:55:35: warning: unused parameter 'x' [-Wunused-parameter]
+   55 |         virtual void StateValue(int32_t& x) {}
+      |                                          ^
+./mock_environment.h:56:36: warning: unused parameter 'x' [-Wunused-parameter]
+   56 |         virtual void StateValue(uint16_t& x) {}
+      |                                           ^
+./mock_environment.h:57:35: warning: unused parameter 'x' [-Wunused-parameter]
+   57 |         virtual void StateValue(uint8_t& x) {}
+      |                                          ^
+./mock_environment.h:58:32: warning: unused parameter 'x' [-Wunused-parameter]
+   58 |         virtual void StateValue(bool& x) {}
+      |                                       ^
+./mock_environment.h:59:32: warning: unused parameter 'x' [-Wunused-parameter]
+   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
+      |                                       ^
+./mock_environment.h:59:42: warning: unused parameter 'size' [-Wunused-parameter]
+   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
+      |                                                 ^
+./mock_environment.h:59:55: warning: unused parameter 'count' [-Wunused-parameter]
+   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
+      |                                                              ^
+./mock_environment.h:77:43: warning: unused parameter 'format' [-Wunused-parameter]
+   77 |         virtual void out_debug_log(const _TCHAR* format, ...) {}
+      |                                                  ^
+./mock_environment.h:78:49: warning: unused parameter 'format' [-Wunused-parameter]
+   78 |         virtual void force_out_debug_log(const _TCHAR* format, ...) {}
+      |                                                        ^
+./mock_environment.h:161:35: warning: unused parameter 'outputs' [-Wunused-parameter]
+  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
+      |                                          ^
+./mock_environment.h:161:53: warning: unused parameter 'data' [-Wunused-parameter]
+  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
+      |                                                            ^
+./mock_environment.h:162:32: warning: unused parameter 'id' [-Wunused-parameter]
+  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
+      |                                       ^
+./mock_environment.h:162:45: warning: unused parameter 'data' [-Wunused-parameter]
+  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
+      |                                                    ^
+./mock_environment.h:162:60: warning: unused parameter 'mask' [-Wunused-parameter]
+  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
+      |                                                                   ^
+./mock_environment.h:163:34: warning: unused parameter 'event_id' [-Wunused-parameter]
+  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
+      |                                         ^
+./mock_environment.h:163:48: warning: unused parameter 'err' [-Wunused-parameter]
+  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
+      |                                                       ^
+./mock_environment.h:164:45: warning: unused parameter 'format' [-Wunused-parameter]
+  164 |         virtual void set_device_name(const _TCHAR* format, ...) {}
+      |                                                    ^
+./mock_environment.h:262:34: warning: unused parameter 'path' [-Wunused-parameter]
+  262 |         virtual void open(const _TCHAR* path, int bank) {}
+      |                                         ^
+./mock_environment.h:262:44: warning: unused parameter 'bank' [-Wunused-parameter]
+  262 |         virtual void open(const _TCHAR* path, int bank) {}
+      |                                                   ^
+./mock_environment.h:268:29: warning: unused parameter 'trk' [-Wunused-parameter]
+  268 |         virtual bool get_track(int trk, int side) { return false; }
+      |                                    ^
+./mock_environment.h:268:38: warning: unused parameter 'side' [-Wunused-parameter]
+  268 |         virtual bool get_track(int trk, int side) { return false; }
+      |                                             ^
+./mock_environment.h:269:30: warning: unused parameter 'trk' [-Wunused-parameter]
+  269 |         virtual bool get_sector(int trk, int side, int sec) { return false; }
+      |                                     ^
+./mock_environment.h:269:39: warning: unused parameter 'side' [-Wunused-parameter]
+  269 |         virtual bool get_sector(int trk, int side, int sec) { return false; }
+      |                                              ^
+./mock_environment.h:269:49: warning: unused parameter 'sec' [-Wunused-parameter]
+  269 |         virtual bool get_sector(int trk, int side, int sec) { return false; }
+      |                                                        ^
+./mock_environment.h:272:45: warning: unused parameter 'format' [-Wunused-parameter]
+  272 |         virtual void set_device_name(const _TCHAR* format, ...) {}
+      |                                                    ^
+./mock_environment.h:274:42: warning: unused parameter 'missing' [-Wunused-parameter]
+  274 |         virtual void set_data_mark_missing(bool missing = true) {}  // Default parameter
+      |                                                 ^
+./mock_environment.h:276:32: warning: unused parameter 'deleted' [-Wunused-parameter]
+  276 |         virtual void set_deleted(bool deleted) {}  // Set deleted data mark
+      |                                       ^
+./mock_environment.h:279:37: warning: unused parameter 'state_fio' [-Wunused-parameter]
+  279 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
+      |                                            ^
+./mock_environment.h:279:53: warning: unused parameter 'loading' [-Wunused-parameter]
+  279 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
+      |                                                            ^
+./mock_environment.h:313:70: warning: unused parameter 'loop' [-Wunused-parameter]
+  313 |         void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id) {
+      |                                                                             ^
+./mock_environment.h:329:28: warning: unused parameter 'device' [-Wunused-parameter]
+  329 |         void cancel_event(DEVICE* device, int register_id) {
+      |                                   ^
+./mock_environment.h:393:24: warning: unused parameter 'parent_vm' [-Wunused-parameter]
+  393 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
+      |                               ^
+./mock_environment.h:393:40: warning: unused parameter 'parent_emu' [-Wunused-parameter]
+  393 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
+      |                                               ^
+./mock_environment.h:410:26: warning: unused parameter 'path' [-Wunused-parameter]
+  410 |         void open(const _TCHAR* path, int bank) {
+      |                                 ^
+./mock_environment.h:410:36: warning: unused parameter 'bank' [-Wunused-parameter]
+  410 |         void open(const _TCHAR* path, int bank) {
+      |                                           ^
+./mock_environment.h:435:30: warning: unused parameter 'side' [-Wunused-parameter]
+  435 |         bool get_track(int trk, int side) {
+      |                                     ^
+./mock_environment.h:442:31: warning: unused parameter 'side' [-Wunused-parameter]
+  442 |         bool get_sector(int trk, int side, int sector) {
+      |                                      ^
+./mock_environment.h:450:41: warning: unused parameter 'sec' [-Wunused-parameter]
+  450 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
+      |                                                ^
+./mock_environment.h:450:69: warning: unused parameter 'compare' [-Wunused-parameter]
+  450 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
+      |                                                                            ^
+./mock_environment.h:473:29: warning: unused parameter 'track' [-Wunused-parameter]
+  473 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
+      |                                    ^
+./mock_environment.h:473:40: warning: unused parameter 'sector' [-Wunused-parameter]
+  473 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
+      |                                               ^
+./mock_environment.h:473:63: warning: unused parameter 'data' [-Wunused-parameter]
+  473 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
+      |                                                                      ^
+./mock_environment.h:473:73: warning: unused parameter 'size' [-Wunused-parameter]
+  473 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
+      |                                                                                ^
+In file included from test_mb8877_registers.cpp:16:
+./../src/vm/mb8877_compat.h:338:53: warning: unused parameter 'id1' [-Wunused-parameter]
+  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
+      |                                                            ^
+./../src/vm/mb8877_compat.h:338:62: warning: unused parameter 'id2' [-Wunused-parameter]
+  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
+      |                                                                     ^
+./../src/vm/mb8877_compat.h:338:71: warning: unused parameter 'id3' [-Wunused-parameter]
+  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
+      |                                                                              ^
+53 warnings generated.
+g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src/common.cpp -o ../src/common.o
+../src/common.cpp:331:63: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+  331 | errno_t DLL_PREFIX my_tcscat_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource)
+      |                                                               ^
+../src/common.cpp:337:61: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+  337 | errno_t DLL_PREFIX my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource)
+      |                                                             ^
+../src/common.cpp:343:63: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+  343 | errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource)
+      |                                                               ^
+../src/common.cpp:357:62: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+  357 | errno_t DLL_PREFIX my_strncpy_s(char *strDestination, size_t numberOfElements, const char *strSource, size_t count)
+      |                                                              ^
+../src/common.cpp:363:64: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+  363 | errno_t DLL_PREFIX my_tcsncpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource, size_t count)
+      |                                                                ^
+../src/common.cpp:369:77: warning: unused parameter 'context' [-Wunused-parameter]
+  369 | char *DLL_PREFIX my_strtok_s(char *strToken, const char *strDelimit, char **context)
+      |                                                                             ^
+../src/common.cpp:374:83: warning: unused parameter 'context' [-Wunused-parameter]
+  374 | _TCHAR *DLL_PREFIX my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
+      |                                                                                   ^
+../src/common.cpp:383:15: warning: 'vsprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead. [-Wdeprecated-declarations]
+  383 |         int result = vsprintf(buffer, format, ap);
+      |                      ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_stdio.h:298:1: note: 'vsprintf' has been explicitly marked deprecated here
+  298 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead.")
+      | ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+../src/common.cpp:379:50: warning: unused parameter 'sizeOfBuffer' [-Wunused-parameter]
+  379 | int DLL_PREFIX my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *format, ...)
+      |                                                  ^
+../src/common.cpp:406:15: warning: 'vsprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead. [-Wdeprecated-declarations]
+  406 |         int result = _vstprintf(buffer, format, ap);
+      |                      ^
+../src/common.h:887:22: note: expanded from macro '_vstprintf'
+  887 |                 #define _vstprintf vsprintf
+      |                                    ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_stdio.h:298:1: note: 'vsprintf' has been explicitly marked deprecated here
+  298 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead.")
+      | ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+../src/common.cpp:402:53: warning: unused parameter 'sizeOfBuffer' [-Wunused-parameter]
+  402 | int DLL_PREFIX my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
+      |                                                     ^
+../src/common.cpp:413:9: warning: 'vsprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead. [-Wdeprecated-declarations]
+  413 |         return vsprintf(buffer, format, argptr);
+      |                ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_stdio.h:298:1: note: 'vsprintf' has been explicitly marked deprecated here
+  298 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead.")
+      | ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+../src/common.cpp:411:51: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+  411 | int DLL_PREFIX my_vsprintf_s(char *buffer, size_t numberOfElements, const char *format, va_list argptr)
+      |                                                   ^
+../src/common.cpp:418:9: warning: 'vsprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead. [-Wdeprecated-declarations]
+  418 |         return _vstprintf(buffer, format, argptr);
+      |                ^
+../src/common.h:887:22: note: expanded from macro '_vstprintf'
+  887 |                 #define _vstprintf vsprintf
+      |                                    ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_stdio.h:298:1: note: 'vsprintf' has been explicitly marked deprecated here
+  298 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead.")
+      | ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+../src/common.cpp:416:54: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+  416 | int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr)
+      |                                                      ^
+../src/common.cpp:431:5: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
+  431 |     register size_t len2;
+      |     ^~~~~~~~
+../src/common.cpp:432:2: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
+  432 |         register uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
+      |         ^~~~~~~~
+../src/common.cpp:433:2: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
+  433 |         register uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
+      |         ^~~~~~~~
+../src/common.cpp:769:5: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
+  769 |     register uint32_t *s32 = (uint32_t *)src;
+      |     ^~~~~~~~
+../src/common.cpp:770:2: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
+  770 |         register uint32_t *d32 = (uint32_t *)dst;
+      |         ^~~~~~~~
+../src/common.cpp:1632:55: warning: unused parameter 'src' [-Wunused-parameter]
+ 1632 | void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len)
+      |                                                       ^
+../src/common.cpp:1632:68: warning: unused parameter 'dst' [-Wunused-parameter]
+ 1632 | void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len)
+      |                                                                    ^
+../src/common.cpp:1632:80: warning: unused parameter 'dst_len' [-Wunused-parameter]
+ 1632 | void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len)
+      |                                                                                ^
+../src/common.cpp:1650:55: warning: unused parameter 'file' [-Wunused-parameter]
+ 1650 | const _TCHAR *DLL_PREFIX get_parent_dir(const _TCHAR* file)
+      |                                                       ^
+../src/common.cpp:1684:53: warning: unused parameter 'cs' [-Wunused-parameter]
+ 1684 | const wchar_t *DLL_PREFIX char_to_wchar(const char *cs)
+      |                                                     ^
+../src/common.cpp:1697:53: warning: unused parameter 'ws' [-Wunused-parameter]
+ 1697 | const char *DLL_PREFIX wchar_to_char(const wchar_t *ws)
+      |                                                     ^
+../src/common.cpp:1956:57: warning: unused parameter 'loading' [-Wunused-parameter]
+ 1956 | bool DLL_PREFIX cur_time_t::process_state(void *f, bool loading)
+      |                                                         ^
+27 warnings generated.
+g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src/config.cpp -o ../src/config.o
+../src/config.cpp:712:41: warning: unused parameter 'loading' [-Wunused-parameter]
+  712 | bool process_config_state(void *f, bool loading)
+      |                                         ^
+1 warning generated.
+g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src/fileio.cpp -o ../src/fileio.o
+g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src/fifo.cpp -o ../src/fifo.o
+../src/fifo.cpp:98:40: warning: unused parameter 'loading' [-Wunused-parameter]
+   98 | bool FIFO::process_state(void *f, bool loading)
+      |                                        ^
+1 warning generated.
+g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src/vm/disk.cpp -o ../src/vm/disk.o
+../src/vm/disk.cpp:81:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+   81 |         { MEDIA_TYPE_2D,  35, 1, 16,  128,  FM },       // 1S   70KB
+      |                                                ^
+../src/vm/disk.cpp:82:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+   82 |         { MEDIA_TYPE_2D,  35, 2, 16,  128,  FM },       // 2S   140KB
+      |                                                ^
+../src/vm/disk.cpp:83:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+   83 |         { MEDIA_TYPE_2DD, 77, 1, 26,  128,  FM },       // 1S   250KB
+      |                                                ^
+../src/vm/disk.cpp:84:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+   84 |         { MEDIA_TYPE_2D,  40, 1,  8,  512, MFM },       // 1D   160KB
+      |                                                ^
+../src/vm/disk.cpp:85:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+   85 |         { MEDIA_TYPE_2D,  40, 1,  9,  512, MFM },       // 1D   180KB
+      |                                                ^
+../src/vm/disk.cpp:86:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+   86 |         { MEDIA_TYPE_2D,  40, 1, 10,  512, MFM },       // 1D   200KB
+      |                                                ^
+../src/vm/disk.cpp:95:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+   95 |         { MEDIA_TYPE_2D,  35, 2,  8,  512, MFM },       // 2D   280KB
+      |                                                ^
+../src/vm/disk.cpp:96:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+   96 |         { MEDIA_TYPE_2D,  35, 2,  9,  512, MFM },       // 2D   315KB
+      |                                                ^
+../src/vm/disk.cpp:97:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+   97 |         { MEDIA_TYPE_2D,  35, 2, 10,  512, MFM },       // 2D   350KB
+      |                                                ^
+../src/vm/disk.cpp:98:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+   98 |         { MEDIA_TYPE_2D,  40, 2,  8,  512, MFM },       // 2D   320KB
+      |                                                ^
+../src/vm/disk.cpp:99:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+   99 |         { MEDIA_TYPE_2D,  40, 2,  9,  512, MFM },       // 2D   360KB
+      |                                                ^
+../src/vm/disk.cpp:100:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+  100 |         { MEDIA_TYPE_2D,  40, 2, 10,  512, MFM },       // 2D   400KB
+      |                                                ^
+../src/vm/disk.cpp:102:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+  102 |         { MEDIA_TYPE_2DD, 80, 2,  8,  512, MFM },       // 2DD  640KB
+      |                                                ^
+../src/vm/disk.cpp:103:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+  103 |         { MEDIA_TYPE_2DD, 80, 2,  9,  512, MFM },       // 2DD  720KB
+      |                                                ^
+../src/vm/disk.cpp:104:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+  104 |         { MEDIA_TYPE_2DD, 81, 2,  9,  512, MFM },       // 2DD  729KB, ASCII MSX
+      |                                                ^
+../src/vm/disk.cpp:105:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+  105 |         { MEDIA_TYPE_2DD, 80, 2, 10,  512, MFM },       // 2DD  800KB
+      |                                                ^
+../src/vm/disk.cpp:108:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+  108 |         { MEDIA_TYPE_2HD, 77, 2, 26,  256, MFM },       // 2HD  1001KB, MITSUBISHI/IBM
+      |                                                ^
+../src/vm/disk.cpp:109:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+  109 |         { MEDIA_TYPE_2HD, 80, 2, 15,  512, MFM },       // 2HC  1200KB, TOSHIBA/IBM
+      |                                                ^
+../src/vm/disk.cpp:110:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+  110 |         { MEDIA_TYPE_2HD, 77, 2,  8, 1024, MFM },       // 2HD  1232KB, NEC
+      |                                                ^
+../src/vm/disk.cpp:111:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+  111 |         { MEDIA_TYPE_144, 80, 2, 18,  512, MFM },       // 2HD  1440KB
+      |                                                ^
+../src/vm/disk.cpp:112:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+  112 |         { MEDIA_TYPE_144, 80, 2, 21,  512, MFM },       // 2HD  1680KB
+      |                                                ^
+../src/vm/disk.cpp:113:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+  113 |         { MEDIA_TYPE_144, 82, 2, 21,  512, MFM },       // 2HD  1722KB
+      |                                                ^
+../src/vm/disk.cpp:114:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+  114 |         { MEDIA_TYPE_144, 80, 2, 36,  512, MFM },       // 2ED  2880KB
+      |                                                ^
+../src/vm/disk.cpp:115:19: warning: missing field 'mfm' initializer [-Wmissing-field-initializers]
+  115 |         { -1, 0, 0, 0, 0 },
+      |                          ^
+../src/vm/disk.cpp:1657:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+ 1657 | typedef struct {
+      |               ^
+      |                d88_hdr_t
+../src/vm/disk.cpp:1662:2: note: type is not C-compatible due to this member declaration
+ 1662 |         uint32_t size()
+      |         ^~~~~~~~~~~~~~~
+ 1663 |         {
+      |         ~
+ 1664 |                 return size_[0] | (size_[1] << 8) | (size_[2] << 16) | (size_[3] << 24);
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1665 |         }
+      |         ~
+../src/vm/disk.cpp:1687:3: note: type is given name 'd88_hdr_t' for linkage purposes by this typedef declaration
+ 1687 | } d88_hdr_t;
+      |   ^
+../src/vm/disk.cpp:1689:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+ 1689 | typedef struct {
+      |               ^
+      |                d88_sct_t
+../src/vm/disk.cpp:1691:2: note: type is not C-compatible due to this member declaration
+ 1691 |         uint16_t nsec()
+      |         ^~~~~~~~~~~~~~~
+ 1692 |         {
+      |         ~
+ 1693 |                 return nsec_[0] | (nsec_[1] << 8);
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1694 |         }
+      |         ~
+../src/vm/disk.cpp:1713:3: note: type is given name 'd88_sct_t' for linkage purposes by this typedef declaration
+ 1713 | } d88_sct_t;
+      |   ^
+../src/vm/disk.cpp:1997:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+ 1997 | typedef struct {
+      |               ^
+      |                td_hdr_t
+../src/vm/disk.cpp:2006:2: note: type is not C-compatible due to this member declaration
+ 2006 |         uint16_t crc()
+      |         ^~~~~~~~~~~~~~
+ 2007 |         {
+      |         ~
+ 2008 |                 return crc_[0] | (crc_[1] << 8);
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2009 |         }
+      |         ~
+../src/vm/disk.cpp:2011:3: note: type is given name 'td_hdr_t' for linkage purposes by this typedef declaration
+ 2011 | } td_hdr_t;
+      |   ^
+../src/vm/disk.cpp:2013:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+ 2013 | typedef struct {
+      |               ^
+      |                td_cmt_t
+../src/vm/disk.cpp:2014:2: note: type is not C-compatible due to this member declaration
+ 2014 |         uint16_t crc()
+      |         ^~~~~~~~~~~~~~
+ 2015 |         {
+      |         ~
+ 2016 |                 return crc_[0] | (crc_[1] << 8);
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2017 |         }
+      |         ~
+../src/vm/disk.cpp:2026:3: note: type is given name 'td_cmt_t' for linkage purposes by this typedef declaration
+ 2026 | } td_cmt_t;
+      |   ^
+../src/vm/disk.cpp:2509:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+ 2509 | typedef struct {
+      |               ^
+      |                NFD_FILE_HEAD
+../src/vm/disk.cpp:2513:5: note: type is not C-compatible due to this member declaration
+ 2513 |     DWORD dwHeadSize()                  // �w�b�_���̃T�C�Y
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2514 |     {
+      |     ~
+ 2515 |       return byHeadSize[0] | (byHeadSize[1] << 8) | (byHeadSize[2] << 16) | (byHeadSize[3] << 24);
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2516 |     }
+      |     ~
+../src/vm/disk.cpp:2523:2: note: type is given name 'NFD_FILE_HEAD' for linkage purposes by this typedef declaration
+ 2523 | }NFD_FILE_HEAD,*LP_NFD_FILE_HEAD;
+      |  ^
+../src/vm/disk.cpp:2526:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+ 2526 | typedef struct {
+      |               ^
+      |                NFD_FILE_HEAD1
+../src/vm/disk.cpp:2530:5: note: type is not C-compatible due to this member declaration
+ 2530 |     DWORD dwHeadSize()                          /* �w�b�_�̃T�C�Y           */
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2531 |     {
+      |     ~
+ 2532 |       return byHeadSize[0] | (byHeadSize[1] << 8) | (byHeadSize[2] << 16) | (byHeadSize[3] << 24);
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2533 |     }
+      |     ~
+../src/vm/disk.cpp:2549:2: note: type is given name 'NFD_FILE_HEAD1' for linkage purposes by this typedef declaration
+ 2549 | }NFD_FILE_HEAD1,*LP_NFD_FILE_HEAD1;
+      |  ^
+../src/vm/disk.cpp:2551:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+ 2551 | typedef struct {
+      |               ^
+      |                NFD_TRACK_ID1
+../src/vm/disk.cpp:2552:5: note: type is not C-compatible due to this member declaration
+ 2552 |     WORD wSector()                              /* �Z�N�^ID��               */
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2553 |     {
+      |     ~
+ 2554 |       return bySector[0] | (bySector[1] << 8);
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2555 |     }
+      |     ~
+../src/vm/disk.cpp:2563:2: note: type is given name 'NFD_TRACK_ID1' for linkage purposes by this typedef declaration
+ 2563 | }NFD_TRACK_ID1,*LP_NFD_TRACK_ID1;
+      |  ^
+../src/vm/disk.cpp:2581:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+ 2581 | typedef struct {
+      |               ^
+      |                NFD_DIAG_ID1
+../src/vm/disk.cpp:2592:5: note: type is not C-compatible due to this member declaration
+ 2592 |     DWORD   dwDataLen()
+      |     ^~~~~~~~~~~~~~~~~~~
+ 2593 |     {
+      |     ~
+ 2594 |       return byDataLen[0] | (byDataLen[1] << 8) | (byDataLen[2] << 16) | (byDataLen[3] << 24);
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2595 |     }
+      |     ~
+../src/vm/disk.cpp:2599:2: note: type is given name 'NFD_DIAG_ID1' for linkage purposes by this typedef declaration
+ 2599 | }NFD_DIAG_ID1,*LP_NFD_DIAG_ID1;
+      |  ^
+32 warnings generated.
+g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c mb8877_test_wrapper.cpp -o mb8877_test_wrapper.o
+mb8877_test_wrapper.cpp:2:9: warning: 'STANDALONE_TEST' macro redefined [-Wmacro-redefined]
+    2 | #define STANDALONE_TEST
+      |         ^
+<command line>:1:9: note: previous definition is here
+    1 | #define STANDALONE_TEST 1
+      |         ^
+In file included from mb8877_test_wrapper.cpp:4:
+In file included from ./../src/vm/mb8877.cpp:11:
+In file included from ./../src/vm/mb8877.h:15:
+./../src/vm/../emu.h:116:2: error: unknown type name 'VM_TEMPLATE'
+  116 |         VM_TEMPLATE* vm;
+      |         ^
+./../src/vm/../emu.h:229:2: error: unknown type name 'VM_TEMPLATE'
+  229 |         VM_TEMPLATE *get_vm()
+      |         ^
+In file included from mb8877_test_wrapper.cpp:4:
+In file included from ./../src/vm/mb8877.cpp:11:
+In file included from ./../src/vm/mb8877.h:16:
+./../src/vm/device.h:49:2: error: unknown type name 'VM_TEMPLATE'
+   49 |         VM_TEMPLATE* vm;
+      |         ^
+./../src/vm/device.h:52:9: error: unknown type name 'VM_TEMPLATE'
+   52 |         DEVICE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : vm(parent_vm), emu(parent_emu)
+      |                ^
+./../src/vm/device.h:78:34: warning: unused parameter 'state_fio' [-Wunused-parameter]
+   78 |         virtual void save_state(FILEIO* state_fio) {}
+      |                                         ^
+./../src/vm/device.h:79:34: warning: unused parameter 'state_fio' [-Wunused-parameter]
+   79 |         virtual bool load_state(FILEIO* state_fio)
+      |                                         ^
+./../src/vm/device.h:104:36: warning: unused parameter 'addr' [-Wunused-parameter]
+  104 |         virtual void write_data8(uint32_t addr, uint32_t data) {}
+      |                                           ^
+./../src/vm/device.h:104:51: warning: unused parameter 'data' [-Wunused-parameter]
+  104 |         virtual void write_data8(uint32_t addr, uint32_t data) {}
+      |                                                          ^
+./../src/vm/device.h:105:39: warning: unused parameter 'addr' [-Wunused-parameter]
+  105 |         virtual uint32_t read_data8(uint32_t addr)
+      |                                              ^
+./../src/vm/device.h:267:34: warning: unused parameter 'addr' [-Wunused-parameter]
+  267 |         virtual void write_io8(uint32_t addr, uint32_t data) {}
+      |                                         ^
+./../src/vm/device.h:267:49: warning: unused parameter 'data' [-Wunused-parameter]
+  267 |         virtual void write_io8(uint32_t addr, uint32_t data) {}
+      |                                                        ^
+./../src/vm/device.h:268:37: warning: unused parameter 'addr' [-Wunused-parameter]
+  268 |         virtual uint32_t read_io8(uint32_t addr)
+      |                                            ^
+./../src/vm/device.h:580:32: warning: unused parameter 'id' [-Wunused-parameter]
+  580 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
+      |                                       ^
+./../src/vm/device.h:580:45: warning: unused parameter 'data' [-Wunused-parameter]
+  580 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
+      |                                                    ^
+./../src/vm/device.h:580:60: warning: unused parameter 'mask' [-Wunused-parameter]
+  580 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
+      |                                                                   ^
+./../src/vm/device.h:581:35: warning: unused parameter 'ch' [-Wunused-parameter]
+  581 |         virtual uint32_t read_signal(int ch)
+      |                                          ^
+./../src/vm/device.h:587:40: warning: unused parameter 'device' [-Wunused-parameter]
+  587 |         virtual void set_context_intr(DEVICE* device, uint32_t bit) {}
+      |                                               ^
+./../src/vm/device.h:587:57: warning: unused parameter 'bit' [-Wunused-parameter]
+  587 |         virtual void set_context_intr(DEVICE* device, uint32_t bit) {}
+      |                                                                ^
+./../src/vm/device.h:588:41: warning: unused parameter 'device' [-Wunused-parameter]
+  588 |         virtual void set_context_child(DEVICE* device) {}
+      |                                                ^
+./../src/vm/device.h:595:33: warning: unused parameter 'val' [-Wunused-parameter]
+  595 |         virtual void set_intr_iei(bool val) {}
+      |                                        ^
+./../src/vm/device.h:598:34: warning: unused parameter 'line' [-Wunused-parameter]
+  598 |         virtual void set_intr_line(bool line, bool pending, uint32_t bit) {}
+      |                                         ^
+./../src/vm/device.h:598:45: warning: unused parameter 'pending' [-Wunused-parameter]
+  598 |         virtual void set_intr_line(bool line, bool pending, uint32_t bit) {}
+      |                                                    ^
+./../src/vm/device.h:598:63: warning: unused parameter 'bit' [-Wunused-parameter]
+  598 |         virtual void set_intr_line(bool line, bool pending, uint32_t bit) {}
+      |                                                                      ^
+./../src/vm/device.h:618:35: warning: unused parameter 'clock' [-Wunused-parameter]
+  618 |         virtual void set_extra_clock(int clock) {}
+      |                                          ^
+./../src/vm/device.h:633:42: warning: unused parameter 'PC' [-Wunused-parameter]
+  633 |         virtual bool bios_call_far_i86(uint32_t PC, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+      |                                                 ^
+./../src/vm/device.h:633:55: warning: unused parameter 'regs' [-Wunused-parameter]
+  633 |         virtual bool bios_call_far_i86(uint32_t PC, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+      |                                                              ^
+./../src/vm/device.h:633:78: warning: unused parameter 'sregs' [-Wunused-parameter]
+  633 |         virtual bool bios_call_far_i86(uint32_t PC, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+      |                                                                                     ^
+./../src/vm/device.h:633:96: warning: unused parameter 'ZeroFlag' [-Wunused-parameter]
+  633 |         virtual bool bios_call_far_i86(uint32_t PC, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+      |                                                                                                       ^
+./../src/vm/device.h:633:115: warning: unused parameter 'CarryFlag' [-Wunused-parameter]
+  633 |         virtual bool bios_call_far_i86(uint32_t PC, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+      |                                                                                                                          ^
+./../src/vm/device.h:637:32: warning: unused parameter 'intnum' [-Wunused-parameter]
+  637 |         virtual bool bios_int_i86(int intnum, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+      |                                       ^
+./../src/vm/device.h:637:49: warning: unused parameter 'regs' [-Wunused-parameter]
+  637 |         virtual bool bios_int_i86(int intnum, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+      |                                                        ^
+./../src/vm/device.h:637:72: warning: unused parameter 'sregs' [-Wunused-parameter]
+  637 |         virtual bool bios_int_i86(int intnum, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+      |                                                                               ^
+./../src/vm/device.h:637:90: warning: unused parameter 'ZeroFlag' [-Wunused-parameter]
+  637 |         virtual bool bios_int_i86(int intnum, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+      |                                                                                                 ^
+./../src/vm/device.h:637:109: warning: unused parameter 'CarryFlag' [-Wunused-parameter]
+  637 |         virtual bool bios_int_i86(int intnum, uint16_t regs[], const uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
+      |                                                                                                                    ^
+./../src/vm/device.h:641:37: warning: unused parameter 'PC' [-Wunused-parameter]
+  641 |         virtual bool bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de, pair32_t* hl, pair32_t* ix, pair32_t* iy, uint8_t* iff1)
+      |                                            ^
+./../src/vm/device.h:641:51: warning: unused parameter 'af' [-Wunused-parameter]
+  641 |         virtual bool bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de, pair32_t* hl, pair32_t* ix, pair32_t* iy, uint8_t* iff1)
+      |                                                          ^
+./../src/vm/device.h:641:65: warning: unused parameter 'bc' [-Wunused-parameter]
+  641 |         virtual bool bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de, pair32_t* hl, pair32_t* ix, pair32_t* iy, uint8_t* iff1)
+      |                                                                        ^
+./../src/vm/device.h:641:79: warning: unused parameter 'de' [-Wunused-parameter]
+  641 |         virtual bool bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de, pair32_t* hl, pair32_t* ix, pair32_t* iy, uint8_t* iff1)
+      |                                                                                      ^
+./../src/vm/device.h:641:93: warning: unused parameter 'hl' [-Wunused-parameter]
+  641 |         virtual bool bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de, pair32_t* hl, pair32_t* ix, pair32_t* iy, uint8_t* iff1)
+      |                                                                                                    ^
+./../src/vm/device.h:641:107: warning: unused parameter 'ix' [-Wunused-parameter]
+  641 |         virtual bool bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de, pair32_t* hl, pair32_t* ix, pair32_t* iy, uint8_t* iff1)
+      |                                                                                                                  ^
+./../src/vm/device.h:641:121: warning: unused parameter 'iy' [-Wunused-parameter]
+  641 |         virtual bool bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de, pair32_t* hl, pair32_t* ix, pair32_t* iy, uint8_t* iff1)
+      |                                                                                                                                ^
+./../src/vm/device.h:641:134: warning: unused parameter 'iff1' [-Wunused-parameter]
+  641 |         virtual bool bios_ret_z80(uint16_t PC, pair32_t* af, pair32_t* bc, pair32_t* de, pair32_t* hl, pair32_t* ix, pair32_t* iy, uint8_t* iff1)
+      |                                                                                                                                             ^
+./../src/vm/device.h:835:33: warning: unused parameter 'new_clocks' [-Wunused-parameter]
+  835 |         virtual void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame) {}
+      |                                        ^
+./../src/vm/device.h:835:52: warning: unused parameter 'new_frames_per_sec' [-Wunused-parameter]
+  835 |         virtual void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame) {}
+      |                                                           ^
+./../src/vm/device.h:835:76: warning: unused parameter 'new_lines_per_frame' [-Wunused-parameter]
+  835 |         virtual void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame) {}
+      |                                                                                   ^
+./../src/vm/device.h:838:34: warning: unused parameter 'event_id' [-Wunused-parameter]
+  838 |         virtual void event_callback(int event_id, int err) {}
+      |                                         ^
+./../src/vm/device.h:838:48: warning: unused parameter 'err' [-Wunused-parameter]
+  838 |         virtual void event_callback(int event_id, int err) {}
+      |                                                       ^
+./../src/vm/device.h:841:31: warning: unused parameter 'v' [-Wunused-parameter]
+  841 |         virtual void event_vline(int v, int clock) {}
+      |                                      ^
+./../src/vm/device.h:841:38: warning: unused parameter 'clock' [-Wunused-parameter]
+  841 |         virtual void event_vline(int v, int clock) {}
+      |                                             ^
+./../src/vm/device.h:842:31: warning: unused parameter 'v' [-Wunused-parameter]
+  842 |         virtual void event_hsync(int v, int h, int clock) {}
+      |                                      ^
+./../src/vm/device.h:842:38: warning: unused parameter 'h' [-Wunused-parameter]
+  842 |         virtual void event_hsync(int v, int h, int clock) {}
+      |                                             ^
+./../src/vm/device.h:842:45: warning: unused parameter 'clock' [-Wunused-parameter]
+  842 |         virtual void event_hsync(int v, int h, int clock) {}
+      |                                                    ^
+./../src/vm/device.h:845:28: warning: unused parameter 'buffer' [-Wunused-parameter]
+  845 |         virtual void mix(int32_t* buffer, int cnt) {}
+      |                                   ^
+./../src/vm/device.h:845:40: warning: unused parameter 'cnt' [-Wunused-parameter]
+  845 |         virtual void mix(int32_t* buffer, int cnt) {}
+      |                                               ^
+./../src/vm/device.h:846:30: warning: unused parameter 'ch' [-Wunused-parameter]
+  846 |         virtual void set_volume(int ch, int decibel_l, int decibel_r) {} // +1 equals +0.5dB (same as fmgen)
+      |                                     ^
+./../src/vm/device.h:846:38: warning: unused parameter 'decibel_l' [-Wunused-parameter]
+  846 |         virtual void set_volume(int ch, int decibel_l, int decibel_r) {} // +1 equals +0.5dB (same as fmgen)
+      |                                             ^
+./../src/vm/device.h:846:53: warning: unused parameter 'decibel_r' [-Wunused-parameter]
+  846 |         virtual void set_volume(int ch, int decibel_l, int decibel_r) {} // +1 equals +0.5dB (same as fmgen)
+      |                                                            ^
+./../src/vm/device.h:977:49: warning: unused parameter 'addr' [-Wunused-parameter]
+  977 |         virtual void write_via_debugger_data8(uint32_t addr, uint32_t data) {}
+      |                                                        ^
+./../src/vm/device.h:977:64: warning: unused parameter 'data' [-Wunused-parameter]
+  977 |         virtual void write_via_debugger_data8(uint32_t addr, uint32_t data) {}
+      |                                                                       ^
+./../src/vm/device.h:978:52: warning: unused parameter 'addr' [-Wunused-parameter]
+  978 |         virtual uint32_t read_via_debugger_data8(uint32_t addr)
+      |                                                           ^
+./../src/vm/device.h:982:50: warning: unused parameter 'addr' [-Wunused-parameter]
+  982 |         virtual void write_via_debugger_data16(uint32_t addr, uint32_t data) {}
+      |                                                         ^
+./../src/vm/device.h:982:65: warning: unused parameter 'data' [-Wunused-parameter]
+  982 |         virtual void write_via_debugger_data16(uint32_t addr, uint32_t data) {}
+      |                                                                        ^
+./../src/vm/device.h:983:53: warning: unused parameter 'addr' [-Wunused-parameter]
+  983 |         virtual uint32_t read_via_debugger_data16(uint32_t addr)
+      |                                                            ^
+./../src/vm/device.h:987:50: warning: unused parameter 'addr' [-Wunused-parameter]
+  987 |         virtual void write_via_debugger_data32(uint32_t addr, uint32_t data) {}
+      |                                                         ^
+./../src/vm/device.h:987:65: warning: unused parameter 'data' [-Wunused-parameter]
+  987 |         virtual void write_via_debugger_data32(uint32_t addr, uint32_t data) {}
+      |                                                                        ^
+./../src/vm/device.h:988:53: warning: unused parameter 'addr' [-Wunused-parameter]
+  988 |         virtual uint32_t read_via_debugger_data32(uint32_t addr)
+      |                                                            ^
+./../src/vm/device.h:992:50: warning: unused parameter 'addr' [-Wunused-parameter]
+  992 |         virtual void write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                         ^
+./../src/vm/device.h:992:65: warning: unused parameter 'data' [-Wunused-parameter]
+  992 |         virtual void write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                                        ^
+./../src/vm/device.h:992:76: warning: unused parameter 'wait' [-Wunused-parameter]
+  992 |         virtual void write_via_debugger_data8w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                                                   ^
+./../src/vm/device.h:993:53: warning: unused parameter 'addr' [-Wunused-parameter]
+  993 |         virtual uint32_t read_via_debugger_data8w(uint32_t addr, int* wait)
+      |                                                            ^
+./../src/vm/device.h:993:64: warning: unused parameter 'wait' [-Wunused-parameter]
+  993 |         virtual uint32_t read_via_debugger_data8w(uint32_t addr, int* wait)
+      |                                                                       ^
+./../src/vm/device.h:997:51: warning: unused parameter 'addr' [-Wunused-parameter]
+  997 |         virtual void write_via_debugger_data16w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                          ^
+./../src/vm/device.h:997:66: warning: unused parameter 'data' [-Wunused-parameter]
+  997 |         virtual void write_via_debugger_data16w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                                         ^
+./../src/vm/device.h:997:77: warning: unused parameter 'wait' [-Wunused-parameter]
+  997 |         virtual void write_via_debugger_data16w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                                                    ^
+./../src/vm/device.h:998:54: warning: unused parameter 'addr' [-Wunused-parameter]
+  998 |         virtual uint32_t read_via_debugger_data16w(uint32_t addr, int* wait)
+      |                                                             ^
+./../src/vm/device.h:998:65: warning: unused parameter 'wait' [-Wunused-parameter]
+  998 |         virtual uint32_t read_via_debugger_data16w(uint32_t addr, int* wait)
+      |                                                                        ^
+./../src/vm/device.h:1002:51: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1002 |         virtual void write_via_debugger_data32w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                          ^
+./../src/vm/device.h:1002:66: warning: unused parameter 'data' [-Wunused-parameter]
+ 1002 |         virtual void write_via_debugger_data32w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                                         ^
+./../src/vm/device.h:1002:77: warning: unused parameter 'wait' [-Wunused-parameter]
+ 1002 |         virtual void write_via_debugger_data32w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                                                    ^
+./../src/vm/device.h:1003:54: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1003 |         virtual uint32_t read_via_debugger_data32w(uint32_t addr, int* wait)
+      |                                                             ^
+./../src/vm/device.h:1003:65: warning: unused parameter 'wait' [-Wunused-parameter]
+ 1003 |         virtual uint32_t read_via_debugger_data32w(uint32_t addr, int* wait)
+      |                                                                        ^
+./../src/vm/device.h:1007:47: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1007 |         virtual void write_via_debugger_io8(uint32_t addr, uint32_t data) {}
+      |                                                      ^
+./../src/vm/device.h:1007:62: warning: unused parameter 'data' [-Wunused-parameter]
+ 1007 |         virtual void write_via_debugger_io8(uint32_t addr, uint32_t data) {}
+      |                                                                     ^
+./../src/vm/device.h:1008:50: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1008 |         virtual uint32_t read_via_debugger_io8(uint32_t addr)
+      |                                                         ^
+./../src/vm/device.h:1012:48: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1012 |         virtual void write_via_debugger_io16(uint32_t addr, uint32_t data) {}
+      |                                                       ^
+./../src/vm/device.h:1012:63: warning: unused parameter 'data' [-Wunused-parameter]
+ 1012 |         virtual void write_via_debugger_io16(uint32_t addr, uint32_t data) {}
+      |                                                                      ^
+./../src/vm/device.h:1013:51: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1013 |         virtual uint32_t read_via_debugger_io16(uint32_t addr)
+      |                                                          ^
+./../src/vm/device.h:1017:48: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1017 |         virtual void write_via_debugger_io32(uint32_t addr, uint32_t data) {}
+      |                                                       ^
+./../src/vm/device.h:1017:63: warning: unused parameter 'data' [-Wunused-parameter]
+ 1017 |         virtual void write_via_debugger_io32(uint32_t addr, uint32_t data) {}
+      |                                                                      ^
+./../src/vm/device.h:1018:51: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1018 |         virtual uint32_t read_via_debugger_io32(uint32_t addr)
+      |                                                          ^
+./../src/vm/device.h:1022:48: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1022 |         virtual void write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                       ^
+./../src/vm/device.h:1022:63: warning: unused parameter 'data' [-Wunused-parameter]
+ 1022 |         virtual void write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                                      ^
+./../src/vm/device.h:1022:74: warning: unused parameter 'wait' [-Wunused-parameter]
+ 1022 |         virtual void write_via_debugger_io8w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                                                 ^
+./../src/vm/device.h:1023:51: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1023 |         virtual uint32_t read_via_debugger_io8w(uint32_t addr, int* wait)
+      |                                                          ^
+./../src/vm/device.h:1023:62: warning: unused parameter 'wait' [-Wunused-parameter]
+ 1023 |         virtual uint32_t read_via_debugger_io8w(uint32_t addr, int* wait)
+      |                                                                     ^
+./../src/vm/device.h:1027:49: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1027 |         virtual void write_via_debugger_io16w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                        ^
+./../src/vm/device.h:1027:64: warning: unused parameter 'data' [-Wunused-parameter]
+ 1027 |         virtual void write_via_debugger_io16w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                                       ^
+./../src/vm/device.h:1027:75: warning: unused parameter 'wait' [-Wunused-parameter]
+ 1027 |         virtual void write_via_debugger_io16w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                                                  ^
+./../src/vm/device.h:1028:52: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1028 |         virtual uint32_t read_via_debugger_io16w(uint32_t addr, int* wait)
+      |                                                           ^
+./../src/vm/device.h:1028:63: warning: unused parameter 'wait' [-Wunused-parameter]
+ 1028 |         virtual uint32_t read_via_debugger_io16w(uint32_t addr, int* wait)
+      |                                                                      ^
+./../src/vm/device.h:1032:49: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1032 |         virtual void write_via_debugger_io32w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                        ^
+./../src/vm/device.h:1032:64: warning: unused parameter 'data' [-Wunused-parameter]
+ 1032 |         virtual void write_via_debugger_io32w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                                       ^
+./../src/vm/device.h:1032:75: warning: unused parameter 'wait' [-Wunused-parameter]
+ 1032 |         virtual void write_via_debugger_io32w(uint32_t addr, uint32_t data, int* wait) {}
+      |                                                                                  ^
+./../src/vm/device.h:1033:52: warning: unused parameter 'addr' [-Wunused-parameter]
+ 1033 |         virtual uint32_t read_via_debugger_io32w(uint32_t addr, int* wait)
+      |                                                           ^
+./../src/vm/device.h:1033:63: warning: unused parameter 'wait' [-Wunused-parameter]
+ 1033 |         virtual uint32_t read_via_debugger_io32w(uint32_t addr, int* wait)
+      |                                                                      ^
+In file included from mb8877_test_wrapper.cpp:4:
+In file included from ./../src/vm/mb8877.cpp:11:
+./../src/vm/mb8877.h:58:8: error: use of undeclared identifier 'MAX_DRIVE'
+   58 |         } fdc[MAX_DRIVE];
+      |               ^
+./../src/vm/mb8877.h:59:13: error: use of undeclared identifier 'MAX_DRIVE'
+   59 |         DISK* disk[MAX_DRIVE];
+      |                    ^
+./../src/vm/mb8877.h:133:9: error: unknown type name 'VM_TEMPLATE'
+  133 |         MB8877(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+      |                ^
+./../src/vm/mb8877.h:135:3: error: cannot initialize object parameter of type 'DEVICE' with an expression of type 'MB8877'
+  135 |                 initialize_output_signals(&outputs_irq);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~
+./../src/vm/mb8877.h:136:3: error: cannot initialize object parameter of type 'DEVICE' with an expression of type 'MB8877'
+  136 |                 initialize_output_signals(&outputs_drq);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~
+./../src/vm/mb8877.h:137:3: error: cannot initialize object parameter of type 'DEVICE' with an expression of type 'MB8877'
+  137 |                 initialize_output_signals(&outputs_rdy);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~
+./../src/vm/mb8877.h:151:3: error: cannot initialize object parameter of type 'DEVICE' with an expression of type 'MB8877'
+  151 |                 set_device_name(_T("MB8877 FDC"));
+      |                 ^~~~~~~~~~~~~~~
+./../src/vm/mb8877.h:180:3: error: no matching member function for call to 'register_output_signal'
+  180 |                 register_output_signal(&outputs_irq, device, id, mask);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~
+./../src/vm/device.h:562:15: note: candidate function not viable: no known conversion from 'MB8877' to 'DEVICE' for object argument
+  562 |         virtual void register_output_signal(outputs_t *items, DEVICE *device, int id, uint32_t mask)
+      |                      ^
+./../src/vm/device.h:554:15: note: candidate function not viable: requires 5 arguments, but 4 were provided
+  554 |         virtual void register_output_signal(outputs_t *items, DEVICE *device, int id, uint32_t mask, int shift)
+      |                      ^                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from mb8877_test_wrapper.cpp:4:
+In file included from ./../src/vm/mb8877.cpp:11:
+./../src/vm/mb8877.h:184:3: error: no matching member function for call to 'register_output_signal'
+  184 |                 register_output_signal(&outputs_drq, device, id, mask);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~
+./../src/vm/device.h:562:15: note: candidate function not viable: no known conversion from 'MB8877' to 'DEVICE' for object argument
+  562 |         virtual void register_output_signal(outputs_t *items, DEVICE *device, int id, uint32_t mask)
+      |                      ^
+./../src/vm/device.h:554:15: note: candidate function not viable: requires 5 arguments, but 4 were provided
+  554 |         virtual void register_output_signal(outputs_t *items, DEVICE *device, int id, uint32_t mask, int shift)
+      |                      ^                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from mb8877_test_wrapper.cpp:4:
+In file included from ./../src/vm/mb8877.cpp:11:
+./../src/vm/mb8877.h:188:3: error: no matching member function for call to 'register_output_signal'
+  188 |                 register_output_signal(&outputs_rdy, device, id, mask);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~
+./../src/vm/device.h:562:15: note: candidate function not viable: no known conversion from 'MB8877' to 'DEVICE' for object argument
+  562 |         virtual void register_output_signal(outputs_t *items, DEVICE *device, int id, uint32_t mask)
+      |                      ^
+./../src/vm/device.h:554:15: note: candidate function not viable: requires 5 arguments, but 4 were provided
+  554 |         virtual void register_output_signal(outputs_t *items, DEVICE *device, int id, uint32_t mask, int shift)
+      |                      ^                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from mb8877_test_wrapper.cpp:4:
+In file included from ./../src/vm/mb8877.cpp:13:
+./../src/vm/noise.h:34:8: error: unknown type name 'VM_TEMPLATE'
+   34 |         NOISE(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+      |               ^
+./../src/vm/noise.h:41:3: error: cannot initialize object parameter of type 'DEVICE' with an expression of type 'NOISE'
+   41 |                 set_device_name(_T("Noise Player"));
+      |                 ^~~~~~~~~~~~~~~
+In file included from mb8877_test_wrapper.cpp:4:
+./../src/vm/mb8877.cpp:56:3: error: cannot initialize object parameter of type 'DEVICE' with an expression of type 'MB8877'
+   56 |                 cancel_event(this, register_id[event]);
+      |                 ^~~~~~~~~~~~
+./../src/vm/mb8877.cpp:64:2: error: cannot initialize object parameter of type 'DEVICE' with an expression of type 'MB8877'
+   64 |         register_event(this, (event << 8) | (cmdtype & 0xff), usec, false, &register_id[event]);
+      |         ^~~~~~~~~~~~~~
+./../src/vm/mb8877.cpp:71:3: error: cannot initialize object parameter of type 'DEVICE' with an expression of type 'MB8877'
+   71 |                 register_event(this, (EVENT_SEEK << 8) | (cmdtype & 0xff), 1, false, &register_id[EVENT_SEEK]);
+      |                 ^~~~~~~~~~~~~~
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+102 warnings and 20 errors generated.
+make: *** [mb8877_test_wrapper.o] Error 1

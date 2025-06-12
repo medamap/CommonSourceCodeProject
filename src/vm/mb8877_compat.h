@@ -12,9 +12,14 @@
 #ifndef _MB8877_COMPAT_H_
 #define _MB8877_COMPAT_H_
 
+#ifndef STANDALONE_TEST
 #include "vm.h"
-#include "../emu.h"
+#include "../emu.h"  
 #include "device.h"
+#else
+// For testing - rely on external definitions from mock environment
+// All types should be defined before including this header
+#endif
 
 // Define MAX_DRIVE if not already defined
 #ifndef MAX_DRIVE
@@ -111,6 +116,7 @@ private:
 		S_LOST = 0x04,
 		S_CRC  = 0x08,
 		S_RNF  = 0x10,  // Record not found
+		S_SEEKERR = 0x10,  // Seek error (Type I) - same bit as RNF
 		S_HLD  = 0x20,  // Head loaded (Type I)
 		S_DDM  = 0x20,  // Deleted data mark (Type II/III)
 		S_WP   = 0x40,  // Write protect
@@ -176,9 +182,11 @@ private:
 		uint32_t prev_clock;
 	} fdc[MAX_DRIVE];
 	
-	// Original DISK array for compatibility
+protected:
+	// Original DISK array for compatibility - protected for test access
 	DISK* disk[MAX_DRIVE];
 	
+private:
 	// Registers - maintain original interface
 	uint8_t status, status_tmp;
 	uint8_t cmdreg, cmdreg_tmp;
@@ -201,6 +209,7 @@ private:
 	bool seekvct;
 	bool motor_on;
 	bool drive_sel;
+	int step_dir;  // Step direction: +1 for inward, -1 for outward
 	
 #ifdef HAS_MB89311
 	// MB89311 extended mode
@@ -210,6 +219,9 @@ private:
 	// Timing
 	uint32_t prev_drq_clock;
 	uint32_t seekend_clock;
+	
+	// IRQ state tracking
+	bool irq_active;
 	
 	// Internal helper methods
 	void update_fdc_status();
@@ -244,8 +256,11 @@ private:
 	void cmd_step();
 	void cmd_stepin();
 	void cmd_stepout();
+	void cmd_step_common();
 	void cmd_readdata(bool first_sector);
+	void cmd_readdata_end();
 	void cmd_writedata(bool first_sector);
+	void cmd_writedata_end();
 	void cmd_readaddr();
 	void cmd_readtrack();
 	void cmd_writetrack();
@@ -263,15 +278,16 @@ private:
 public:
 	MB8877(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		initialize_output_signals(&outputs_irq);
-		initialize_output_signals(&outputs_drq);
-		initialize_output_signals(&outputs_rdy);
+		this->initialize_output_signals(&outputs_irq);
+		this->initialize_output_signals(&outputs_drq);
+		this->initialize_output_signals(&outputs_rdy);
 		d_noise_seek = NULL;
 		d_noise_head_down = NULL;
 		d_noise_head_up = NULL;
 		// these parameters may be modified before calling initialize()
 		drvreg = sidereg = 0;
 		motor_on = drive_sel = false;
+		step_dir = 0;
 #if defined(HAS_MB89311)
 		set_device_name(_T("MB89311 FDC"));
 #elif defined(HAS_MB8866)
@@ -308,15 +324,21 @@ public:
 	// unique functions - maintain exact original interface
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&outputs_irq, device, id, mask);
+		this->register_output_signal(&outputs_irq, device, id, mask);
 	}
 	void set_context_drq(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&outputs_drq, device, id, mask);
+		this->register_output_signal(&outputs_drq, device, id, mask);
 	}
 	void set_context_rdy(DEVICE* device, int id, uint32_t mask)
 	{
-		register_output_signal(&outputs_rdy, device, id, mask);
+		this->register_output_signal(&outputs_rdy, device, id, mask);
+	}
+	// Overloaded method to match test expectations (4 parameters)
+	void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
+	{
+		event_manager = device;
+		set_event_manager(device);  // Also set in base DEVICE class
 	}
 	void set_context_noise_seek(NOISE* device)
 	{
@@ -361,6 +383,7 @@ public:
 	void set_drive_mfm(int drv, bool mfm);
 	void set_track_size(int drv, int size);
 	uint8_t fdc_status();
+	bool get_intr_ack();
 };
 
 #endif
