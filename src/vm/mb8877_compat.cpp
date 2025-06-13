@@ -1166,10 +1166,40 @@ uint8_t MB8877::get_drive_type(int drv)
 
 void MB8877::set_drive_rpm(int drv, int rpm)
 {
-	// Mock implementation - no actual hardware control needed
-	if(drv < MAX_DRIVE && disk[drv]) {
-		// In test environment, rpm setting is not needed
+	// Validate drive number
+	if(drv < 0 || drv >= MAX_DRIVE) {
+		this->out_debug_log(_T("FDC: set_drive_rpm: invalid drive number %d"), drv);
+		return;
 	}
+	
+	// Validate RPM range (240-400 RPM)
+	if(rpm < 240 || rpm > 400) {
+		this->out_debug_log(_T("FDC: set_drive_rpm: invalid RPM %d (valid range: 240-400)"), rpm);
+		return;
+	}
+	
+	// Check if disk is inserted
+	if(!disk[drv]) {
+		this->out_debug_log(_T("FDC: set_drive_rpm: no disk in drive %d"), drv);
+		return;
+	}
+	
+	// Set the drive RPM
+	disk[drv]->drive_rpm = rpm;
+	
+	// Log the RPM setting with standard identification
+	const char* rpm_type = "";
+	if(rpm == 300) {
+		rpm_type = " (5.25\" standard)";
+	} else if(rpm == 360) {
+		rpm_type = " (3.5\" standard)";
+	}
+	
+	this->out_debug_log(_T("FDC: set_drive_rpm: drive %d set to %d RPM%s"), drv, rpm, rpm_type);
+	
+	// Calculate and log rotation time for debugging
+	double rotation_time_us = 60000000.0 / rpm;
+	this->out_debug_log(_T("FDC: drive %d rotation time: %.0f microseconds"), drv, rotation_time_us);
 }
 
 void MB8877::set_drive_mfm(int drv, bool mfm)
