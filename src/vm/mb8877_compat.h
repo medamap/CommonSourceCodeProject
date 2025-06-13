@@ -214,8 +214,15 @@ private:
 	int step_dir;  // Step direction: +1 for inward, -1 for outward
 	
 #ifdef HAS_MB89311
-	// MB89311 extended mode
+public:
+	// MB89311 extended mode - made public for testing
 	bool extended_mode;
+	// MB89311 parameter storage
+	uint8_t mb89311_params[8];
+	// MB89311 format mode flags
+	bool mb89311_format_mode;
+	bool mb89311_use_params;
+private:
 #endif
 	
 	// Timing

@@ -160,6 +160,11 @@ void MB8877::reset()
 	
 #ifdef HAS_MB89311
 	extended_mode = true;
+	mb89311_format_mode = false;
+	mb89311_use_params = false;
+	for(int i = 0; i < 8; i++) {
+		mb89311_params[i] = 0;
+	}
 #endif
 	
 	// Reset drive info
@@ -817,38 +822,71 @@ void MB8877::process_cmd()
 #ifdef HAS_MB89311
 	// MB89311 mode commands
 	if(cmdreg == 0xfc) {
-		// Delay
+		// Delay - parameter-based delay command
 		#ifdef _FDC_DEBUG_LOG
 			this->out_debug_log(_T("FDC\tCMD=%2xh (DELAY   ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
 		#endif
+		// Implement delay based on datareg value
+		// Each unit represents 16us delay (per MB89311 specification)
+		if(datareg > 0) {
+			register_my_event(EVENT_LOST, datareg * 16.0);
+		}
 		cmdtype = status = 0;
 		main_state = IDLE;
 		return;
 	} else if(cmdreg == 0xfd) {
-		// Assign parameter
+		// Assign parameter - store parameters for later use
 		#ifdef _FDC_DEBUG_LOG
 			this->out_debug_log(_T("FDC\tCMD=%2xh (ASGN PAR) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
 		#endif
+		// Store parameter in mb89311_params array
+		// Lower 3 bits of data register specify parameter index
+		int param_index = datareg & 0x07;
+		if(param_index < 8) {
+			mb89311_params[param_index] = datareg >> 3;
+		}
 		cmdtype = status = 0;
 		main_state = IDLE;
 		return;
 	} else if(cmdreg == 0xfe) {
-		// Assign mode
+		// Assign mode - switch between standard and extended mode
 		#ifdef _FDC_DEBUG_LOG
 			this->out_debug_log(_T("FDC\tCMD=%2xh (ASGN MOD) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
 		#endif
 		extended_mode = ((datareg & 1) != 0);
+		// Additional mode settings from datareg
+		if(datareg & 0x02) {
+			// Enable special format mode
+			mb89311_format_mode = true;
+		}
+		if(datareg & 0x04) {
+			// Enable parameter usage in format
+			mb89311_use_params = true;
+		}
 		cmdtype = status = 0;
 		main_state = IDLE;
 		return;
 	} else if(cmdreg == 0xff) {
-		// Reset (guess)
+		// Reset - complete chip reset
 		#ifdef _FDC_DEBUG_LOG
 			this->out_debug_log(_T("FDC\tCMD=%2xh (RESET   ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
 		#endif
+		// Reset all registers and state
 		cmdtype = 0;
 		status = S_TR00;
 		main_state = IDLE;
+		extended_mode = true;  // MB89311 defaults to extended mode
+		mb89311_format_mode = false;
+		mb89311_use_params = false;
+		// Clear parameter storage
+		for(int i = 0; i < 8; i++) {
+			mb89311_params[i] = 0;
+		}
+		// Reset all drives
+		for(int i = 0; i < MAX_DRIVE; i++) {
+			fdc[i].track = 0;
+		}
+		set_irq(true);
 		return;
 	}
 #endif
@@ -1043,6 +1081,9 @@ bool MB8877::process_state(FILEIO* state_fio, bool loading)
 	
 #ifdef HAS_MB89311
 	state_fio->StateValue(extended_mode);
+	state_fio->StateArray(mb89311_params, sizeof(mb89311_params), 1);
+	state_fio->StateValue(mb89311_format_mode);
+	state_fio->StateValue(mb89311_use_params);
 #endif
 	
 	// Save/load timing
@@ -1845,9 +1886,54 @@ void MB8877::cmd_writetrack()
 #ifdef HAS_MB89311
 void MB8877::cmd_format()
 {
-	// MB89311 format command
-	// Similar to write track but with specific format
-	cmd_writetrack();
+	// MB89311 enhanced format command
+	#ifdef _FDC_DEBUG_LOG
+		this->out_debug_log(_T("FDC\tMB89311 FORMAT: mode=%d use_params=%d\n"), mb89311_format_mode, mb89311_use_params);
+	#endif
+	
+	cmdtype = TYPE_III;
+	main_state = WRITE_TRACK;
+	status = S_BUSY;
+	status_tmp = 0;
+	
+	// Check write protect
+	if(!disk[drvreg]->inserted || disk[drvreg]->write_protected) {
+		status = (disk[drvreg]->write_protected ? S_WP : 0);
+		main_state = IDLE;
+		set_irq(true);
+		return;
+	}
+	
+	// Initialize format parameters
+	fdc[drvreg].index = 0;
+	fdc[drvreg].id_written = false;
+	fdc[drvreg].sector_found = false;
+	fdc[drvreg].sector_length = 0;
+	fdc[drvreg].sector_index = 0;
+	
+	// Apply MB89311 specific format settings
+	if(mb89311_format_mode) {
+		// Use extended format options
+		if(mb89311_use_params) {
+			// Apply stored parameters to format operation
+			// param[0]: gap length between sectors
+			// param[1]: gap length after index
+			// param[2]: sector size code
+			// param[3]: number of sectors
+			if(mb89311_params[2] != 0) {
+				// Override sector size
+				fdc[drvreg].sector_length = 128 << (mb89311_params[2] & 0x03);
+			}
+		}
+	}
+	
+	// Set up DRQ for format data
+	set_drq(true);
+	register_lost_event(3);
+	
+	// Start format after head load delay
+	double time = (cmdreg & 4) ? get_head_load_delay() : 1;
+	register_my_event(EVENT_SEARCH, time);
 }
 #endif
 
