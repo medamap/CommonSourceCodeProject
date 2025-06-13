@@ -1202,9 +1202,52 @@ void MB8877::set_drive_mfm(int drv, bool mfm)
 
 void MB8877::set_track_size(int drv, int size)
 {
-	// Mock implementation - no actual hardware control needed
-	if(drv < MAX_DRIVE && disk[drv]) {
-		// In test environment, track size setting is not needed
+	// Validate drive number
+	if(drv < 0 || drv >= MAX_DRIVE) {
+		// Invalid drive number, log and return
+		if(_fdc_debug_log) {
+			this->out_debug_log(_T("FDC: set_track_size() invalid drive number: %d\n"), drv);
+		}
+		return;
+	}
+	
+	// Check if disk is present
+	if(!disk[drv]) {
+		// No disk in drive, log and return
+		if(_fdc_debug_log) {
+			this->out_debug_log(_T("FDC: set_track_size() no disk in drive %d\n"), drv);
+		}
+		return;
+	}
+	
+	// Validate track size range (1024 to 65536 bytes)
+	const int MIN_TRACK_SIZE = 1024;
+	const int MAX_TRACK_SIZE = 65536;
+	
+	if(size < MIN_TRACK_SIZE || size > MAX_TRACK_SIZE) {
+		// Invalid track size, log and return
+		if(_fdc_debug_log) {
+			this->out_debug_log(_T("FDC: set_track_size() invalid size %d (valid range: %d-%d)\n"), 
+				size, MIN_TRACK_SIZE, MAX_TRACK_SIZE);
+		}
+		return;
+	}
+	
+	// Set the track size
+	disk[drv]->track_size = size;
+	
+	// Log the operation
+	if(_fdc_debug_log) {
+		this->out_debug_log(_T("FDC: set_track_size() drive %d, size set to %d bytes\n"), drv, size);
+		
+		// Log special format detection
+		if(size == 6250) {
+			this->out_debug_log(_T("FDC: Standard 2D/2DD format (6250 bytes)\n"));
+		} else if(size == 12500) {
+			this->out_debug_log(_T("FDC: Standard 2HD format (12500 bytes)\n"));
+		} else {
+			this->out_debug_log(_T("FDC: Custom/special format\n"));
+		}
 	}
 }
 
