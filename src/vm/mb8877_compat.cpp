@@ -1174,9 +1174,29 @@ void MB8877::set_drive_rpm(int drv, int rpm)
 
 void MB8877::set_drive_mfm(int drv, bool mfm)
 {
-	// Mock implementation - no actual hardware control needed
-	if(drv < MAX_DRIVE && disk[drv]) {
-		// In test environment, MFM setting is not needed
+	// Set FM/MFM mode for the specified drive
+	if(drv < 0 || drv >= MAX_DRIVE) {
+		// Invalid drive number - ignore
+		return;
+	}
+	
+	if(disk[drv]) {
+		// Set the MFM mode in the disk object
+		disk[drv]->drive_mfm = mfm;
+		
+		// Log the mode change for debugging
+#ifdef _DEBUG_LOG
+		this->out_debug_log(_T("MB8877: Drive %d set to %s mode\n"), 
+			drv, mfm ? _T("MFM (250kbps)") : _T("FM (125kbps)"));
+#endif
+		
+		// Update timing parameters if this is the current drive
+		if(drv == drvreg) {
+			// FM mode: 125kbps (8us per bit, 64us per byte)
+			// MFM mode: 250kbps (4us per bit, 32us per byte)
+			// The disk class handles these timing calculations internally
+			// based on the drive_mfm flag
+		}
 	}
 }
 
