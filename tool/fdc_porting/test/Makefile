@@ -65,10 +65,10 @@ test_mb8877_type3_commands: $(OBJ_DIR)/test_mb8877_type3_commands.o $(COMMON_OBJ
 test_mb8877_type4_commands: $(OBJ_DIR)/test_mb8877_type4_commands.o $(COMMON_OBJS) $(VM_OBJS) $(OBJ_DIR)/mb8877_compat_wrapper.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
-test_mb8877_error_handling: $(OBJ_DIR)/test_mb8877_error_handling.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
+test_mb8877_error_handling: $(OBJ_DIR)/test_mb8877_error_handling.o $(COMMON_OBJS) $(VM_OBJS) $(OBJ_DIR)/mb8877_compat_wrapper.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
-test_mb8877_timing: $(OBJ_DIR)/test_mb8877_timing.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
+test_mb8877_timing: $(OBJ_DIR)/test_mb8877_timing.o $(COMMON_OBJS) $(VM_OBJS) $(OBJ_DIR)/mb8877_compat_wrapper.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 test_mb8877_write_track: $(OBJ_DIR)/test_mb8877_write_track.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
