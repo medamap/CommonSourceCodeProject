@@ -281,7 +281,111 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 				status &= ~S_DRQ;
 			} else if(main_state == WRITE_TRACK) {
 				// Write track implementation
-				// TODO: Implement write track data handling
+				// Process format data byte
+				if(disk[drvreg]->write_protected) {
+					// Write protect error already handled in command
+					cmd_forceint();
+					return;
+				}
+				
+				// First byte? Format the track
+				if(fdc[drvreg].index == 0) {
+					disk[drvreg]->format_track(fdc[drvreg].track, sidereg);
+					fdc[drvreg].id_written = false;
+					fdc[drvreg].side = sidereg;
+					fdc[drvreg].side_changed = false;
+				}
+				
+				// Check for side change
+				if(fdc[drvreg].side != sidereg) {
+					fdc[drvreg].side_changed = true;
+				}
+				
+				if(fdc[drvreg].side_changed) {
+					// Abort write track because disk side is changed
+				} else if(val == 0xf5) {
+					// Write A1h in missing clock - special marker
+				} else if(val == 0xf6) {
+					// Write C2h in missing clock - special marker
+				} else if(val == 0xf7) {
+					// Write CRC
+					if(!fdc[drvreg].id_written) {
+						// Insert new sector with data CRC error
+write_id:
+						uint8_t c = 0, h = 0, r = 0, n = 0;
+						fdc[drvreg].id_written = true;
+						fdc[drvreg].sector_found = false;
+						if(fdc[drvreg].index >= 4) {
+							// Get sector ID from previous 4 bytes in track buffer
+							c = fdc[drvreg].track_buffer[0];
+							h = fdc[drvreg].track_buffer[1];
+							r = fdc[drvreg].track_buffer[2];
+							n = fdc[drvreg].track_buffer[3];
+						}
+						fdc[drvreg].sector_length = 0x80 << (n & 3);
+						fdc[drvreg].sector_index = 0;
+						disk[drvreg]->insert_sector(c, h, r, n, false, true, 0xe5, fdc[drvreg].sector_length);
+					} else if(fdc[drvreg].sector_found) {
+						// Clear data CRC error if all sector data are written
+						if(fdc[drvreg].sector_index == fdc[drvreg].sector_length) {
+							disk[drvreg]->set_data_crc_error(false);
+						}
+						fdc[drvreg].id_written = false;
+					} else {
+						// Data mark of current sector is not written
+						disk[drvreg]->set_data_mark_missing();
+						goto write_id;
+					}
+				} else if(fdc[drvreg].id_written) {
+					if(fdc[drvreg].sector_found) {
+						// Sector data
+						if(fdc[drvreg].sector_index < fdc[drvreg].sector_length) {
+							// TODO: Write to sector data buffer if available
+						}
+						fdc[drvreg].sector_index++;
+					} else if(val == 0xf8 || val == 0xfb) {
+						// Data mark
+						disk[drvreg]->set_deleted(val == 0xf8);
+						fdc[drvreg].sector_found = true;
+					}
+				}
+				
+				// Store bytes in track buffer for sector ID detection
+				if(fdc[drvreg].index < 4) {
+					fdc[drvreg].track_buffer[fdc[drvreg].index] = val;
+				} else {
+					// Shift buffer
+					fdc[drvreg].track_buffer[0] = fdc[drvreg].track_buffer[1];
+					fdc[drvreg].track_buffer[1] = fdc[drvreg].track_buffer[2];
+					fdc[drvreg].track_buffer[2] = fdc[drvreg].track_buffer[3];
+					fdc[drvreg].track_buffer[3] = val;
+				}
+				
+				// TODO: Write byte to track buffer if direct access available
+				
+				// Increment index after processing
+				fdc[drvreg].index++;
+				
+				// Check for track completion (after index hole)
+				if(fdc[drvreg].index >= disk[drvreg]->get_track_size()) {
+					if(fdc[drvreg].id_written && !fdc[drvreg].sector_found) {
+						// Data mark of last sector is not written
+						disk[drvreg]->set_data_mark_missing();
+					}
+					// Sync buffer
+					disk[drvreg]->sync_buffer();
+					// Complete
+					status &= ~S_BUSY;
+					main_state = IDLE;
+					set_irq(true);
+				} else if(status & S_DRQ) {
+					if(fdc[drvreg].index == 0) {
+						register_drq_event(fdc[drvreg].bytes_before_2nd_drq);
+					} else {
+						register_drq_event(1);
+					}
+				}
+				status &= ~S_DRQ;
 			}
 			// Clear DRQ after data written
 			set_drq(false);
@@ -1104,11 +1208,27 @@ void MB8877::cmd_forceint()
 		cancel_my_event(i);
 	}
 	
+	// Handle abort for specific commands
+	if(cmdtype == TYPE_II && sector_changed) {
+		// Abort write sector command
+		disk[drvreg]->set_data_crc_error(false);
+	} else if(cmdtype == TYPE_III && main_state == WRITE_TRACK) {
+		// Abort write track command
+		if(!disk[drvreg]->write_protected) {
+			if(fdc[drvreg].id_written && !fdc[drvreg].sector_found) {
+				// Data mark of last sector is not written
+				disk[drvreg]->set_data_mark_missing();
+			}
+			disk[drvreg]->sync_buffer();
+		}
+	}
+	
 	// Clear state
 	status &= ~S_BUSY;
 	main_state = IDLE;
 	now_search = false;
 	now_seek = false;
+	sector_changed = false;
 	
 	// Clear DRQ
 	set_drq(false);

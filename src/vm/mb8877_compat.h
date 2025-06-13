@@ -170,6 +170,8 @@ private:
 		// write track
 		bool id_written;
 		bool sector_found;
+		bool data_mark_found;
+		uint8_t track_buffer[4];  // Last 4 bytes for sector ID
 		int sector_length;
 		int sector_index;
 		int side;

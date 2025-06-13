@@ -40,7 +40,8 @@ TEST_EXECUTABLES = \
 	test_mb8877_type3_commands \
 	test_mb8877_type4_commands \
 	test_mb8877_error_handling \
-	test_mb8877_timing
+	test_mb8877_timing \
+	test_mb8877_write_track
 
 .PHONY: all clean test run_all_tests
 
@@ -66,6 +67,9 @@ test_mb8877_error_handling: $(OBJ_DIR)/test_mb8877_error_handling.o $(COMMON_OBJ
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 test_mb8877_timing: $(OBJ_DIR)/test_mb8877_timing.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+test_mb8877_write_track: $(OBJ_DIR)/test_mb8877_write_track.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 # Create shell script to run all tests
