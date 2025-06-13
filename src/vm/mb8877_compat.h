@@ -279,6 +279,7 @@ private:
 	void cmd_forceint();
 	void update_head_flag(int drv, bool head_load);
 	void update_ready();
+	double get_head_load_delay();
 	
 	// IRQ/DMA
 	void set_irq(bool val);

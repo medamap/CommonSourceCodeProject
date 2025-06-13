@@ -2053,3 +2053,104 @@ bool MB8877::get_intr_ack()
 	return had_interrupt;
 }
 
+double MB8877::get_head_load_delay()
+{
+	// Return head load delay time based on drive type
+	// 2HD: 15ms (15000.0 microseconds)
+	// 2DD: 30ms (30000.0 microseconds)
+	if(disk[drvreg] && disk[drvreg]->drive_type == DRIVE_TYPE_2HD) {
+		return 15000.0;  // 15ms for 2HD
+	} else {
+		return 30000.0;  // 30ms for 2DD
+	}
+}
+
+void MB8877::cmd_readdata_end()
+{
+	// Complete read sector operation
+	// This is called when a sector read has completed
+	
+	// Update status - clear busy flag
+	status &= ~S_BUSY;
+	
+	// Check for multi-sector operation
+	if(cmdreg & 0x10) {  // Multi-sector flag
+		// Increment sector register
+		secreg++;
+		
+		// Check if we need to continue reading
+		if(sector_changed) {
+			// Continue to next sector
+			cmd_readdata(false);  // false = not first sector
+			return;
+		}
+	}
+	
+	// Set completion status
+	if(status & S_RNF) {
+		// Record not found
+		status |= S_RNF;
+	} else if(status & S_CRC) {
+		// CRC error
+		status |= S_CRC;  
+	} else if(status & S_LOST) {
+		// Lost data
+		status |= S_LOST;
+	}
+	
+	// Clear DRQ
+	set_drq(false);
+	
+	// Generate interrupt
+	set_irq(true);
+	
+	// Return to idle state
+	main_state = IDLE;
+}
+
+void MB8877::cmd_writedata_end()
+{
+	// Complete write sector operation
+	// This is called when a sector write has completed
+	
+	// Update status - clear busy flag
+	status &= ~S_BUSY;
+	
+	// Check for multi-sector operation
+	if(cmdreg & 0x10) {  // Multi-sector flag
+		// Increment sector register
+		secreg++;
+		
+		// Check if we need to continue writing
+		if(sector_changed) {
+			// Continue to next sector
+			cmd_writedata(false);  // false = not first sector
+			return;
+		}
+	}
+	
+	// Set completion status
+	if(status & S_WP) {
+		// Write protect
+		status |= S_WP;
+	} else if(status & S_RNF) {
+		// Record not found
+		status |= S_RNF;
+	} else if(status & S_CRC) {
+		// CRC error
+		status |= S_CRC;
+	} else if(status & S_LOST) {
+		// Lost data
+		status |= S_LOST;
+	}
+	
+	// Clear DRQ
+	set_drq(false);
+	
+	// Generate interrupt
+	set_irq(true);
+	
+	// Return to idle state
+	main_state = IDLE;
+}
+
