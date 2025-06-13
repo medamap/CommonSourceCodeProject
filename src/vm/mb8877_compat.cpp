@@ -1499,93 +1499,206 @@ void MB8877::register_seek_event(bool first)
 // Search helpers
 uint8_t MB8877::search_track()
 {
-	// Check if head is loaded
-	if(!fdc[drvreg].head_load) {
-		return S_RNF;
-	}
-	
-	// Get track from disk image
+	// Get track
 	int track = fdc[drvreg].track;
-	int side = (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ? sidereg : (sidereg | ((cmdreg >> 3) & 1));
 	
-	if(!disk[drvreg]->get_track(track, side)) {
-		// Track not found
-		return S_RNF;
+	if(!disk[drvreg]->get_track(track, sidereg)){
+		return FDC_ST_SEEKERR;
 	}
 	
-	// Get current sector info
-	if(!disk[drvreg]->get_sector(track, side, -1)) {
-		// Sector not found
-		return S_RNF;
+	// Verify track number
+	if(disk[drvreg]->ignore_crc()) {
+		// When ignoring CRC, search for any sector with matching track ID
+		for(int i = 0; i < disk[drvreg]->sector_num.sd; i++) {
+			if(!disk[drvreg]->get_sector(-1, -1, i)) {
+				continue;
+			}
+			if(disk[drvreg]->drive_mfm != disk[drvreg]->sector_mfm) {
+				continue;
+			}
+			if(disk[drvreg]->id[0] == trkreg) {
+				// Found matching track, set position after ID field
+				fdc[drvreg].next_trans_position = disk[drvreg]->id_position[i] + 4 + 2;
+				fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[i];
+				return 0;
+			}
+		}
+	} else {
+		// With CRC checking, first look for sector without CRC error
+		for(int i = 0; i < disk[drvreg]->sector_num.sd; i++) {
+			if(!disk[drvreg]->get_sector(-1, -1, i)) {
+				continue;
+			}
+			if(disk[drvreg]->drive_mfm != disk[drvreg]->sector_mfm) {
+				continue;
+			}
+			if(disk[drvreg]->id[0] == trkreg && !disk[drvreg]->addr_crc_error) {
+				// Found matching track without CRC error
+				fdc[drvreg].next_trans_position = disk[drvreg]->id_position[i] + 4 + 2;
+				fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[i];
+				return 0;
+			}
+		}
+		// If not found without CRC error, check with CRC error
+		for(int i = 0; i < disk[drvreg]->sector_num.sd; i++) {
+			if(!disk[drvreg]->get_sector(-1, -1, i)) {
+				continue;
+			}
+			if(disk[drvreg]->drive_mfm != disk[drvreg]->sector_mfm) {
+				continue;
+			}
+			if(disk[drvreg]->id[0] == trkreg) {
+				// Found matching track but with CRC error
+				return FDC_ST_SEEKERR | FDC_ST_CRCERR;
+			}
+		}
 	}
-	
-	// Check track match
-	if(disk[drvreg]->id[0] != trkreg) {
-		// Track mismatch - seek error
-		return S_RNF;
-	}
-	
-	return 0;
+	// Track not found
+	return FDC_ST_SEEKERR;
 }
 
 uint8_t MB8877::search_sector()
 {
-	// Get sector position
-	int position = get_cur_position();
-	
-	// Search for sector
-	// Find sector by searching through all sectors on the track
-	bool sector_found = false;
-	int max_sectors = 32; // Reasonable limit for sectors per track
-	
-	// Get the track first
-	if(disk[drvreg]->get_track(fdc[drvreg].track, sidereg)) {
-		// Search for sector using simple mock logic
-		if(disk[drvreg]->get_sector(fdc[drvreg].track, sidereg, secreg)) {
-			sector_found = true;
-			fdc[drvreg].sector_index = secreg;
+	// Write protect check
+	if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC) {
+		if(disk[drvreg]->write_protected) {
+			return FDC_ST_WRITEFAULT;
 		}
 	}
 	
-	if(!sector_found) {
-		// Sector not found
-		return S_RNF;
+	// Get track
+	int track = fdc[drvreg].track;
+	
+	if(!disk[drvreg]->get_track(track, sidereg)) {
+		return FDC_ST_RECNFND;
 	}
 	
-	// Save next position
-	fdc[drvreg].next_trans_position = 0; // Mock position
-	fdc[drvreg].bytes_before_2nd_drq = 1;
+	// Get current position on track
+	int sector_num = disk[drvreg]->sector_num.sd;
+	int position = get_cur_position();
 	
-	return 0;
+	// Handle wraparound
+	if(position > disk[drvreg]->am1_position[sector_num - 1]) {
+		position -= disk[drvreg]->get_track_size();
+	}
+	
+	// Find first sector to scan based on current position
+	int first_sector = 0;
+	for(int i = 0; i < sector_num; i++) {
+		if(position < disk[drvreg]->am1_position[i]) {
+			first_sector = i;
+			break;
+		}
+	}
+	
+	// Scan sectors starting from current position
+	for(int i = 0; i < sector_num; i++) {
+		// Get sector in rotation order
+		int index = (first_sector + i) % sector_num;
+		
+		if(!disk[drvreg]->get_sector(-1, -1, index)) {
+			continue;
+		}
+		if(disk[drvreg]->drive_mfm != disk[drvreg]->sector_mfm) {
+			continue;
+		}
+		// Check track ID
+		if(disk[drvreg]->id[0] != trkreg) {
+			continue;
+		}
+#if !defined(HAS_MB8866)
+		// Check side (for non-MB8866)
+		if((cmdreg & 2) && (disk[drvreg]->id[1] & 1) != ((cmdreg >> 3) & 1)) {
+			continue;
+		}
+#endif
+		// Check sector ID
+		if(disk[drvreg]->id[2] != secreg) {
+			continue;
+		}
+		if(disk[drvreg]->sector_size.sd == 0) {
+			continue;
+		}
+		// Check CRC error
+		if(disk[drvreg]->addr_crc_error && !disk[drvreg]->ignore_crc()) {
+			// ID CRC error
+			disk[drvreg]->sector_size.sd = 0;
+			return FDC_ST_RECNFND | FDC_ST_CRCERR;
+		}
+		
+		// Sector found - calculate transfer position
+		if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC) {
+			// For write commands, position after ID field
+			fdc[drvreg].next_trans_position = disk[drvreg]->id_position[index] + 4 + 2;
+			fdc[drvreg].bytes_before_2nd_drq = disk[drvreg]->data_position[index] - fdc[drvreg].next_trans_position;
+		} else {
+			// For read commands, position at data field
+			fdc[drvreg].next_trans_position = disk[drvreg]->data_position[index] + 1;
+		}
+		fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[index];
+		fdc[drvreg].index = 0;
+		
+		// Return deleted data mark status
+		return (disk[drvreg]->deleted ? FDC_ST_RECTYPE : 0);
+	}
+	
+	// Sector not found
+	disk[drvreg]->sector_size.sd = 0;
+	return FDC_ST_RECNFND;
 }
 
 uint8_t MB8877::search_addr()
 {
-	// Get current position
+	// Get track
+	int track = fdc[drvreg].track;
+	
+	if(!disk[drvreg]->get_track(track, sidereg)) {
+		return FDC_ST_RECNFND;
+	}
+	
+	// Get current position on track
+	int sector_num = disk[drvreg]->sector_num.sd;
 	int position = get_cur_position();
 	
-	// Search for next ID field
-	// For READ ADDRESS command, we need to find any sector
-	bool id_found = false;
+	// Handle wraparound
+	if(position > disk[drvreg]->am1_position[sector_num - 1]) {
+		position -= disk[drvreg]->get_track_size();
+	}
 	
-	// Get the track first
-	if(disk[drvreg]->get_track(fdc[drvreg].track, sidereg)) {
-		// Find first available sector (for READ ADDRESS)
-		if(disk[drvreg]->get_sector(fdc[drvreg].track, sidereg, 1)) {
-			id_found = true;
-			fdc[drvreg].sector_index = 0;
+	// Find first sector after current position
+	int first_sector = 0;
+	for(int i = 0; i < sector_num; i++) {
+		if(position < disk[drvreg]->am1_position[i]) {
+			first_sector = i;
+			break;
 		}
 	}
 	
-	if(!id_found) {
-		// No ID field found
-		return S_RNF;
+	// Get next ID field in rotation order
+	for(int i = 0; i < sector_num; i++) {
+		int index = (first_sector + i) % sector_num;
+		
+		if(!disk[drvreg]->get_sector(-1, -1, index)) {
+			continue;
+		}
+		if(disk[drvreg]->drive_mfm != disk[drvreg]->sector_mfm) {
+			continue;
+		}
+		
+		// Found next ID field - set position to start of ID
+		fdc[drvreg].next_trans_position = disk[drvreg]->id_position[index] + 1;
+		fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[index];
+		fdc[drvreg].index = 0;
+		
+		// Update sector register with track ID from found sector
+		secreg = disk[drvreg]->id[0];
+		
+		return 0;
 	}
 	
-	// Save position after ID field
-	fdc[drvreg].next_trans_position = 6; // Mock position after ID
-	
-	return 0;
+	// No ID field found
+	disk[drvreg]->sector_size.sd = 0;
+	return FDC_ST_RECNFND;
 }
 
 // Type I Commands
