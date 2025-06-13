@@ -287,6 +287,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 			} else if(main_state == WRITE_TRACK) {
 				// Write track implementation
 				// Process format data byte
+				uint8_t val = data;  // Add val declaration
 				if(disk[drvreg]->write_protected) {
 					// Write protect error already handled in command
 					cmd_forceint();

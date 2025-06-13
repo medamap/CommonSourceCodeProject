@@ -38,6 +38,9 @@
 #define CPU_CLOCKS 4000000
 #endif
 
+// Global debug flag used by mb8877_compat.cpp
+#define _fdc_debug_log 0
+
 // Forward declarations
 class FILEIO;
 
@@ -162,6 +165,10 @@ public:
 	virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
 	virtual void event_callback(int event_id, int err) {}  // Add event callback method
 	virtual void set_device_name(const _TCHAR* format, ...) {}
+	
+	// Debug logging methods required by mb8877_compat
+	virtual void out_debug_log(const _TCHAR* format, ...) {}
+	virtual void force_out_debug_log(const _TCHAR* format, ...) {}
 	
 	// Method to set event manager (called by set_context_event_manager)
 	virtual void set_event_manager(DEVICE* mgr) {
