@@ -374,6 +374,125 @@ void test_command_abort_timing(TestFramework& test) {
 	test.assert_true(abort_duration < 1000, "Force interrupt aborts quickly");
 }
 
+void test_precise_position_tracking(TestFramework& test) {
+	TEST_SECTION("Precise Position Tracking");
+	
+	MockEMU emu;
+	MockVM vm(&emu);
+	MockEVENT event(&vm, &emu);
+	MockDISK mock_disk(&vm, &emu);
+	
+	MB8877 fdc(&vm, &emu);
+	fdc.set_context_event_manager(&event, 0, 0, 0);
+	fdc.initialize();
+	fdc.reset();
+	
+	// Setup mock disk with specific drive
+	fdc.set_drive_type(0, DRIVE_TYPE_2DD);
+	fdc.open_disk(0, _T("test.dsk"), 0);
+	
+	// Set initial position
+	fdc.fdc[0].cur_position = 0;
+	fdc.fdc[0].prev_clock = event.get_current_clock();
+	
+	// Advance time and check position updates
+	for(int i = 0; i < 10; i++) {
+		event.advance_clock(10000); // 10ms
+		int new_pos = fdc.get_cur_position();
+		
+		// Position should advance with time
+		test.assert_true(new_pos > 0, "Position advances with time");
+		
+		// Update for next iteration
+		fdc.fdc[0].cur_position = new_pos;
+		fdc.fdc[0].prev_clock = event.get_current_clock();
+	}
+}
+
+void test_transfer_timing_accuracy(TestFramework& test) {
+	TEST_SECTION("Transfer Timing Accuracy");
+	
+	MockEMU emu;
+	MockVM vm(&emu);
+	MockEVENT event(&vm, &emu);
+	MockDISK mock_disk(&vm, &emu);
+	
+	MB8877 fdc(&vm, &emu);
+	fdc.set_context_event_manager(&event, 0, 0, 0);
+	fdc.initialize();
+	fdc.reset();
+	
+	// Setup disk with specific parameters
+	fdc.set_drive_type(0, DRIVE_TYPE_2DD);
+	fdc.open_disk(0, _T("test.dsk"), 0);
+	
+	// Set up transfer position
+	fdc.fdc[0].cur_position = 0;
+	fdc.fdc[0].next_trans_position = 100; // 100 bytes ahead
+	fdc.fdc[0].next_am1_position = 200; // AM1 position further ahead
+	
+	// Get time to next transfer
+	double time = fdc.get_usec_to_next_trans_pos(false);
+	
+	// Check that timing is reasonable (not zero, not too large)
+	test.assert_true(time > 0 && time < 1000000, "Transfer timing is reasonable");
+}
+
+void test_rotation_timing_precision(TestFramework& test) {
+	TEST_SECTION("Rotation Timing Precision");
+	
+	MockEMU emu;
+	MockVM vm(&emu);
+	MockEVENT event(&vm, &emu);
+	MockDISK mock_disk(&vm, &emu);
+	
+	MB8877 fdc(&vm, &emu);
+	fdc.set_context_event_manager(&event, 0, 0, 0);
+	fdc.initialize();
+	fdc.reset();
+	
+	// Setup disk
+	fdc.set_drive_type(0, DRIVE_TYPE_2DD);
+	fdc.open_disk(0, _T("test.dsk"), 0);
+	
+	// Get time for one complete rotation
+	double time = fdc.get_usec_to_detect_index_hole(1, false);
+	
+	// Standard rotation is 200ms (200000 microseconds) at 300 RPM
+	// Check timing accuracy (within 10% - more lenient for mock)
+	test.assert_true(time >= 180000 && time <= 220000,
+					"Rotation timing within expected range");
+}
+
+void test_multi_density_timing(TestFramework& test) {
+	TEST_SECTION("Multi-Density Timing Support");
+	
+	MockEMU emu;
+	MockVM vm(&emu);
+	MockEVENT event(&vm, &emu);
+	MockDISK mock_disk(&vm, &emu);
+	
+	MB8877 fdc(&vm, &emu);
+	fdc.set_context_event_manager(&event, 0, 0, 0);
+	fdc.initialize();
+	fdc.reset();
+	
+	// Setup disk with 2HD drive for multi-density support
+	fdc.set_drive_type(0, DRIVE_TYPE_2HD);
+	fdc.open_disk(0, _T("test.dsk"), 0);
+	
+	// Test head load delay differences between drive types
+	double delay_2hd = fdc.get_usec_to_next_trans_pos(true);
+	double no_delay_2hd = fdc.get_usec_to_next_trans_pos(false);
+	
+	// Head load delay should add time
+	test.assert_true(delay_2hd > no_delay_2hd, "Head load delay adds time");
+	
+	// Difference should be approximately 15ms for 2HD drive
+	double diff = delay_2hd - no_delay_2hd;
+	test.assert_true(diff >= 10000 && diff <= 20000, "Head load delay in expected range");
+}
+
 // Main test runner for timing verification
 bool run_timing_tests() {
 	TestFramework test;
@@ -387,6 +506,12 @@ bool run_timing_tests() {
 	test_head_load_timing(test);
 	test_write_timing(test);
 	test_command_abort_timing(test);
+	
+	// New precision timing tests
+	test_precise_position_tracking(test);
+	test_transfer_timing_accuracy(test);
+	test_rotation_timing_precision(test);
+	test_multi_density_timing(test);
 	
 	test.print_summary();
 	test.save_results("test/results/timing_test_results.txt");

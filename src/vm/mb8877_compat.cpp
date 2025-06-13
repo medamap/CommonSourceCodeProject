@@ -1761,30 +1761,107 @@ void MB8877::cmd_format()
 // Timing helper functions
 int MB8877::get_cur_position()
 {
-	// Return current position on track (mock implementation)
-	return fdc[drvreg].cur_position;
+	// Calculate current position based on elapsed time
+	if (!disk[drvreg] || !disk[drvreg]->inserted) {
+		return 0;
+	}
+	
+	// Get elapsed time since last position update
+	double elapsed_usec = get_passed_usec(fdc[drvreg].prev_clock);
+	int elapsed_bytes = disk[drvreg]->get_bytes_per_usec(elapsed_usec);
+	
+	// Calculate new position (with wraparound)
+	int track_size = disk[drvreg]->get_track_size();
+	if (track_size == 0) {
+		return 0;
+	}
+	
+	return (fdc[drvreg].cur_position + elapsed_bytes) % track_size;
 }
 
 double MB8877::get_usec_to_start_trans(bool first_sector)
 {
-	// Mock timing: time to start data transfer
-	// In real FDC, this would calculate time based on disk rotation
-	return first_sector ? 1000.0 : 500.0; // 1ms for first sector, 500us for subsequent
+	// Calculate time to start data transfer based on sector position
+	double time = get_usec_to_next_trans_pos(first_sector && ((cmdreg & 4) != 0));
+	
+#ifdef MB8877_DELAY_AFTER_SEEK
+	// Wait 60ms to start read/write after seek is finished
+	if (first_sector && time < MB8877_DELAY_AFTER_SEEK - get_passed_usec(seekend_clock)) {
+		time += disk[drvreg]->get_usec_per_track();
+	}
+#endif
+	return time;
 }
 
 double MB8877::get_usec_to_next_trans_pos(bool delay)
 {
-	// Mock timing: time to next transfer position
-	return delay ? 200.0 : 100.0; // 200us with delay, 100us without
+	// Calculate time to next transfer position based on current position
+	if (!disk[drvreg] || !disk[drvreg]->inserted) {
+		return 50000.0; // Default delay if no disk
+	}
+	
+	int position = get_cur_position();
+	
+	// Handle invalid format tracks
+	if (disk[drvreg]->invalid_format) {
+		return 50000.0;
+	}
+	
+	// Handle head load delay
+	if (delay) {
+		// DELAY_AFTER_HLD depends on drive type
+		double delay_after_hld = (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ? 15000.0 : 30000.0;
+		position = (position + disk[drvreg]->get_bytes_per_usec(delay_after_hld)) % disk[drvreg]->get_track_size();
+	}
+	
+	// Calculate bytes to next transfer position
+	int bytes = fdc[drvreg].next_trans_position - position;
+	if (fdc[drvreg].next_am1_position < position || bytes < 0) {
+		bytes += disk[drvreg]->get_track_size();
+	}
+	
+	// Convert bytes to microseconds
+	double time = disk[drvreg]->get_usec_per_bytes(bytes);
+	if (delay) {
+		double delay_after_hld = (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ? 15000.0 : 30000.0;
+		time += delay_after_hld;
+	}
+	
+	return time;
 }
 
 double MB8877::get_usec_to_detect_index_hole(int count, bool delay)
 {
-	// Mock timing: time to detect index hole
-	// Standard disk rotation is 300 RPM = 200ms per revolution
-	double revolution_time = 200000.0; // 200ms in microseconds
-	double time = revolution_time * count;
-	return delay ? (time + 1000.0) : time;
+	// Calculate time to detect index hole based on current position
+	if (!disk[drvreg] || !disk[drvreg]->inserted) {
+		// No disk - use standard rotation time
+		double revolution_time = 200000.0; // 200ms per revolution at 300 RPM
+		return delay ? (revolution_time * count + 1000.0) : (revolution_time * count);
+	}
+	
+	int position = get_cur_position();
+	
+	// Handle head load delay
+	if (delay) {
+		double delay_after_hld = (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ? 15000.0 : 30000.0;
+		position = (position + disk[drvreg]->get_bytes_per_usec(delay_after_hld)) % disk[drvreg]->get_track_size();
+	}
+	
+	// Calculate bytes to index hole(s)
+	int track_size = disk[drvreg]->get_track_size();
+	int bytes = track_size * count - position;
+	if (bytes < 0) {
+		bytes += track_size;
+	}
+	
+	// Convert bytes to microseconds
+	double time = disk[drvreg]->get_usec_per_bytes(bytes);
+	if (delay) {
+		double delay_after_hld = (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ? 15000.0 : 30000.0;
+		time += delay_after_hld;
+	}
+	
+	return time;
 }
 
 bool MB8877::get_intr_ack()
