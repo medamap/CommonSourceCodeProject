@@ -1,5 +1,0 @@
----
-triple:          'arm64-apple-darwin'
-binary-path:     test_mock_disk_only_asan
-relocations:     []
-...
