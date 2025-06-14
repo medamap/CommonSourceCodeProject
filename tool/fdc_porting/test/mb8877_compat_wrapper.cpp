@@ -13,5 +13,5 @@
 #include "mock_environment.h"
 
 // Include appropriate header based on implementation
-#include "../../../src/vm/mb8877_compat.h"
-#include "../../../src/vm/mb8877_compat.cpp"
+#include "../src/vm/mb8877_compat.h"
+#include "../src/vm/mb8877_compat.cpp"

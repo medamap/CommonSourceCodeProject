@@ -1,0 +1,9 @@
+Phase 29: Simple Type II Command Test
+=====================================
+
+Test 1: Initial status check
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x151604730
+IRQ Signal: CLEAR

@@ -125,6 +125,22 @@ private:
 	void update_head_flag(int drv, bool head_load);
 	void update_ready();
 	
+	// Helper to safely get disk pointer
+	DISK* get_disk_safe(int drv) {
+		if(drv >= 0 && drv < MAX_DRIVE && disk[drv] != NULL) {
+			return disk[drv];
+		}
+		return NULL;
+	}
+	
+	// Helper for DELAY_AFTER_HLD macro
+	int get_delay_after_hld() {
+		if(drvreg < MAX_DRIVE && disk[drvreg] != NULL) {
+			return disk[drvreg]->drive_type == DRIVE_TYPE_2HD ? 15000 : 30000;
+		}
+		return 30000; // Default value
+	}
+	
 	// irq/dma
 	void set_irq(bool val);
 	void set_drq(bool val);
@@ -138,6 +154,10 @@ public:
 		d_noise_seek = NULL;
 		d_noise_head_down = NULL;
 		d_noise_head_up = NULL;
+		// Initialize disk array to NULL
+		for(int i = 0; i < MAX_DRIVE; i++) {
+			disk[i] = NULL;
+		}
 		// these parameters may be modified before calling initialize()
 		drvreg = sidereg = 0;
 		motor_on = drive_sel = false;

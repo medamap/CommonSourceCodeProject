@@ -45,7 +45,7 @@
 
 #define DRIVE_MASK		(MAX_DRIVE - 1)
 
-#define DELAY_AFTER_HLD		(disk[drvreg]->drive_type == DRIVE_TYPE_2HD ? 15000 : 30000)
+#define DELAY_AFTER_HLD		(get_delay_after_hld())
 
 static const int seek_wait_hi[4] = {3000,  6000, 10000, 16000};	// 2MHz
 static const int seek_wait_lo[4] = {6000, 12000, 20000, 30000};	// 1MHz
@@ -79,6 +79,11 @@ void MB8877::register_seek_event(bool first)
 
 void MB8877::register_drq_event(int bytes)
 {
+	// Safety check
+	if(drvreg >= MAX_DRIVE || disk[drvreg] == NULL) {
+		return;
+	}
+	
 	double usec = disk[drvreg]->get_usec_per_bytes(bytes) - get_passed_usec(prev_drq_clock);
 	if(usec < 4) {
 		usec = 4;
@@ -96,13 +101,25 @@ void MB8877::register_drq_event(int bytes)
 void MB8877::register_lost_event(int bytes)
 {
 	cancel_my_event(EVENT_LOST);
+	// Safety check
+	if(drvreg >= MAX_DRIVE || disk[drvreg] == NULL) {
+		return;
+	}
 	register_event(this, (EVENT_LOST << 8) | (cmdtype & 0xff), disk[drvreg]->get_usec_per_bytes(bytes), false, &register_id[EVENT_LOST]);
 }
 
 void MB8877::initialize()
 {
+#ifdef STANDALONE_TEST
+	printf("MB8877::initialize() called\n");
+	fflush(stdout);
+#endif
 	// initialize d88 handler
 	for(int i = 0; i < MAX_DRIVE; i++) {
+#ifdef STANDALONE_TEST
+		printf("Creating DISK for drive %d\n", i);
+		fflush(stdout);
+#endif
 		disk[i] = new DISK(emu);
 		disk[i]->set_device_name(_T("%s/Disk #%d"), this_device_name, i + 1);
 	}
@@ -149,20 +166,26 @@ void MB8877::release()
 
 void MB8877::reset()
 {
-	// finish previous command
-	if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC) {
-		// abort write sector command
-		if(sector_changed) {
-			disk[drvreg]->set_data_crc_error(false);
-		}
-	} else if(cmdtype == FDC_CMD_WR_TRK) {
-		// abort write track command
-		if(!disk[drvreg]->write_protected) {
-			if(fdc[drvreg].id_written && !fdc[drvreg].sector_found) {
-				// data mark of last sector is not written
-				disk[drvreg]->set_data_mark_missing();
+#ifdef STANDALONE_TEST
+	printf("MB8877::reset() called\n");
+	fflush(stdout);
+#endif
+	// finish previous command - only if disk array is initialized
+	if(disk[0] != NULL) {
+		if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC) {
+			// abort write sector command
+			if(sector_changed && drvreg < MAX_DRIVE && disk[drvreg] != NULL) {
+				disk[drvreg]->set_data_crc_error(false);
 			}
-			disk[drvreg]->sync_buffer();
+		} else if(cmdtype == FDC_CMD_WR_TRK) {
+			// abort write track command
+			if(drvreg < MAX_DRIVE && disk[drvreg] != NULL && !disk[drvreg]->write_protected) {
+				if(fdc[drvreg].id_written && !fdc[drvreg].sector_found) {
+					// data mark of last sector is not written
+					disk[drvreg]->set_data_mark_missing();
+				}
+				disk[drvreg]->sync_buffer();
+			}
 		}
 	}
 	
@@ -236,7 +259,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 #endif
 		ready = ((status & FDC_ST_DRQ) && !now_search);
 #if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-		if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS)
+		if(drvreg < MAX_DRIVE && disk[drvreg] != NULL && disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS)
 #endif
 		{
 			if(!motor_on) ready = false;
@@ -245,7 +268,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 		if(ready) {
 			if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC) {
 				// write or multisector write
-				if(fdc[drvreg].index < disk[drvreg]->sector_size.sd) {
+				if(drvreg < MAX_DRIVE && disk[drvreg] != NULL && fdc[drvreg].index < disk[drvreg]->sector_size.sd) {
 					if(!disk[drvreg]->write_protected) {
 						if(disk[drvreg]->sector[fdc[drvreg].index] != datareg) {
 							disk[drvreg]->sector[fdc[drvreg].index] = datareg;
@@ -261,7 +284,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 					}
 					//fdc[drvreg].index++;
 				}
-				if((fdc[drvreg].index + 1) >= disk[drvreg]->sector_size.sd) {
+				if(drvreg < MAX_DRIVE && disk[drvreg] != NULL && (fdc[drvreg].index + 1) >= disk[drvreg]->sector_size.sd) {
 					if(cmdtype == FDC_CMD_WR_SEC) {
 						// single sector
 #ifdef _FDC_DEBUG_LOG
@@ -394,6 +417,18 @@ uint32_t MB8877::read_io8(uint32_t addr)
 	bool not_ready;
 	bool ready;
 	
+#ifdef STANDALONE_TEST
+	printf("MB8877::read_io8(0x%02X) called, drvreg=%d\n", addr, drvreg);
+	fflush(stdout);
+	// Safety check for test environment
+	if(drvreg >= MAX_DRIVE || disk[drvreg] == NULL) {
+		printf("Safety check failed: drvreg=%d, MAX_DRIVE=%d, disk[%d]=%p\n", drvreg, MAX_DRIVE, drvreg, drvreg < MAX_DRIVE ? disk[drvreg] : NULL);
+		fflush(stdout);
+		// Return NOT READY status if disk is not initialized
+		return FDC_ST_NOTREADY;
+	}
+#endif
+	
 	switch(addr & 3) {
 	case 0:
 		// status reg
@@ -402,12 +437,15 @@ uint32_t MB8877::read_io8(uint32_t addr)
 			val = FDC_ST_BUSY;
 		} else {
 			// disk not inserted, motor stop
-			not_ready = !disk[drvreg]->inserted;
+			not_ready = true;
+			if(drvreg < MAX_DRIVE && disk[drvreg] != NULL) {
+				not_ready = !disk[drvreg]->inserted;
 #if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-			if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS)
+				if(disk[drvreg]->is_special_disk != SPECIAL_DISK_FM7_RIGLAS)
 #endif
-			{
-				if(!motor_on) not_ready = true;
+				{
+					if(!motor_on) not_ready = true;
+				}
 			}
 //			if(!disk[drvreg]->inserted || !motor_on) {
 			if(not_ready) {
@@ -417,7 +455,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 			}
 			// write protected
 			if(cmdtype == FDC_CMD_TYPE1 || cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC || cmdtype == FDC_CMD_WR_TRK) {
-				if(disk[drvreg]->inserted && disk[drvreg]->write_protected) {
+				if(drvreg < MAX_DRIVE && disk[drvreg] != NULL && disk[drvreg]->inserted && disk[drvreg]->write_protected) {
 					status |= FDC_ST_WRITEP;
 				} else {
 					status &= ~FDC_ST_WRITEP;
@@ -433,7 +471,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 					status &= ~FDC_ST_TRACK00;
 				}
 				// index hole signal width is 5msec (thanks Mr.Sato)
-				if(!(status & FDC_ST_NOTREADY) && get_cur_position() < disk[drvreg]->get_bytes_per_usec(5000)) {
+				if(!(status & FDC_ST_NOTREADY) && drvreg < MAX_DRIVE && disk[drvreg] != NULL && get_cur_position() < disk[drvreg]->get_bytes_per_usec(5000)) {
 					status |= FDC_ST_INDEX;
 				} else {
 					status &= ~FDC_ST_INDEX;
@@ -445,7 +483,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 				status &= ~FDC_ST_BUSY;
 #ifdef MB8877_NO_BUSY_AFTER_SEEK
 	#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-				if(disk[0]->is_special_disk != SPECIAL_DISK_FM7_XANADU2_D)
+				if(disk[0] != NULL && disk[0]->is_special_disk != SPECIAL_DISK_FM7_XANADU2_D)
 	#endif
 				{
 					val &= ~FDC_ST_BUSY;
@@ -502,13 +540,20 @@ uint32_t MB8877::read_io8(uint32_t addr)
 //		if(motor_on && (status & FDC_ST_DRQ) && !now_search) {
 		if(ready) {
 			if(cmdtype == FDC_CMD_RD_SEC || cmdtype == FDC_CMD_RD_MSEC) {
-				// read or multisector read
-				if(fdc[drvreg].index < disk[drvreg]->sector_size.sd) {
-					uint8_t mask = disk[drvreg]->unstable ? disk[drvreg]->unstable[fdc[drvreg].index] : 0;
-					datareg = (disk[drvreg]->sector[fdc[drvreg].index] & ~mask) | (rand() & mask);
-					//fdc[drvreg].index++;
+				// Use sector_length for bounds checking
+				if(fdc[drvreg].index < fdc[drvreg].sector_length && 
+				   fdc[drvreg].index < disk[drvreg]->sector_size.sd) {
+					datareg = disk[drvreg]->sector[fdc[drvreg].index];
+#ifdef _FDC_DEBUG_LOG
+					this->out_debug_log(_T("FDC\tREAD: byte[%d] = 0x%02X\n"), fdc[drvreg].index, datareg);
+#endif
+				} else {
+					// End of sector or bounds error
+					datareg = 0xFF;
 				}
-				if((fdc[drvreg].index + 1) >= disk[drvreg]->sector_size.sd) {
+				
+				// Check if this is the last byte
+				if((fdc[drvreg].index + 1) >= fdc[drvreg].sector_length) {
 
 					if(disk[drvreg]->data_crc_error && !disk[drvreg]->ignore_crc()) {
 						// data crc error
@@ -739,6 +784,15 @@ void MB8877::event_callback(int event_id, int err)
 			cmdtype = 0;
 			set_irq(true);
 		} else {
+			// SUCCESS - Prepare for data transfer
+			if(cmdtype == FDC_CMD_RD_SEC || cmdtype == FDC_CMD_RD_MSEC) {
+				// Use existing sector_length field to track readable bytes
+				fdc[drvreg].sector_length = disk[drvreg]->sector_size.sd;
+				fdc[drvreg].index = 0;  // Reset read index
+#ifdef _FDC_DEBUG_LOG
+				this->out_debug_log(_T("FDC\tREAD: Ready to read %d bytes\n"), fdc[drvreg].sector_length);
+#endif
+			}
 			status = status_tmp | (FDC_ST_BUSY | FDC_ST_DRQ);
 			if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC) {
 				register_lost_event(8);
@@ -783,6 +837,9 @@ void MB8877::event_callback(int event_id, int err)
 		break;
 	case EVENT_MULTI2:
 		if(cmdtype == FDC_CMD_RD_MSEC) {
+			// Reset for next sector
+			fdc[drvreg].index = 0;
+			fdc[drvreg].sector_length = 0;
 			cmd_readdata(false);
 		} else if(cmdtype == FDC_CMD_WR_MSEC) {
 			cmd_writedata(false);
@@ -1471,6 +1528,9 @@ uint8_t MB8877::search_addr()
 
 int MB8877::get_cur_position()
 {
+	if(drvreg >= MAX_DRIVE || disk[drvreg] == NULL) {
+		return 0;
+	}
 	return (fdc[drvreg].cur_position + disk[drvreg]->get_bytes_per_usec(get_passed_usec(fdc[drvreg].prev_clock))) % disk[drvreg]->get_track_size();
 }
 

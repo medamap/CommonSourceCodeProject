@@ -1,0 +1,82 @@
+=== MB8877 Drive RPM Tests ===
+Starting test_basic_rpm_setting...
+
+--- Basic RPM Setting ---
+[PASS] Set 5.25" RPM without crash
+[PASS] Set 3.5" RPM without crash
+[PASS] Set custom RPM without crash
+[PASS] Set 5.25" RPM without crash
+[PASS] Set 3.5" RPM without crash
+[PASS] Set custom RPM without crash
+[PASS] Set 5.25" RPM without crash
+[PASS] Set 3.5" RPM without crash
+[PASS] Set custom RPM without crash
+[PASS] Set 5.25" RPM without crash
+[PASS] Set 3.5" RPM without crash
+[PASS] Set custom RPM without crash
+Starting test_rpm_range_validation...
+
+--- RPM Range Validation ---
+[PASS] Minimum RPM boundary
+[PASS] Maximum RPM boundary
+[PASS] Below minimum handled
+[PASS] Above maximum handled
+[PASS] Zero RPM handled
+[PASS] Extreme high RPM handled
+Starting test_standard_rpm_values...
+
+--- Standard RPM Values ---
+[PASS] 5.25" standard RPM (300)
+[PASS] 3.5" standard RPM (360)
+[PASS] 250 RPM variation
+[PASS] 320 RPM variation
+Starting test_individual_drive_rpm...
+
+--- Individual Drive RPM ---
+[PASS] Different RPM for each drive
+[PASS] Changed RPM for specific drives
+Starting test_invalid_drive_handling...
+
+--- Invalid Drive Handling ---
+[PASS] Negative drive number handled
+[PASS] Drive 4 handled
+[PASS] Drive 10 handled
+Starting test_rpm_timing_impact...
+
+--- RPM Timing Impact ---
+[PASS] Positive rotation time
+[PASS] Positive rotation time
+[PASS] Positive rotation time
+[PASS] Positive rotation time
+[PASS] Positive rotation time
+[PASS] Positive rotation time
+[PASS] Positive rotation time
+Starting test_phase12_integration...
+
+--- Phase 12 Integration ---
+[PASS] MFM mode set
+[PASS] RPM set
+[PASS] Phase 12 features integrated
+Starting test_boundary_values...
+
+--- Boundary Value Testing ---
+[PASS] Just below minimum
+[PASS] Exact minimum
+[PASS] Just above minimum
+[PASS] Just below 5.25" standard
+[PASS] 5.25" standard
+[PASS] Just above 5.25" standard
+[PASS] Just below 3.5" standard
+[PASS] 3.5" standard
+[PASS] Just above 3.5" standard
+[PASS] Just below maximum
+[PASS] Exact maximum
+[PASS] Just above maximum
+All tests completed. Printing summary...
+
+========== Test Summary ==========
+Total tests: 49
+Passed: 49
+Failed: 0
+Success rate: 100.0%
+==================================

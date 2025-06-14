@@ -50,16 +50,16 @@ public:
 	virtual ~FILEIO() {}
 	virtual int fgetc() { return 0; }
 	virtual int fputc(int c) { return c; }
-	virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-	virtual size_t fwrite(const void* ptr, size_t size, size_t nmemb) { return size * nmemb; }
-	virtual bool StateCheckUint32(uint32_t x) { return true; }
-	virtual bool StateCheckInt32(int32_t x) { return true; }
-	virtual void StateValue(uint32_t& x) {}
-	virtual void StateValue(int32_t& x) {}
-	virtual void StateValue(uint16_t& x) {}
-	virtual void StateValue(uint8_t& x) {}
-	virtual void StateValue(bool& x) {}
-	virtual void StateArray(void* x, size_t size, size_t count) {}
+	virtual size_t fread(void* /*ptr*/, size_t /*size*/, size_t /*nmemb*/) { return 0; }
+	virtual size_t fwrite(const void* /*ptr*/, size_t size, size_t nmemb) { return size * nmemb; }
+	virtual bool StateCheckUint32(uint32_t /*x*/) { return true; }
+	virtual bool StateCheckInt32(int32_t /*x*/) { return true; }
+	virtual void StateValue(uint32_t& /*x*/) {}
+	virtual void StateValue(int32_t& /*x*/) {}
+	virtual void StateValue(uint16_t& /*x*/) {}
+	virtual void StateValue(uint8_t& /*x*/) {}
+	virtual void StateValue(bool& /*x*/) {}
+	virtual void StateArray(void* /*x*/, size_t /*size*/, size_t /*count*/) {}
 };
 
 // Prevent including the real EMU class
@@ -77,8 +77,8 @@ public:
 	virtual uint32_t get_current_clock() { return 0; }
 	virtual uint32_t get_cpu_clock(int) { return 4000000; }
 	virtual bool is_frame_skippable() { return false; }
-	virtual void out_debug_log(const _TCHAR* format, ...) {}
-	virtual void force_out_debug_log(const _TCHAR* format, ...) {}
+	virtual void out_debug_log(const _TCHAR* /*format*/, ...) {}
+	virtual void force_out_debug_log(const _TCHAR* /*format*/, ...) {}
 };
 
 // Forward declaration of DEVICE for linked list
@@ -161,14 +161,14 @@ public:
 			event_manager->cancel_event(device, register_id);
 		}
 	}
-	virtual void write_signals(void* outputs, uint32_t data) {}
-	virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-	virtual void event_callback(int event_id, int err) {}  // Add event callback method
-	virtual void set_device_name(const _TCHAR* format, ...) {}
+	virtual void write_signals(void* /*outputs*/, uint32_t /*data*/) {}
+	virtual void write_signal(int /*id*/, uint32_t /*data*/, uint32_t /*mask*/) {}
+	virtual void event_callback(int /*event_id*/, int /*err*/) {}  // Add event callback method
+	virtual void set_device_name(const _TCHAR* /*format*/, ...) {}
 	
 	// Debug logging methods required by mb8877_compat
-	virtual void out_debug_log(const _TCHAR* format, ...) {}
-	virtual void force_out_debug_log(const _TCHAR* format, ...) {}
+	virtual void out_debug_log(const _TCHAR* /*format*/, ...) {}
+	virtual void force_out_debug_log(const _TCHAR* /*format*/, ...) {}
 	
 	// Method to set event manager (called by set_context_event_manager)
 	virtual void set_event_manager(DEVICE* mgr) {
@@ -205,13 +205,7 @@ public:
 
 // output types already defined above
 
-// Prevent including the real classes - these guards are set by test files
-#ifndef _VM_TEMPLATE_H_
-#define _VM_TEMPLATE_H_
-#endif
-#ifndef _DEVICE_H_
-#define _DEVICE_H_
-#endif
+// Header guards are handled by including files
 
 // We provide our own mocks instead of including real headers
 // #include "../../../src/fileio.h" 
@@ -273,7 +267,7 @@ public:
 		if (unstable) delete[] unstable;
 	}
 	
-	DISK() : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
+	DISK() : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), unstable(nullptr), sector(nullptr), id(nullptr), track(nullptr), sector_mfm(false) {
 		sector_size.sd = 256;
 		sector_num.sd = 16;  // Default 16 sectors per track
 		sector = new uint8_t[512];  // Larger buffer for safety
@@ -293,13 +287,13 @@ public:
 		}
 	}
 	
-	virtual void open(const _TCHAR* path, int bank) {}
+	virtual void open(const _TCHAR* /*path*/, int /*bank*/) {}
 	virtual void close() {}
 	virtual bool is_disk_inserted() { return false; }
 	virtual bool is_inserted() { return false; }
 	virtual void set_write_protect(bool val) { write_protected = val; }
 	virtual bool is_disk_protected() { return write_protected; }
-	virtual bool get_track(int trk, int side) { return false; }
+	virtual bool get_track(int /*trk*/, int /*side*/) { return false; }
 	virtual bool get_sector(int trk, int side, int sec) { 
 		// Mock implementation supports both 3-param and index-based access
 		if (sec >= 0 && sec < sector_num.sd) {
@@ -314,14 +308,14 @@ public:
 	}
 	
 	// Additional methods expected by MB8877
-	virtual void set_device_name(const _TCHAR* format, ...) {}
+	virtual void set_device_name(const _TCHAR* /*format*/, ...) {}
 	virtual void set_data_crc_error(bool error) { data_crc_error = error; }
-	virtual void set_data_mark_missing(bool missing = true) {}  // Default parameter
+	virtual void set_data_mark_missing(bool /*missing*/ = true) {}  // Default parameter
 	virtual void sync_buffer() {}  // Method not member variable
-	virtual void set_deleted(bool deleted) {}  // Set deleted data mark
+	virtual void set_deleted(bool /*deleted*/) {}  // Set deleted data mark
 	virtual bool ignore_crc() { return _ignore_crc; }
 	virtual int get_track_size() { return 6250; }  // Standard track size
-	virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
+	virtual bool process_state(FILEIO* /*state_fio*/, bool /*loading*/) { return true; }  // State save/load
 	
 	// Timing methods required by original MB8877
 	virtual double get_usec_per_bytes(int bytes) { 
@@ -336,12 +330,12 @@ public:
 	virtual bool correct_timing() { return false; }  // Use standard timing
 	
 	// Track/sector management
-	virtual void make_track(int track, int side) {}
-	virtual void format_track(int track, int side) {}
-	virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
+	virtual void make_track(int /*track*/, int /*side*/) {}
+	virtual void format_track(int /*track*/, int /*side*/) {}
+	virtual void insert_sector(uint8_t /*c*/, uint8_t /*h*/, uint8_t /*r*/, uint8_t /*n*/, bool /*deleted*/, bool /*crc_error*/, uint8_t /*fill_data*/, int /*length*/) {}
 	
 	// Constructor that takes EMU parameter (required by original)
-	DISK(EMU* emu) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
+	DISK(EMU* /*emu*/) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), unstable(nullptr), sector(nullptr), id(nullptr), track(nullptr), sector_mfm(false) {
 		sector_size.sd = 256;
 		sector_num.sd = 16;  // Default 16 sectors per track
 		sector = new uint8_t[512];  // Larger buffer for safety
@@ -370,9 +364,9 @@ public:
 	virtual void stop() {}
 	
 	// Methods required by original MB8877
-	virtual void set_device_name(const _TCHAR* format, ...) {}
-	virtual bool load_wav_file(const _TCHAR* filename) { return true; }
-	virtual void set_mute(bool mute) {}
+	virtual void set_device_name(const _TCHAR* /*format*/, ...) {}
+	virtual bool load_wav_file(const _TCHAR* /*filename*/) { return true; }
+	virtual void set_mute(bool /*mute*/) {}
 };
 
 // Mock EVENT class
@@ -398,7 +392,7 @@ public:
 		current_clock = 0;
 	}
 	
-	void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id) {
+	void register_event(DEVICE* device, int event_id, double usec, bool /*loop*/, int* register_id) {
 		static int next_id = 1;
 		EventInfo info;
 		info.device_id = next_id;
@@ -414,7 +408,7 @@ public:
 		next_id++;
 	}
 	
-	void cancel_event(DEVICE* device, int register_id) {
+	void cancel_event(DEVICE* /*device*/, int register_id) {
 		for (auto& evt : events) {
 			if (evt.device_id == register_id) {
 				evt.active = false;
@@ -424,15 +418,31 @@ public:
 	
 	// Advance time and trigger events
 	void advance_clock(uint32_t cycles) {
-		current_clock += cycles;
-		// Trigger events that should occur
-		for (auto& evt : events) {
-			if (evt.active && current_clock >= evt.clock) {
-				evt.active = false; // Mark as processed
-				// Call the device's event_callback method directly
-				if (evt.device) {
-					evt.device->event_callback(evt.event_id, 0);
+		uint32_t target_clock = current_clock + cycles;
+		// Process events in time order until we reach target clock
+		while (current_clock < target_clock) {
+			uint32_t next_event_clock = target_clock;
+			EventInfo* next_event = nullptr;
+			
+			// Find the next active event
+			for (auto& evt : events) {
+				if (evt.active && evt.clock <= target_clock && evt.clock < next_event_clock) {
+					next_event_clock = evt.clock;
+					next_event = &evt;
 				}
+			}
+			
+			// If we found an event, process it
+			if (next_event && next_event_clock > current_clock) {
+				current_clock = next_event_clock;
+				next_event->active = false; // Mark as processed
+				if (next_event->device) {
+					next_event->device->event_callback(next_event->event_id, 0);
+				}
+			} else {
+				// No more events to process
+				current_clock = target_clock;
+				break;
 			}
 		}
 	}
@@ -478,7 +488,7 @@ private:
 	int current_sector;
 	
 public:
-	MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
+	MockDISK(VM_TEMPLATE* /*parent_vm*/, EMU* /*parent_emu*/) : DISK() {
 		crc_error_state = false;
 		track_buffer = nullptr;
 		current_track = 0;
@@ -495,7 +505,7 @@ public:
 		}
 	}
 	
-	void open(const _TCHAR* path, int bank) {
+	void open(const _TCHAR* /*path*/, int /*bank*/) {
 		DISK::inserted = true;  // Use base class member
 		// Create mock disk data
 		DISK::track_size = 6250; // Standard track size
@@ -520,14 +530,14 @@ public:
 	bool is_disk_protected() { return write_protected; }
 	
 	// Mock disk operations
-	bool get_track(int trk, int side) {
+	bool get_track(int trk, int /*side*/) {
 		if (!inserted) return false;
 		current_track = trk;
 		// Generate test track data
 		return true;
 	}
 	
-	bool get_sector(int trk, int side, int sector) {
+	bool get_sector(int trk, int /*side*/, int sector) {
 		if (!inserted) return false;
 		current_track = trk;
 		current_sector = sector;
@@ -535,7 +545,7 @@ public:
 	}
 	
 	// MB8877 expects these methods for Type III commands
-	bool get_sector_info(int position, int sec, int trk, int side, int compare) {
+	bool get_sector_info(int position, int /*sec*/, int trk, int side, int /*compare*/) {
 		if (!inserted) return false;
 		
 		// Mock sector ID field
@@ -558,7 +568,7 @@ public:
 	int data_position[8];
 	
 	// Create mock sector data
-	void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
+	void setup_mock_sector(int /*track*/, int /*sector*/, const uint8_t* /*data*/, int /*size*/) {
 		// In real implementation, would store sector data
 	}
 	
@@ -661,7 +671,7 @@ public:
 };
 
 // Global functions required by original MB8877
-inline double get_passed_usec(uint32_t prev_clock) {
+inline double get_passed_usec(uint32_t /*prev_clock*/) {
 	// Mock implementation - return small value to simulate time passage
 	return 100.0;  // 100 microseconds
 }

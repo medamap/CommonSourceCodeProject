@@ -1,0 +1,318 @@
+{
+  "timestamp": "2025-06-14T21:02:10.850517",
+  "summary": {
+    "total_tests": 7,
+    "identical": 6,
+    "different": 1,
+    "rnf_errors": 0
+  },
+  "comparisons": [
+    {
+      "test_name": "test_mb8877_registers",
+      "gpl_exists": true,
+      "bsd_exists": true,
+      "match": false,
+      "differences": [
+        "Test counts differ - GPL: 11 pass/0 fail, BSD: 8 pass/3 fail",
+        "Motor state differs - GPL: 1, BSD: 0"
+      ],
+      "gpl_results": {
+        "passed": 11,
+        "failed": 0,
+        "errors": [],
+        "status_values": [
+          "84",
+          "84",
+          "04",
+          "A4",
+          "24",
+          "00",
+          "04"
+        ],
+        "key_differences": [],
+        "motor_state": "1"
+      },
+      "bsd_results": {
+        "passed": 8,
+        "failed": 3,
+        "errors": [
+          " TRACK00 bit set on track 0: ",
+          " Type I command sets BUSY: ",
+          " IRQ signal generated on command completion: "
+        ],
+        "status_values": [
+          "80",
+          "80",
+          "00",
+          "80",
+          "80",
+          "00"
+        ],
+        "key_differences": [
+          "TRACK00 bit handling differs"
+        ],
+        "motor_state": "0"
+      }
+    },
+    {
+      "test_name": "test_mb8877_type1_commands",
+      "gpl_exists": true,
+      "bsd_exists": true,
+      "match": true,
+      "differences": [],
+      "gpl_results": {
+        "passed": 4,
+        "failed": 0,
+        "errors": [],
+        "status_values": [
+          "04",
+          "04"
+        ],
+        "key_differences": [],
+        "motor_state": "1"
+      },
+      "bsd_results": {
+        "passed": 4,
+        "failed": 0,
+        "errors": [],
+        "status_values": [
+          "04",
+          "04"
+        ],
+        "key_differences": [],
+        "motor_state": "1"
+      }
+    },
+    {
+      "test_name": "test_mb8877_type2_commands",
+      "gpl_exists": true,
+      "bsd_exists": true,
+      "match": true,
+      "differences": [],
+      "gpl_results": {
+        "passed": 0,
+        "failed": 0,
+        "errors": [],
+        "status_values": [],
+        "key_differences": []
+      },
+      "bsd_results": {
+        "passed": 0,
+        "failed": 0,
+        "errors": [],
+        "status_values": [],
+        "key_differences": []
+      }
+    },
+    {
+      "test_name": "test_mb8877_error_handling",
+      "gpl_exists": true,
+      "bsd_exists": true,
+      "match": true,
+      "differences": [],
+      "gpl_results": {
+        "passed": 14,
+        "failed": 9,
+        "errors": [
+          " RNF (Record Not Found) flag set: ",
+          " RNF flag persists after status read: ",
+          " CRC error flag set: ",
+          " Write Protect flag set: ",
+          " Write Protect flag set for write track: ",
+          " Write Protect flag has priority: ",
+          " CRC error flag set after WP cleared: ",
+          " First read has CRC error: ",
+          " Data successfully read on retry: "
+        ],
+        "status_values": [
+          "04",
+          "80",
+          "04",
+          "04",
+          "04",
+          "80",
+          "04",
+          "80",
+          "04",
+          "80",
+          "04",
+          "80",
+          "04"
+        ],
+        "key_differences": [],
+        "motor_state": "0"
+      },
+      "bsd_results": {
+        "passed": 14,
+        "failed": 9,
+        "errors": [
+          " RNF (Record Not Found) flag set: ",
+          " RNF flag persists after status read: ",
+          " CRC error flag set: ",
+          " Write Protect flag set: ",
+          " Write Protect flag set for write track: ",
+          " Write Protect flag has priority: ",
+          " CRC error flag set after WP cleared: ",
+          " First read has CRC error: ",
+          " Data successfully read on retry: "
+        ],
+        "status_values": [
+          "04",
+          "80",
+          "04",
+          "04",
+          "04",
+          "80",
+          "04",
+          "80",
+          "04",
+          "80",
+          "04",
+          "80",
+          "04"
+        ],
+        "key_differences": [],
+        "motor_state": "0"
+      }
+    },
+    {
+      "test_name": "test_mb8877_timing",
+      "gpl_exists": true,
+      "bsd_exists": true,
+      "match": true,
+      "differences": [],
+      "gpl_results": {
+        "passed": 15,
+        "failed": 9,
+        "errors": [
+          " Seek timing within tolerance: ",
+          " Seek timing within tolerance: ",
+          " Seek timing within tolerance: ",
+          " Seek timing within tolerance: ",
+          " DRQ generated during read: ",
+          " Multiple sectors read: ",
+          " Head load flag set: ",
+          " 256 bytes written: Expected 256, got 0",
+          " Write timing reasonable: "
+        ],
+        "status_values": [
+          "04",
+          "80",
+          "80",
+          "80",
+          "80",
+          "80",
+          "80",
+          "80",
+          "04",
+          "04",
+          "04",
+          "04",
+          "04",
+          "04",
+          "80"
+        ],
+        "key_differences": [],
+        "motor_state": "0"
+      },
+      "bsd_results": {
+        "passed": 15,
+        "failed": 9,
+        "errors": [
+          " Seek timing within tolerance: ",
+          " Seek timing within tolerance: ",
+          " Seek timing within tolerance: ",
+          " Seek timing within tolerance: ",
+          " DRQ generated during read: ",
+          " Multiple sectors read: ",
+          " Head load flag set: ",
+          " 256 bytes written: Expected 256, got 0",
+          " Write timing reasonable: "
+        ],
+        "status_values": [
+          "04",
+          "80",
+          "80",
+          "80",
+          "80",
+          "80",
+          "80",
+          "80",
+          "04",
+          "04",
+          "04",
+          "04",
+          "04",
+          "04",
+          "80"
+        ],
+        "key_differences": [],
+        "motor_state": "0"
+      }
+    },
+    {
+      "test_name": "test_mb8877_drive_mfm",
+      "gpl_exists": true,
+      "bsd_exists": true,
+      "match": true,
+      "differences": [],
+      "gpl_results": {
+        "passed": 15,
+        "failed": 5,
+        "errors": [
+          " Drive not busy: ",
+          " Drive not busy: ",
+          " Drive not busy: ",
+          " Drive not busy: ",
+          " Command in progress: "
+        ],
+        "status_values": [
+          "04",
+          "80",
+          "04"
+        ],
+        "key_differences": [],
+        "motor_state": "0"
+      },
+      "bsd_results": {
+        "passed": 15,
+        "failed": 5,
+        "errors": [
+          " Drive not busy: ",
+          " Drive not busy: ",
+          " Drive not busy: ",
+          " Drive not busy: ",
+          " Command in progress: "
+        ],
+        "status_values": [
+          "04",
+          "80",
+          "04"
+        ],
+        "key_differences": [],
+        "motor_state": "0"
+      }
+    },
+    {
+      "test_name": "test_mb8877_drive_rpm",
+      "gpl_exists": true,
+      "bsd_exists": true,
+      "match": true,
+      "differences": [],
+      "gpl_results": {
+        "passed": 49,
+        "failed": 0,
+        "errors": [],
+        "status_values": [],
+        "key_differences": []
+      },
+      "bsd_results": {
+        "passed": 49,
+        "failed": 0,
+        "errors": [],
+        "status_values": [],
+        "key_differences": []
+      }
+    }
+  ]
+}

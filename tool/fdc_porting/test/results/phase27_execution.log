@@ -1,0 +1,300 @@
+Phase 27 Test Execution Started: #午後
+=== Executing all test binaries ===
+
+--- Running test_mb8877_drive_mfm ---
+IRQ Signal: SET
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x139e04700
+IRQ Signal: CLEAR
+[FAIL] Command in progress: 
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x139e04700
+IRQ Signal: CLEAR
+[PASS] Mode change during command didn't crash
+
+========== Test Summary ==========
+Total tests: 20
+Passed: 15
+Failed: 5
+Success rate: 75.0%
+==================================
+
+--- Running test_mb8877_drive_rpm ---
+[PASS] Just below minimum
+[PASS] Exact minimum
+[PASS] Just above minimum
+[PASS] Just below 5.25" standard
+[PASS] 5.25" standard
+[PASS] Just above 5.25" standard
+[PASS] Just below 3.5" standard
+[PASS] 3.5" standard
+[PASS] Just above 3.5" standard
+[PASS] Just below maximum
+[PASS] Exact maximum
+[PASS] Just above maximum
+All tests completed. Printing summary...
+
+========== Test Summary ==========
+Total tests: 49
+Passed: 49
+Failed: 0
+Success rate: 100.0%
+==================================
+
+--- Running test_mb8877_error_handling ---
+After set_drq
+Check drive ready: motor_on=0, drvreg=0
+Motor is off, returning NOT READY
+IRQ Signal: SET
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x12df04280
+IRQ Signal: CLEAR
+[PASS] Not Ready flag set when drive removed during seek
+[PASS] BUSY flag cleared
+IRQ Signal: CLEAR
+[PASS] IRQ generated on seek error
+
+========== Test Summary ==========
+Total tests: 23
+Passed: 14
+Failed: 9
+Success rate: 60.9%
+==================================
+
+--- Running test_mb8877_registers ---
+process_cmd: cmdreg=0x00, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x04)
+After set_drq
+Check drive ready: motor_on=1, drvreg=0
+Starting command: 0x00
+cmd_restore: drvreg=0, fdc[drvreg].track=0
+register_my_event: event=1, usec=100, cmdtype=0
+DEBUG: IRQ signal count = 1
+DEBUG: First signal - id=0, data=0x00000000, mask=0xFFFFFFFF
+[PASS] IRQ signal generated on command completion
+Printing summary...
+
+========== Test Summary ==========
+Total tests: 11
+Passed: 11
+Failed: 0
+Success rate: 100.0%
+==================================
+Tests completed with result: PASS
+
+--- Running test_mb8877_registers_compat ---
+--- DRQ and IRQ Signal Tests ---
+write_io8: addr=0, data=0x00
+process_cmd: cmdreg=0x00, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x00)
+After set_drq
+Check drive ready: motor_on=0, drvreg=0
+Motor is off, returning NOT READY
+IRQ Signal: SET
+DEBUG: IRQ signal count = 2
+[FAIL] IRQ signal generated on command completion: 
+Printing summary...
+
+========== Test Summary ==========
+Total tests: 11
+Passed: 8
+Failed: 3
+Success rate: 72.7%
+==================================
+Tests completed with result: FAIL
+
+--- Running test_mb8877_timing ---
+[PASS] Position advances with time
+[PASS] Position advances with time
+[PASS] Position advances with time
+
+--- Transfer Timing Accuracy ---
+[PASS] Transfer timing is reasonable
+
+--- Rotation Timing Precision ---
+[PASS] Rotation timing within expected range
+
+--- Multi-Density Timing Support ---
+[PASS] Head load delay adds time
+[PASS] Head load delay in expected range
+
+========== Test Summary ==========
+Total tests: 24
+Passed: 15
+Failed: 9
+Success rate: 62.5%
+==================================
+
+--- Running test_mb8877_type1_commands ---
+register_my_event: event=0, usec=6000, cmdtype=0
+event_callback: event=0, cmd=0, cmdtype=0
+EVENT_SEEK: track=1, seektrk=0
+IRQ Signal: SET
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x140e04730
+IRQ Signal: CLEAR
+[PASS] BUSY flag cleared after restore
+read_io8: addr=1, drvreg=0
+[PASS] Track register = 0 after restore
+[PASS] TRACK00 flag set after restore
+
+--- Restore with Verify Tests ---
+write_io8: addr=1, data=0x05
+write_io8: addr=0, data=0x04
+process_cmd: cmdreg=0x04, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x04)
+
+--- Running test_mb8877_type2_commands ---
+
+--- Running test_mb8877_type3_commands ---
+Starting Type III command tests...
+
+=== Test Suite: MB8877 Type III Command Tests ===
+
+--- Read Address Command Tests ---
+[PASS] Type III commands temporarily skipped in standalone test
+
+--- Read Track Command Tests ---
+[PASS] Type III commands temporarily skipped in standalone test
+
+--- Write Track Command Tests ---
+[PASS] Type III commands temporarily skipped in standalone test
+
+========== Test Summary ==========
+Total tests: 3
+Passed: 3
+Failed: 0
+Success rate: 100.0%
+==================================
+Tests completed with result: PASS
+
+--- Running test_mb8877_type4_commands ---
+process_cmd: cmdreg=0x00, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x80)
+After set_drq
+Check drive ready: motor_on=0, drvreg=0
+Motor is off, returning NOT READY
+IRQ Signal: SET
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x157e04900
+IRQ Signal: CLEAR
+[FAIL] New command accepted after force interrupt: 
+
+========== Test Summary ==========
+Total tests: 17
+Passed: 10
+Failed: 7
+Success rate: 58.8%
+==================================
+
+--- Running test_mb8877_write_track ---
+
+--- Basic Format Track ---
+[PASS] Write track tests temporarily skipped
+
+--- Format With Different Sector Sizes ---
+[PASS] Complex format tests skipped
+
+--- Write Protect Error ---
+[PASS] Write protect test skipped
+
+--- Format Abort With Force Interrupt ---
+[PASS] Format abort test skipped
+
+========== Test Summary ==========
+Total tests: 4
+Passed: 4
+Failed: 0
+Success rate: 100.0%
+==================================
+Tests completed with result: PASS
+
+=== Phase 27 Test Results Summary ===
+
+test_mb8877_drive_mfm:
+Total tests: 20
+Passed: 15
+Failed: 5
+Success rate: 75.0%
+
+test_mb8877_drive_rpm:
+Total tests: 49
+Passed: 49
+Failed: 0
+Success rate: 100.0%
+
+test_mb8877_error_handling:
+Total tests: 23
+Passed: 14
+Failed: 9
+Success rate: 60.9%
+
+test_mb8877_registers_compat:
+Total tests: 11
+Passed: 8
+Failed: 3
+Success rate: 72.7%
+
+test_mb8877_registers:
+Total tests: 11
+Passed: 11
+Failed: 0
+Success rate: 100.0%
+
+test_mb8877_timing:
+Total tests: 24
+Passed: 15
+Failed: 9
+Success rate: 62.5%
+
+test_mb8877_type1_commands:
+
+test_mb8877_type2_commands:
+
+test_mb8877_type3_commands:
+Total tests: 3
+Passed: 3
+Failed: 0
+Success rate: 100.0%
+
+test_mb8877_type4_commands:
+Total tests: 17
+Passed: 10
+Failed: 7
+Success rate: 58.8%
+
+test_mb8877_write_track:
+Total tests: 4
+Passed: 4
+Failed: 0
+Success rate: 100.0%
+
+Checking Type 1 and Type 2 command test results:
+read_io8: addr=1, drvreg=0
+[PASS] Track register = 0 after restore
+[PASS] TRACK00 flag set after restore
+
+--- Restore with Verify Tests ---
+write_io8: addr=1, data=0x05
+write_io8: addr=0, data=0x04
+process_cmd: cmdreg=0x04, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x04)
+
+---
+
+=== Running Type 1 and Type 2 tests with timeout ===

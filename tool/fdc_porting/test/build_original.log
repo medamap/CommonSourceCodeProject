@@ -1,239 +1,29 @@
-g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_registers.cpp -o test_mb8877_registers.o
-In file included from test_mb8877_registers.cpp:15:
-./mock_environment.h:50:29: warning: unused parameter 'ptr' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                    ^
-./mock_environment.h:50:41: warning: unused parameter 'size' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                                ^
-./mock_environment.h:50:54: warning: unused parameter 'nmemb' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                                             ^
-./mock_environment.h:51:36: warning: unused parameter 'ptr' [-Wunused-parameter]
-   51 |         virtual size_t fwrite(const void* ptr, size_t size, size_t nmemb) { return size * nmemb; }
-      |                                           ^
-./mock_environment.h:52:41: warning: unused parameter 'x' [-Wunused-parameter]
-   52 |         virtual bool StateCheckUint32(uint32_t x) { return true; }
-      |                                                ^
-./mock_environment.h:53:39: warning: unused parameter 'x' [-Wunused-parameter]
-   53 |         virtual bool StateCheckInt32(int32_t x) { return true; }
-      |                                              ^
-./mock_environment.h:54:36: warning: unused parameter 'x' [-Wunused-parameter]
-   54 |         virtual void StateValue(uint32_t& x) {}
-      |                                           ^
-./mock_environment.h:55:35: warning: unused parameter 'x' [-Wunused-parameter]
-   55 |         virtual void StateValue(int32_t& x) {}
-      |                                          ^
-./mock_environment.h:56:36: warning: unused parameter 'x' [-Wunused-parameter]
-   56 |         virtual void StateValue(uint16_t& x) {}
-      |                                           ^
-./mock_environment.h:57:35: warning: unused parameter 'x' [-Wunused-parameter]
-   57 |         virtual void StateValue(uint8_t& x) {}
-      |                                          ^
-./mock_environment.h:58:32: warning: unused parameter 'x' [-Wunused-parameter]
-   58 |         virtual void StateValue(bool& x) {}
-      |                                       ^
-./mock_environment.h:59:32: warning: unused parameter 'x' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                       ^
-./mock_environment.h:59:42: warning: unused parameter 'size' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                                 ^
-./mock_environment.h:59:55: warning: unused parameter 'count' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                                              ^
-./mock_environment.h:77:43: warning: unused parameter 'format' [-Wunused-parameter]
-   77 |         virtual void out_debug_log(const _TCHAR* format, ...) {}
-      |                                                  ^
-./mock_environment.h:78:49: warning: unused parameter 'format' [-Wunused-parameter]
-   78 |         virtual void force_out_debug_log(const _TCHAR* format, ...) {}
-      |                                                        ^
-./mock_environment.h:161:35: warning: unused parameter 'outputs' [-Wunused-parameter]
-  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
-      |                                          ^
-./mock_environment.h:161:53: warning: unused parameter 'data' [-Wunused-parameter]
-  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
-      |                                                            ^
-./mock_environment.h:162:32: warning: unused parameter 'id' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                       ^
-./mock_environment.h:162:45: warning: unused parameter 'data' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                                    ^
-./mock_environment.h:162:60: warning: unused parameter 'mask' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                                                   ^
-./mock_environment.h:163:34: warning: unused parameter 'event_id' [-Wunused-parameter]
-  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
-      |                                         ^
-./mock_environment.h:163:48: warning: unused parameter 'err' [-Wunused-parameter]
-  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
-      |                                                       ^
-./mock_environment.h:164:45: warning: unused parameter 'format' [-Wunused-parameter]
-  164 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:269:324: warning: field 'track' will be initialized after field 'unstable' [-Wreorder-ctor]
-  269 |         DISK() : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                                                                                                                                                                                                                                                                                                             ~~~~~~~~~~~~~~~  ~~~~~~~~~~~  ^~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~
-      |                                                                                                                                                                                                                                                                                                             unstable(nullptr)sector(nullptr) id(nullptr)  track(nullptr)
-./mock_environment.h:289:34: warning: unused parameter 'path' [-Wunused-parameter]
-  289 |         virtual void open(const _TCHAR* path, int bank) {}
-      |                                         ^
-./mock_environment.h:289:44: warning: unused parameter 'bank' [-Wunused-parameter]
-  289 |         virtual void open(const _TCHAR* path, int bank) {}
-      |                                                   ^
-./mock_environment.h:295:29: warning: unused parameter 'trk' [-Wunused-parameter]
-  295 |         virtual bool get_track(int trk, int side) { return false; }
-      |                                    ^
-./mock_environment.h:295:38: warning: unused parameter 'side' [-Wunused-parameter]
-  295 |         virtual bool get_track(int trk, int side) { return false; }
-      |                                             ^
-./mock_environment.h:310:45: warning: unused parameter 'format' [-Wunused-parameter]
-  310 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:312:42: warning: unused parameter 'missing' [-Wunused-parameter]
-  312 |         virtual void set_data_mark_missing(bool missing = true) {}  // Default parameter
-      |                                                 ^
-./mock_environment.h:314:32: warning: unused parameter 'deleted' [-Wunused-parameter]
-  314 |         virtual void set_deleted(bool deleted) {}  // Set deleted data mark
-      |                                       ^
-./mock_environment.h:317:37: warning: unused parameter 'state_fio' [-Wunused-parameter]
-  317 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
-      |                                            ^
-./mock_environment.h:317:53: warning: unused parameter 'loading' [-Wunused-parameter]
-  317 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
-      |                                                            ^
-./mock_environment.h:332:30: warning: unused parameter 'track' [-Wunused-parameter]
-  332 |         virtual void make_track(int track, int side) {}
-      |                                     ^
-./mock_environment.h:332:41: warning: unused parameter 'side' [-Wunused-parameter]
-  332 |         virtual void make_track(int track, int side) {}
-      |                                                ^
-./mock_environment.h:333:32: warning: unused parameter 'track' [-Wunused-parameter]
-  333 |         virtual void format_track(int track, int side) {}
-      |                                       ^
-./mock_environment.h:333:43: warning: unused parameter 'side' [-Wunused-parameter]
-  333 |         virtual void format_track(int track, int side) {}
-      |                                                  ^
-./mock_environment.h:334:37: warning: unused parameter 'c' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                            ^
-./mock_environment.h:334:48: warning: unused parameter 'h' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                       ^
-./mock_environment.h:334:59: warning: unused parameter 'r' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                  ^
-./mock_environment.h:334:70: warning: unused parameter 'n' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                             ^
-./mock_environment.h:334:78: warning: unused parameter 'deleted' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                     ^
-./mock_environment.h:334:92: warning: unused parameter 'crc_error' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                   ^
-./mock_environment.h:334:111: warning: unused parameter 'fill_data' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                                      ^
-./mock_environment.h:334:126: warning: unused parameter 'length' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                                                     ^
-./mock_environment.h:337:332: warning: field 'track' will be initialized after field 'unstable' [-Wreorder-ctor]
-  337 |         DISK(EMU* emu) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                                                                                                                                                                                                                                                                                                                     ~~~~~~~~~~~~~~~  ~~~~~~~~~~~  ^~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~
-      |                                                                                                                                                                                                                                                                                                                     unstable(nullptr)sector(nullptr) id(nullptr)  track(nullptr)
-./mock_environment.h:337:12: warning: unused parameter 'emu' [-Wunused-parameter]
-  337 |         DISK(EMU* emu) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                   ^
-./mock_environment.h:366:45: warning: unused parameter 'format' [-Wunused-parameter]
-  366 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:367:43: warning: unused parameter 'filename' [-Wunused-parameter]
-  367 |         virtual bool load_wav_file(const _TCHAR* filename) { return true; }
-      |                                                  ^
-./mock_environment.h:368:29: warning: unused parameter 'mute' [-Wunused-parameter]
-  368 |         virtual void set_mute(bool mute) {}
-      |                                    ^
-./mock_environment.h:394:70: warning: unused parameter 'loop' [-Wunused-parameter]
-  394 |         void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id) {
-      |                                                                             ^
-./mock_environment.h:410:28: warning: unused parameter 'device' [-Wunused-parameter]
-  410 |         void cancel_event(DEVICE* device, int register_id) {
-      |                                   ^
-./mock_environment.h:474:24: warning: unused parameter 'parent_vm' [-Wunused-parameter]
-  474 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
-      |                               ^
-./mock_environment.h:474:40: warning: unused parameter 'parent_emu' [-Wunused-parameter]
-  474 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
-      |                                               ^
-./mock_environment.h:491:26: warning: unused parameter 'path' [-Wunused-parameter]
-  491 |         void open(const _TCHAR* path, int bank) {
-      |                                 ^
-./mock_environment.h:491:36: warning: unused parameter 'bank' [-Wunused-parameter]
-  491 |         void open(const _TCHAR* path, int bank) {
-      |                                           ^
-./mock_environment.h:516:30: warning: unused parameter 'side' [-Wunused-parameter]
-  516 |         bool get_track(int trk, int side) {
-      |                                     ^
-./mock_environment.h:523:31: warning: unused parameter 'side' [-Wunused-parameter]
-  523 |         bool get_sector(int trk, int side, int sector) {
-      |                                      ^
-./mock_environment.h:531:41: warning: unused parameter 'sec' [-Wunused-parameter]
-  531 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
-      |                                                ^
-./mock_environment.h:531:69: warning: unused parameter 'compare' [-Wunused-parameter]
-  531 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
-      |                                                                            ^
-./mock_environment.h:554:29: warning: unused parameter 'track' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                    ^
-./mock_environment.h:554:40: warning: unused parameter 'sector' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                               ^
-./mock_environment.h:554:63: warning: unused parameter 'data' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                                                      ^
-./mock_environment.h:554:73: warning: unused parameter 'size' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                                                                ^
-./mock_environment.h:657:40: warning: unused parameter 'prev_clock' [-Wunused-parameter]
-  657 | inline double get_passed_usec(uint32_t prev_clock) {
-      |                                        ^
-In file included from test_mb8877_registers.cpp:16:
-./../src/vm/mb8877_compat.h:338:53: warning: unused parameter 'id1' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                            ^
-./../src/vm/mb8877_compat.h:338:62: warning: unused parameter 'id2' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                                     ^
-./../src/vm/mb8877_compat.h:338:71: warning: unused parameter 'id3' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                                              ^
-69 warnings generated.
-g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src/common.cpp -o ../src/common.o
-../src/common.cpp:331:63: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+mkdir -p obj
+mkdir -p obj/vm
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_registers.cpp -o obj/test_mb8877_registers.o
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../../../src/common.cpp -o obj/common.o
+../../../src/common.cpp:331:63: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
   331 | errno_t DLL_PREFIX my_tcscat_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource)
       |                                                               ^
-../src/common.cpp:337:61: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+../../../src/common.cpp:337:61: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
   337 | errno_t DLL_PREFIX my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource)
       |                                                             ^
-../src/common.cpp:343:63: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+../../../src/common.cpp:343:63: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
   343 | errno_t DLL_PREFIX my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource)
       |                                                               ^
-../src/common.cpp:357:62: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+../../../src/common.cpp:357:62: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
   357 | errno_t DLL_PREFIX my_strncpy_s(char *strDestination, size_t numberOfElements, const char *strSource, size_t count)
       |                                                              ^
-../src/common.cpp:363:64: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+../../../src/common.cpp:363:64: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
   363 | errno_t DLL_PREFIX my_tcsncpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource, size_t count)
       |                                                                ^
-../src/common.cpp:369:77: warning: unused parameter 'context' [-Wunused-parameter]
+../../../src/common.cpp:369:77: warning: unused parameter 'context' [-Wunused-parameter]
   369 | char *DLL_PREFIX my_strtok_s(char *strToken, const char *strDelimit, char **context)
       |                                                                             ^
-../src/common.cpp:374:83: warning: unused parameter 'context' [-Wunused-parameter]
+../../../src/common.cpp:374:83: warning: unused parameter 'context' [-Wunused-parameter]
   374 | _TCHAR *DLL_PREFIX my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
       |                                                                                   ^
-../src/common.cpp:383:15: warning: 'vsprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead. [-Wdeprecated-declarations]
+../../../src/common.cpp:383:15: warning: 'vsprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead. [-Wdeprecated-declarations]
   383 |         int result = vsprintf(buffer, format, ap);
       |                      ^
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_stdio.h:298:1: note: 'vsprintf' has been explicitly marked deprecated here
@@ -242,13 +32,13 @@ g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
   218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
       |                                                       ^
-../src/common.cpp:379:50: warning: unused parameter 'sizeOfBuffer' [-Wunused-parameter]
+../../../src/common.cpp:379:50: warning: unused parameter 'sizeOfBuffer' [-Wunused-parameter]
   379 | int DLL_PREFIX my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *format, ...)
       |                                                  ^
-../src/common.cpp:406:15: warning: 'vsprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead. [-Wdeprecated-declarations]
+../../../src/common.cpp:406:15: warning: 'vsprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead. [-Wdeprecated-declarations]
   406 |         int result = _vstprintf(buffer, format, ap);
       |                      ^
-../src/common.h:887:22: note: expanded from macro '_vstprintf'
+../../../src/common.h:887:22: note: expanded from macro '_vstprintf'
   887 |                 #define _vstprintf vsprintf
       |                                    ^
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_stdio.h:298:1: note: 'vsprintf' has been explicitly marked deprecated here
@@ -257,10 +47,10 @@ g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
   218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
       |                                                       ^
-../src/common.cpp:402:53: warning: unused parameter 'sizeOfBuffer' [-Wunused-parameter]
+../../../src/common.cpp:402:53: warning: unused parameter 'sizeOfBuffer' [-Wunused-parameter]
   402 | int DLL_PREFIX my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
       |                                                     ^
-../src/common.cpp:413:9: warning: 'vsprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead. [-Wdeprecated-declarations]
+../../../src/common.cpp:413:9: warning: 'vsprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead. [-Wdeprecated-declarations]
   413 |         return vsprintf(buffer, format, argptr);
       |                ^
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_stdio.h:298:1: note: 'vsprintf' has been explicitly marked deprecated here
@@ -269,13 +59,13 @@ g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
   218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
       |                                                       ^
-../src/common.cpp:411:51: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+../../../src/common.cpp:411:51: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
   411 | int DLL_PREFIX my_vsprintf_s(char *buffer, size_t numberOfElements, const char *format, va_list argptr)
       |                                                   ^
-../src/common.cpp:418:9: warning: 'vsprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead. [-Wdeprecated-declarations]
+../../../src/common.cpp:418:9: warning: 'vsprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use vsnprintf(3) instead. [-Wdeprecated-declarations]
   418 |         return _vstprintf(buffer, format, argptr);
       |                ^
-../src/common.h:887:22: note: expanded from macro '_vstprintf'
+../../../src/common.h:887:22: note: expanded from macro '_vstprintf'
   887 |                 #define _vstprintf vsprintf
       |                                    ^
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_stdio.h:298:1: note: 'vsprintf' has been explicitly marked deprecated here
@@ -284,135 +74,135 @@ g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
   218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
       |                                                       ^
-../src/common.cpp:416:54: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
+../../../src/common.cpp:416:54: warning: unused parameter 'numberOfElements' [-Wunused-parameter]
   416 | int DLL_PREFIX my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr)
       |                                                      ^
-../src/common.cpp:431:5: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
+../../../src/common.cpp:431:5: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
   431 |     register size_t len2;
       |     ^~~~~~~~
-../src/common.cpp:432:2: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
+../../../src/common.cpp:432:2: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
   432 |         register uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
       |         ^~~~~~~~
-../src/common.cpp:433:2: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
+../../../src/common.cpp:433:2: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
   433 |         register uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
       |         ^~~~~~~~
-../src/common.cpp:769:5: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
+../../../src/common.cpp:769:5: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
   769 |     register uint32_t *s32 = (uint32_t *)src;
       |     ^~~~~~~~
-../src/common.cpp:770:2: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
+../../../src/common.cpp:770:2: warning: 'register' storage class specifier is deprecated and incompatible with C++17 [-Wdeprecated-register]
   770 |         register uint32_t *d32 = (uint32_t *)dst;
       |         ^~~~~~~~
-../src/common.cpp:1632:55: warning: unused parameter 'src' [-Wunused-parameter]
+../../../src/common.cpp:1632:55: warning: unused parameter 'src' [-Wunused-parameter]
  1632 | void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len)
       |                                                       ^
-../src/common.cpp:1632:68: warning: unused parameter 'dst' [-Wunused-parameter]
+../../../src/common.cpp:1632:68: warning: unused parameter 'dst' [-Wunused-parameter]
  1632 | void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len)
       |                                                                    ^
-../src/common.cpp:1632:80: warning: unused parameter 'dst_len' [-Wunused-parameter]
+../../../src/common.cpp:1632:80: warning: unused parameter 'dst_len' [-Wunused-parameter]
  1632 | void DLL_PREFIX get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len)
       |                                                                                ^
-../src/common.cpp:1650:55: warning: unused parameter 'file' [-Wunused-parameter]
+../../../src/common.cpp:1650:55: warning: unused parameter 'file' [-Wunused-parameter]
  1650 | const _TCHAR *DLL_PREFIX get_parent_dir(const _TCHAR* file)
       |                                                       ^
-../src/common.cpp:1684:53: warning: unused parameter 'cs' [-Wunused-parameter]
+../../../src/common.cpp:1684:53: warning: unused parameter 'cs' [-Wunused-parameter]
  1684 | const wchar_t *DLL_PREFIX char_to_wchar(const char *cs)
       |                                                     ^
-../src/common.cpp:1697:53: warning: unused parameter 'ws' [-Wunused-parameter]
+../../../src/common.cpp:1697:53: warning: unused parameter 'ws' [-Wunused-parameter]
  1697 | const char *DLL_PREFIX wchar_to_char(const wchar_t *ws)
       |                                                     ^
-../src/common.cpp:1956:57: warning: unused parameter 'loading' [-Wunused-parameter]
+../../../src/common.cpp:1956:57: warning: unused parameter 'loading' [-Wunused-parameter]
  1956 | bool DLL_PREFIX cur_time_t::process_state(void *f, bool loading)
       |                                                         ^
 27 warnings generated.
-g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src/config.cpp -o ../src/config.o
-../src/config.cpp:712:41: warning: unused parameter 'loading' [-Wunused-parameter]
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../../../src/config.cpp -o obj/config.o
+../../../src/config.cpp:712:41: warning: unused parameter 'loading' [-Wunused-parameter]
   712 | bool process_config_state(void *f, bool loading)
       |                                         ^
 1 warning generated.
-g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src/fileio.cpp -o ../src/fileio.o
-g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src/fifo.cpp -o ../src/fifo.o
-../src/fifo.cpp:98:40: warning: unused parameter 'loading' [-Wunused-parameter]
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../../../src/fileio.cpp -o obj/fileio.o
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../../../src/fifo.cpp -o obj/fifo.o
+../../../src/fifo.cpp:98:40: warning: unused parameter 'loading' [-Wunused-parameter]
    98 | bool FIFO::process_state(void *f, bool loading)
       |                                        ^
 1 warning generated.
-g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src/vm/disk.cpp -o ../src/vm/disk.o
-../src/vm/disk.cpp:81:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../../../src/vm/disk.cpp -o obj/vm/disk.o
+../../../src/vm/disk.cpp:81:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
    81 |         { MEDIA_TYPE_2D,  35, 1, 16,  128,  FM },       // 1S   70KB
       |                                                ^
-../src/vm/disk.cpp:82:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:82:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
    82 |         { MEDIA_TYPE_2D,  35, 2, 16,  128,  FM },       // 2S   140KB
       |                                                ^
-../src/vm/disk.cpp:83:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:83:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
    83 |         { MEDIA_TYPE_2DD, 77, 1, 26,  128,  FM },       // 1S   250KB
       |                                                ^
-../src/vm/disk.cpp:84:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:84:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
    84 |         { MEDIA_TYPE_2D,  40, 1,  8,  512, MFM },       // 1D   160KB
       |                                                ^
-../src/vm/disk.cpp:85:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:85:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
    85 |         { MEDIA_TYPE_2D,  40, 1,  9,  512, MFM },       // 1D   180KB
       |                                                ^
-../src/vm/disk.cpp:86:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:86:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
    86 |         { MEDIA_TYPE_2D,  40, 1, 10,  512, MFM },       // 1D   200KB
       |                                                ^
-../src/vm/disk.cpp:95:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:95:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
    95 |         { MEDIA_TYPE_2D,  35, 2,  8,  512, MFM },       // 2D   280KB
       |                                                ^
-../src/vm/disk.cpp:96:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:96:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
    96 |         { MEDIA_TYPE_2D,  35, 2,  9,  512, MFM },       // 2D   315KB
       |                                                ^
-../src/vm/disk.cpp:97:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:97:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
    97 |         { MEDIA_TYPE_2D,  35, 2, 10,  512, MFM },       // 2D   350KB
       |                                                ^
-../src/vm/disk.cpp:98:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:98:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
    98 |         { MEDIA_TYPE_2D,  40, 2,  8,  512, MFM },       // 2D   320KB
       |                                                ^
-../src/vm/disk.cpp:99:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:99:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
    99 |         { MEDIA_TYPE_2D,  40, 2,  9,  512, MFM },       // 2D   360KB
       |                                                ^
-../src/vm/disk.cpp:100:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:100:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
   100 |         { MEDIA_TYPE_2D,  40, 2, 10,  512, MFM },       // 2D   400KB
       |                                                ^
-../src/vm/disk.cpp:102:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:102:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
   102 |         { MEDIA_TYPE_2DD, 80, 2,  8,  512, MFM },       // 2DD  640KB
       |                                                ^
-../src/vm/disk.cpp:103:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:103:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
   103 |         { MEDIA_TYPE_2DD, 80, 2,  9,  512, MFM },       // 2DD  720KB
       |                                                ^
-../src/vm/disk.cpp:104:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:104:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
   104 |         { MEDIA_TYPE_2DD, 81, 2,  9,  512, MFM },       // 2DD  729KB, ASCII MSX
       |                                                ^
-../src/vm/disk.cpp:105:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:105:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
   105 |         { MEDIA_TYPE_2DD, 80, 2, 10,  512, MFM },       // 2DD  800KB
       |                                                ^
-../src/vm/disk.cpp:108:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:108:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
   108 |         { MEDIA_TYPE_2HD, 77, 2, 26,  256, MFM },       // 2HD  1001KB, MITSUBISHI/IBM
       |                                                ^
-../src/vm/disk.cpp:109:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:109:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
   109 |         { MEDIA_TYPE_2HD, 80, 2, 15,  512, MFM },       // 2HC  1200KB, TOSHIBA/IBM
       |                                                ^
-../src/vm/disk.cpp:110:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:110:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
   110 |         { MEDIA_TYPE_2HD, 77, 2,  8, 1024, MFM },       // 2HD  1232KB, NEC
       |                                                ^
-../src/vm/disk.cpp:111:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:111:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
   111 |         { MEDIA_TYPE_144, 80, 2, 18,  512, MFM },       // 2HD  1440KB
       |                                                ^
-../src/vm/disk.cpp:112:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:112:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
   112 |         { MEDIA_TYPE_144, 80, 2, 21,  512, MFM },       // 2HD  1680KB
       |                                                ^
-../src/vm/disk.cpp:113:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:113:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
   113 |         { MEDIA_TYPE_144, 82, 2, 21,  512, MFM },       // 2HD  1722KB
       |                                                ^
-../src/vm/disk.cpp:114:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:114:41: warning: missing field 'nsec2' initializer [-Wmissing-field-initializers]
   114 |         { MEDIA_TYPE_144, 80, 2, 36,  512, MFM },       // 2ED  2880KB
       |                                                ^
-../src/vm/disk.cpp:115:19: warning: missing field 'mfm' initializer [-Wmissing-field-initializers]
+../../../src/vm/disk.cpp:115:19: warning: missing field 'mfm' initializer [-Wmissing-field-initializers]
   115 |         { -1, 0, 0, 0, 0 },
       |                          ^
-../src/vm/disk.cpp:1657:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+../../../src/vm/disk.cpp:1657:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
  1657 | typedef struct {
       |               ^
       |                d88_hdr_t
-../src/vm/disk.cpp:1662:2: note: type is not C-compatible due to this member declaration
+../../../src/vm/disk.cpp:1662:2: note: type is not C-compatible due to this member declaration
  1662 |         uint32_t size()
       |         ^~~~~~~~~~~~~~~
  1663 |         {
@@ -421,14 +211,14 @@ g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src
       |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  1665 |         }
       |         ~
-../src/vm/disk.cpp:1687:3: note: type is given name 'd88_hdr_t' for linkage purposes by this typedef declaration
+../../../src/vm/disk.cpp:1687:3: note: type is given name 'd88_hdr_t' for linkage purposes by this typedef declaration
  1687 | } d88_hdr_t;
       |   ^
-../src/vm/disk.cpp:1689:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+../../../src/vm/disk.cpp:1689:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
  1689 | typedef struct {
       |               ^
       |                d88_sct_t
-../src/vm/disk.cpp:1691:2: note: type is not C-compatible due to this member declaration
+../../../src/vm/disk.cpp:1691:2: note: type is not C-compatible due to this member declaration
  1691 |         uint16_t nsec()
       |         ^~~~~~~~~~~~~~~
  1692 |         {
@@ -437,14 +227,14 @@ g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src
       |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  1694 |         }
       |         ~
-../src/vm/disk.cpp:1713:3: note: type is given name 'd88_sct_t' for linkage purposes by this typedef declaration
+../../../src/vm/disk.cpp:1713:3: note: type is given name 'd88_sct_t' for linkage purposes by this typedef declaration
  1713 | } d88_sct_t;
       |   ^
-../src/vm/disk.cpp:1997:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+../../../src/vm/disk.cpp:1997:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
  1997 | typedef struct {
       |               ^
       |                td_hdr_t
-../src/vm/disk.cpp:2006:2: note: type is not C-compatible due to this member declaration
+../../../src/vm/disk.cpp:2006:2: note: type is not C-compatible due to this member declaration
  2006 |         uint16_t crc()
       |         ^~~~~~~~~~~~~~
  2007 |         {
@@ -453,14 +243,14 @@ g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src
       |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  2009 |         }
       |         ~
-../src/vm/disk.cpp:2011:3: note: type is given name 'td_hdr_t' for linkage purposes by this typedef declaration
+../../../src/vm/disk.cpp:2011:3: note: type is given name 'td_hdr_t' for linkage purposes by this typedef declaration
  2011 | } td_hdr_t;
       |   ^
-../src/vm/disk.cpp:2013:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+../../../src/vm/disk.cpp:2013:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
  2013 | typedef struct {
       |               ^
       |                td_cmt_t
-../src/vm/disk.cpp:2014:2: note: type is not C-compatible due to this member declaration
+../../../src/vm/disk.cpp:2014:2: note: type is not C-compatible due to this member declaration
  2014 |         uint16_t crc()
       |         ^~~~~~~~~~~~~~
  2015 |         {
@@ -469,14 +259,14 @@ g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src
       |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  2017 |         }
       |         ~
-../src/vm/disk.cpp:2026:3: note: type is given name 'td_cmt_t' for linkage purposes by this typedef declaration
+../../../src/vm/disk.cpp:2026:3: note: type is given name 'td_cmt_t' for linkage purposes by this typedef declaration
  2026 | } td_cmt_t;
       |   ^
-../src/vm/disk.cpp:2509:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+../../../src/vm/disk.cpp:2509:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
  2509 | typedef struct {
       |               ^
       |                NFD_FILE_HEAD
-../src/vm/disk.cpp:2513:5: note: type is not C-compatible due to this member declaration
+../../../src/vm/disk.cpp:2513:5: note: type is not C-compatible due to this member declaration
  2513 |     DWORD dwHeadSize()                  // �w�b�_���̃T�C�Y
       |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  2514 |     {
@@ -485,14 +275,14 @@ g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src
       |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  2516 |     }
       |     ~
-../src/vm/disk.cpp:2523:2: note: type is given name 'NFD_FILE_HEAD' for linkage purposes by this typedef declaration
+../../../src/vm/disk.cpp:2523:2: note: type is given name 'NFD_FILE_HEAD' for linkage purposes by this typedef declaration
  2523 | }NFD_FILE_HEAD,*LP_NFD_FILE_HEAD;
       |  ^
-../src/vm/disk.cpp:2526:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+../../../src/vm/disk.cpp:2526:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
  2526 | typedef struct {
       |               ^
       |                NFD_FILE_HEAD1
-../src/vm/disk.cpp:2530:5: note: type is not C-compatible due to this member declaration
+../../../src/vm/disk.cpp:2530:5: note: type is not C-compatible due to this member declaration
  2530 |     DWORD dwHeadSize()                          /* �w�b�_�̃T�C�Y           */
       |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  2531 |     {
@@ -501,14 +291,14 @@ g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src
       |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  2533 |     }
       |     ~
-../src/vm/disk.cpp:2549:2: note: type is given name 'NFD_FILE_HEAD1' for linkage purposes by this typedef declaration
+../../../src/vm/disk.cpp:2549:2: note: type is given name 'NFD_FILE_HEAD1' for linkage purposes by this typedef declaration
  2549 | }NFD_FILE_HEAD1,*LP_NFD_FILE_HEAD1;
       |  ^
-../src/vm/disk.cpp:2551:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+../../../src/vm/disk.cpp:2551:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
  2551 | typedef struct {
       |               ^
       |                NFD_TRACK_ID1
-../src/vm/disk.cpp:2552:5: note: type is not C-compatible due to this member declaration
+../../../src/vm/disk.cpp:2552:5: note: type is not C-compatible due to this member declaration
  2552 |     WORD wSector()                              /* �Z�N�^ID��               */
       |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  2553 |     {
@@ -517,14 +307,14 @@ g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src
       |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  2555 |     }
       |     ~
-../src/vm/disk.cpp:2563:2: note: type is given name 'NFD_TRACK_ID1' for linkage purposes by this typedef declaration
+../../../src/vm/disk.cpp:2563:2: note: type is given name 'NFD_TRACK_ID1' for linkage purposes by this typedef declaration
  2563 | }NFD_TRACK_ID1,*LP_NFD_TRACK_ID1;
       |  ^
-../src/vm/disk.cpp:2581:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+../../../src/vm/disk.cpp:2581:15: warning: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
  2581 | typedef struct {
       |               ^
       |                NFD_DIAG_ID1
-../src/vm/disk.cpp:2592:5: note: type is not C-compatible due to this member declaration
+../../../src/vm/disk.cpp:2592:5: note: type is not C-compatible due to this member declaration
  2592 |     DWORD   dwDataLen()
       |     ^~~~~~~~~~~~~~~~~~~
  2593 |     {
@@ -533,674 +323,32 @@ g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c ../src
       |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  2595 |     }
       |     ~
-../src/vm/disk.cpp:2599:2: note: type is given name 'NFD_DIAG_ID1' for linkage purposes by this typedef declaration
+../../../src/vm/disk.cpp:2599:2: note: type is given name 'NFD_DIAG_ID1' for linkage purposes by this typedef declaration
  2599 | }NFD_DIAG_ID1,*LP_NFD_DIAG_ID1;
       |  ^
 32 warnings generated.
-g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c mb8877_test_wrapper.cpp -o mb8877_test_wrapper.o
-mb8877_test_wrapper.cpp:2:9: warning: 'STANDALONE_TEST' macro redefined [-Wmacro-redefined]
-    2 | #define STANDALONE_TEST
-      |         ^
-<command line>:1:9: note: previous definition is here
-    1 | #define STANDALONE_TEST 1
-      |         ^
-In file included from mb8877_test_wrapper.cpp:13:
-./mock_environment.h:50:29: warning: unused parameter 'ptr' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                    ^
-./mock_environment.h:50:41: warning: unused parameter 'size' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                                ^
-./mock_environment.h:50:54: warning: unused parameter 'nmemb' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                                             ^
-./mock_environment.h:51:36: warning: unused parameter 'ptr' [-Wunused-parameter]
-   51 |         virtual size_t fwrite(const void* ptr, size_t size, size_t nmemb) { return size * nmemb; }
-      |                                           ^
-./mock_environment.h:52:41: warning: unused parameter 'x' [-Wunused-parameter]
-   52 |         virtual bool StateCheckUint32(uint32_t x) { return true; }
-      |                                                ^
-./mock_environment.h:53:39: warning: unused parameter 'x' [-Wunused-parameter]
-   53 |         virtual bool StateCheckInt32(int32_t x) { return true; }
-      |                                              ^
-./mock_environment.h:54:36: warning: unused parameter 'x' [-Wunused-parameter]
-   54 |         virtual void StateValue(uint32_t& x) {}
-      |                                           ^
-./mock_environment.h:55:35: warning: unused parameter 'x' [-Wunused-parameter]
-   55 |         virtual void StateValue(int32_t& x) {}
-      |                                          ^
-./mock_environment.h:56:36: warning: unused parameter 'x' [-Wunused-parameter]
-   56 |         virtual void StateValue(uint16_t& x) {}
-      |                                           ^
-./mock_environment.h:57:35: warning: unused parameter 'x' [-Wunused-parameter]
-   57 |         virtual void StateValue(uint8_t& x) {}
-      |                                          ^
-./mock_environment.h:58:32: warning: unused parameter 'x' [-Wunused-parameter]
-   58 |         virtual void StateValue(bool& x) {}
-      |                                       ^
-./mock_environment.h:59:32: warning: unused parameter 'x' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                       ^
-./mock_environment.h:59:42: warning: unused parameter 'size' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                                 ^
-./mock_environment.h:59:55: warning: unused parameter 'count' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                                              ^
-./mock_environment.h:77:43: warning: unused parameter 'format' [-Wunused-parameter]
-   77 |         virtual void out_debug_log(const _TCHAR* format, ...) {}
-      |                                                  ^
-./mock_environment.h:78:49: warning: unused parameter 'format' [-Wunused-parameter]
-   78 |         virtual void force_out_debug_log(const _TCHAR* format, ...) {}
-      |                                                        ^
-./mock_environment.h:161:35: warning: unused parameter 'outputs' [-Wunused-parameter]
-  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
-      |                                          ^
-./mock_environment.h:161:53: warning: unused parameter 'data' [-Wunused-parameter]
-  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
-      |                                                            ^
-./mock_environment.h:162:32: warning: unused parameter 'id' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                       ^
-./mock_environment.h:162:45: warning: unused parameter 'data' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                                    ^
-./mock_environment.h:162:60: warning: unused parameter 'mask' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                                                   ^
-./mock_environment.h:163:34: warning: unused parameter 'event_id' [-Wunused-parameter]
-  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
-      |                                         ^
-./mock_environment.h:163:48: warning: unused parameter 'err' [-Wunused-parameter]
-  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
-      |                                                       ^
-./mock_environment.h:164:45: warning: unused parameter 'format' [-Wunused-parameter]
-  164 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:269:324: warning: field 'track' will be initialized after field 'unstable' [-Wreorder-ctor]
-  269 |         DISK() : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                                                                                                                                                                                                                                                                                                             ~~~~~~~~~~~~~~~  ~~~~~~~~~~~  ^~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~
-      |                                                                                                                                                                                                                                                                                                             unstable(nullptr)sector(nullptr) id(nullptr)  track(nullptr)
-./mock_environment.h:289:34: warning: unused parameter 'path' [-Wunused-parameter]
-  289 |         virtual void open(const _TCHAR* path, int bank) {}
-      |                                         ^
-./mock_environment.h:289:44: warning: unused parameter 'bank' [-Wunused-parameter]
-  289 |         virtual void open(const _TCHAR* path, int bank) {}
-      |                                                   ^
-./mock_environment.h:295:29: warning: unused parameter 'trk' [-Wunused-parameter]
-  295 |         virtual bool get_track(int trk, int side) { return false; }
-      |                                    ^
-./mock_environment.h:295:38: warning: unused parameter 'side' [-Wunused-parameter]
-  295 |         virtual bool get_track(int trk, int side) { return false; }
-      |                                             ^
-./mock_environment.h:310:45: warning: unused parameter 'format' [-Wunused-parameter]
-  310 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:312:42: warning: unused parameter 'missing' [-Wunused-parameter]
-  312 |         virtual void set_data_mark_missing(bool missing = true) {}  // Default parameter
-      |                                                 ^
-./mock_environment.h:314:32: warning: unused parameter 'deleted' [-Wunused-parameter]
-  314 |         virtual void set_deleted(bool deleted) {}  // Set deleted data mark
-      |                                       ^
-./mock_environment.h:317:37: warning: unused parameter 'state_fio' [-Wunused-parameter]
-  317 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
-      |                                            ^
-./mock_environment.h:317:53: warning: unused parameter 'loading' [-Wunused-parameter]
-  317 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
-      |                                                            ^
-./mock_environment.h:332:30: warning: unused parameter 'track' [-Wunused-parameter]
-  332 |         virtual void make_track(int track, int side) {}
-      |                                     ^
-./mock_environment.h:332:41: warning: unused parameter 'side' [-Wunused-parameter]
-  332 |         virtual void make_track(int track, int side) {}
-      |                                                ^
-./mock_environment.h:333:32: warning: unused parameter 'track' [-Wunused-parameter]
-  333 |         virtual void format_track(int track, int side) {}
-      |                                       ^
-./mock_environment.h:333:43: warning: unused parameter 'side' [-Wunused-parameter]
-  333 |         virtual void format_track(int track, int side) {}
-      |                                                  ^
-./mock_environment.h:334:37: warning: unused parameter 'c' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                            ^
-./mock_environment.h:334:48: warning: unused parameter 'h' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                       ^
-./mock_environment.h:334:59: warning: unused parameter 'r' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                  ^
-./mock_environment.h:334:70: warning: unused parameter 'n' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                             ^
-./mock_environment.h:334:78: warning: unused parameter 'deleted' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                     ^
-./mock_environment.h:334:92: warning: unused parameter 'crc_error' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                   ^
-./mock_environment.h:334:111: warning: unused parameter 'fill_data' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                                      ^
-./mock_environment.h:334:126: warning: unused parameter 'length' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                                                     ^
-./mock_environment.h:337:332: warning: field 'track' will be initialized after field 'unstable' [-Wreorder-ctor]
-  337 |         DISK(EMU* emu) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                                                                                                                                                                                                                                                                                                                     ~~~~~~~~~~~~~~~  ~~~~~~~~~~~  ^~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~
-      |                                                                                                                                                                                                                                                                                                                     unstable(nullptr)sector(nullptr) id(nullptr)  track(nullptr)
-./mock_environment.h:337:12: warning: unused parameter 'emu' [-Wunused-parameter]
-  337 |         DISK(EMU* emu) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                   ^
-./mock_environment.h:366:45: warning: unused parameter 'format' [-Wunused-parameter]
-  366 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:367:43: warning: unused parameter 'filename' [-Wunused-parameter]
-  367 |         virtual bool load_wav_file(const _TCHAR* filename) { return true; }
-      |                                                  ^
-./mock_environment.h:368:29: warning: unused parameter 'mute' [-Wunused-parameter]
-  368 |         virtual void set_mute(bool mute) {}
-      |                                    ^
-./mock_environment.h:394:70: warning: unused parameter 'loop' [-Wunused-parameter]
-  394 |         void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id) {
-      |                                                                             ^
-./mock_environment.h:410:28: warning: unused parameter 'device' [-Wunused-parameter]
-  410 |         void cancel_event(DEVICE* device, int register_id) {
-      |                                   ^
-./mock_environment.h:474:24: warning: unused parameter 'parent_vm' [-Wunused-parameter]
-  474 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
-      |                               ^
-./mock_environment.h:474:40: warning: unused parameter 'parent_emu' [-Wunused-parameter]
-  474 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
-      |                                               ^
-./mock_environment.h:491:26: warning: unused parameter 'path' [-Wunused-parameter]
-  491 |         void open(const _TCHAR* path, int bank) {
-      |                                 ^
-./mock_environment.h:491:36: warning: unused parameter 'bank' [-Wunused-parameter]
-  491 |         void open(const _TCHAR* path, int bank) {
-      |                                           ^
-./mock_environment.h:516:30: warning: unused parameter 'side' [-Wunused-parameter]
-  516 |         bool get_track(int trk, int side) {
-      |                                     ^
-./mock_environment.h:523:31: warning: unused parameter 'side' [-Wunused-parameter]
-  523 |         bool get_sector(int trk, int side, int sector) {
-      |                                      ^
-./mock_environment.h:531:41: warning: unused parameter 'sec' [-Wunused-parameter]
-  531 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
-      |                                                ^
-./mock_environment.h:531:69: warning: unused parameter 'compare' [-Wunused-parameter]
-  531 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
-      |                                                                            ^
-./mock_environment.h:554:29: warning: unused parameter 'track' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                    ^
-./mock_environment.h:554:40: warning: unused parameter 'sector' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                               ^
-./mock_environment.h:554:63: warning: unused parameter 'data' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                                                      ^
-./mock_environment.h:554:73: warning: unused parameter 'size' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                                                                ^
-./mock_environment.h:657:40: warning: unused parameter 'prev_clock' [-Wunused-parameter]
-  657 | inline double get_passed_usec(uint32_t prev_clock) {
-      |                                        ^
-In file included from mb8877_test_wrapper.cpp:17:
-./../src/vm/mb8877.cpp:600:37: warning: unused parameter 'addr' [-Wunused-parameter]
-  600 | void MB8877::write_dma_io8(uint32_t addr, uint32_t data)
-      |                                     ^
-./../src/vm/mb8877.cpp:605:40: warning: unused parameter 'addr' [-Wunused-parameter]
-  605 | uint32_t MB8877::read_dma_io8(uint32_t addr)
-      |                                        ^
-./../src/vm/mb8877.cpp:649:47: warning: unused parameter 'err' [-Wunused-parameter]
-  649 | void MB8877::event_callback(int event_id, int err)
-      |                                               ^
-./../src/vm/mb8877.cpp:1737:9: warning: 'STATE_VERSION' macro redefined [-Wmacro-redefined]
- 1737 | #define STATE_VERSION   6
-      |         ^
-./mock_environment.h:67:9: note: previous definition is here
-   67 | #define STATE_VERSION 1
-      |         ^
-In file included from mb8877_test_wrapper.cpp:17:
-./../src/vm/mb8877.cpp:1747:19: warning: comparison of integers of different signs: 'int' and 'unsigned long' [-Wsign-compare]
- 1747 |         for(int i = 0; i < array_length(fdc); i++) {
-      |                        ~ ^ ~~~~~~~~~~~~~~~~~
-./../src/vm/mb8877.cpp:1764:19: warning: comparison of integers of different signs: 'int' and 'unsigned long' [-Wsign-compare]
- 1764 |         for(int i = 0; i < array_length(disk); i++) {
-      |                        ~ ^ ~~~~~~~~~~~~~~~~~~
-73 warnings generated.
-g++ -o test_mb8877_registers test_mb8877_registers.o ../src/common.o ../src/config.o ../src/fileio.o ../src/fifo.o ../src/vm/disk.o mb8877_test_wrapper.o 
-g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_type1_commands.cpp -o test_mb8877_type1_commands.o
-In file included from test_mb8877_type1_commands.cpp:9:
-./mock_environment.h:50:29: warning: unused parameter 'ptr' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                    ^
-./mock_environment.h:50:41: warning: unused parameter 'size' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                                ^
-./mock_environment.h:50:54: warning: unused parameter 'nmemb' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                                             ^
-./mock_environment.h:51:36: warning: unused parameter 'ptr' [-Wunused-parameter]
-   51 |         virtual size_t fwrite(const void* ptr, size_t size, size_t nmemb) { return size * nmemb; }
-      |                                           ^
-./mock_environment.h:52:41: warning: unused parameter 'x' [-Wunused-parameter]
-   52 |         virtual bool StateCheckUint32(uint32_t x) { return true; }
-      |                                                ^
-./mock_environment.h:53:39: warning: unused parameter 'x' [-Wunused-parameter]
-   53 |         virtual bool StateCheckInt32(int32_t x) { return true; }
-      |                                              ^
-./mock_environment.h:54:36: warning: unused parameter 'x' [-Wunused-parameter]
-   54 |         virtual void StateValue(uint32_t& x) {}
-      |                                           ^
-./mock_environment.h:55:35: warning: unused parameter 'x' [-Wunused-parameter]
-   55 |         virtual void StateValue(int32_t& x) {}
-      |                                          ^
-./mock_environment.h:56:36: warning: unused parameter 'x' [-Wunused-parameter]
-   56 |         virtual void StateValue(uint16_t& x) {}
-      |                                           ^
-./mock_environment.h:57:35: warning: unused parameter 'x' [-Wunused-parameter]
-   57 |         virtual void StateValue(uint8_t& x) {}
-      |                                          ^
-./mock_environment.h:58:32: warning: unused parameter 'x' [-Wunused-parameter]
-   58 |         virtual void StateValue(bool& x) {}
-      |                                       ^
-./mock_environment.h:59:32: warning: unused parameter 'x' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                       ^
-./mock_environment.h:59:42: warning: unused parameter 'size' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                                 ^
-./mock_environment.h:59:55: warning: unused parameter 'count' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                                              ^
-./mock_environment.h:77:43: warning: unused parameter 'format' [-Wunused-parameter]
-   77 |         virtual void out_debug_log(const _TCHAR* format, ...) {}
-      |                                                  ^
-./mock_environment.h:78:49: warning: unused parameter 'format' [-Wunused-parameter]
-   78 |         virtual void force_out_debug_log(const _TCHAR* format, ...) {}
-      |                                                        ^
-./mock_environment.h:161:35: warning: unused parameter 'outputs' [-Wunused-parameter]
-  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
-      |                                          ^
-./mock_environment.h:161:53: warning: unused parameter 'data' [-Wunused-parameter]
-  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
-      |                                                            ^
-./mock_environment.h:162:32: warning: unused parameter 'id' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                       ^
-./mock_environment.h:162:45: warning: unused parameter 'data' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                                    ^
-./mock_environment.h:162:60: warning: unused parameter 'mask' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                                                   ^
-./mock_environment.h:163:34: warning: unused parameter 'event_id' [-Wunused-parameter]
-  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
-      |                                         ^
-./mock_environment.h:163:48: warning: unused parameter 'err' [-Wunused-parameter]
-  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
-      |                                                       ^
-./mock_environment.h:164:45: warning: unused parameter 'format' [-Wunused-parameter]
-  164 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:269:324: warning: field 'track' will be initialized after field 'unstable' [-Wreorder-ctor]
-  269 |         DISK() : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                                                                                                                                                                                                                                                                                                             ~~~~~~~~~~~~~~~  ~~~~~~~~~~~  ^~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~
-      |                                                                                                                                                                                                                                                                                                             unstable(nullptr)sector(nullptr) id(nullptr)  track(nullptr)
-./mock_environment.h:289:34: warning: unused parameter 'path' [-Wunused-parameter]
-  289 |         virtual void open(const _TCHAR* path, int bank) {}
-      |                                         ^
-./mock_environment.h:289:44: warning: unused parameter 'bank' [-Wunused-parameter]
-  289 |         virtual void open(const _TCHAR* path, int bank) {}
-      |                                                   ^
-./mock_environment.h:295:29: warning: unused parameter 'trk' [-Wunused-parameter]
-  295 |         virtual bool get_track(int trk, int side) { return false; }
-      |                                    ^
-./mock_environment.h:295:38: warning: unused parameter 'side' [-Wunused-parameter]
-  295 |         virtual bool get_track(int trk, int side) { return false; }
-      |                                             ^
-./mock_environment.h:310:45: warning: unused parameter 'format' [-Wunused-parameter]
-  310 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:312:42: warning: unused parameter 'missing' [-Wunused-parameter]
-  312 |         virtual void set_data_mark_missing(bool missing = true) {}  // Default parameter
-      |                                                 ^
-./mock_environment.h:314:32: warning: unused parameter 'deleted' [-Wunused-parameter]
-  314 |         virtual void set_deleted(bool deleted) {}  // Set deleted data mark
-      |                                       ^
-./mock_environment.h:317:37: warning: unused parameter 'state_fio' [-Wunused-parameter]
-  317 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
-      |                                            ^
-./mock_environment.h:317:53: warning: unused parameter 'loading' [-Wunused-parameter]
-  317 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
-      |                                                            ^
-./mock_environment.h:332:30: warning: unused parameter 'track' [-Wunused-parameter]
-  332 |         virtual void make_track(int track, int side) {}
-      |                                     ^
-./mock_environment.h:332:41: warning: unused parameter 'side' [-Wunused-parameter]
-  332 |         virtual void make_track(int track, int side) {}
-      |                                                ^
-./mock_environment.h:333:32: warning: unused parameter 'track' [-Wunused-parameter]
-  333 |         virtual void format_track(int track, int side) {}
-      |                                       ^
-./mock_environment.h:333:43: warning: unused parameter 'side' [-Wunused-parameter]
-  333 |         virtual void format_track(int track, int side) {}
-      |                                                  ^
-./mock_environment.h:334:37: warning: unused parameter 'c' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                            ^
-./mock_environment.h:334:48: warning: unused parameter 'h' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                       ^
-./mock_environment.h:334:59: warning: unused parameter 'r' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                  ^
-./mock_environment.h:334:70: warning: unused parameter 'n' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                             ^
-./mock_environment.h:334:78: warning: unused parameter 'deleted' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                     ^
-./mock_environment.h:334:92: warning: unused parameter 'crc_error' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                   ^
-./mock_environment.h:334:111: warning: unused parameter 'fill_data' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                                      ^
-./mock_environment.h:334:126: warning: unused parameter 'length' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                                                     ^
-./mock_environment.h:337:332: warning: field 'track' will be initialized after field 'unstable' [-Wreorder-ctor]
-  337 |         DISK(EMU* emu) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                                                                                                                                                                                                                                                                                                                     ~~~~~~~~~~~~~~~  ~~~~~~~~~~~  ^~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~
-      |                                                                                                                                                                                                                                                                                                                     unstable(nullptr)sector(nullptr) id(nullptr)  track(nullptr)
-./mock_environment.h:337:12: warning: unused parameter 'emu' [-Wunused-parameter]
-  337 |         DISK(EMU* emu) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                   ^
-./mock_environment.h:366:45: warning: unused parameter 'format' [-Wunused-parameter]
-  366 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:367:43: warning: unused parameter 'filename' [-Wunused-parameter]
-  367 |         virtual bool load_wav_file(const _TCHAR* filename) { return true; }
-      |                                                  ^
-./mock_environment.h:368:29: warning: unused parameter 'mute' [-Wunused-parameter]
-  368 |         virtual void set_mute(bool mute) {}
-      |                                    ^
-./mock_environment.h:394:70: warning: unused parameter 'loop' [-Wunused-parameter]
-  394 |         void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id) {
-      |                                                                             ^
-./mock_environment.h:410:28: warning: unused parameter 'device' [-Wunused-parameter]
-  410 |         void cancel_event(DEVICE* device, int register_id) {
-      |                                   ^
-./mock_environment.h:474:24: warning: unused parameter 'parent_vm' [-Wunused-parameter]
-  474 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
-      |                               ^
-./mock_environment.h:474:40: warning: unused parameter 'parent_emu' [-Wunused-parameter]
-  474 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
-      |                                               ^
-./mock_environment.h:491:26: warning: unused parameter 'path' [-Wunused-parameter]
-  491 |         void open(const _TCHAR* path, int bank) {
-      |                                 ^
-./mock_environment.h:491:36: warning: unused parameter 'bank' [-Wunused-parameter]
-  491 |         void open(const _TCHAR* path, int bank) {
-      |                                           ^
-./mock_environment.h:516:30: warning: unused parameter 'side' [-Wunused-parameter]
-  516 |         bool get_track(int trk, int side) {
-      |                                     ^
-./mock_environment.h:523:31: warning: unused parameter 'side' [-Wunused-parameter]
-  523 |         bool get_sector(int trk, int side, int sector) {
-      |                                      ^
-./mock_environment.h:531:41: warning: unused parameter 'sec' [-Wunused-parameter]
-  531 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
-      |                                                ^
-./mock_environment.h:531:69: warning: unused parameter 'compare' [-Wunused-parameter]
-  531 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
-      |                                                                            ^
-./mock_environment.h:554:29: warning: unused parameter 'track' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                    ^
-./mock_environment.h:554:40: warning: unused parameter 'sector' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                               ^
-./mock_environment.h:554:63: warning: unused parameter 'data' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                                                      ^
-./mock_environment.h:554:73: warning: unused parameter 'size' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                                                                ^
-./mock_environment.h:657:40: warning: unused parameter 'prev_clock' [-Wunused-parameter]
-  657 | inline double get_passed_usec(uint32_t prev_clock) {
-      |                                        ^
-In file included from test_mb8877_type1_commands.cpp:10:
-./../src/vm/mb8877_compat.h:338:53: warning: unused parameter 'id1' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                            ^
-./../src/vm/mb8877_compat.h:338:62: warning: unused parameter 'id2' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                                     ^
-./../src/vm/mb8877_compat.h:338:71: warning: unused parameter 'id3' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                                              ^
-test_mb8877_type1_commands.cpp:248:11: warning: unused variable 'start_time' [-Wunused-variable]
-  248 |         uint32_t start_time = event.get_current_clock();
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c mb8877_compat_impl.cpp -o obj/mb8877_compat_impl.o
+In file included from mb8877_compat_impl.cpp:28:
+./../../../src/vm/mb8877_compat.cpp:1586:7: warning: unused variable 'was_busy' [-Wunused-variable]
+ 1586 |         bool was_busy = (status & S_BUSY) != 0;
+      |              ^~~~~~~~
+./../../../src/vm/mb8877_compat.cpp:1821:9: warning: unused variable 'callstack' [-Wunused-variable]
+ 1821 |                 void* callstack[10];
+      |                       ^~~~~~~~~
+./../../../src/vm/mb8877_compat.cpp:1822:7: warning: unused variable 'frames' [-Wunused-variable]
+ 1822 |                 int frames = 0;
+      |                     ^~~~~~
+3 warnings generated.
+g++ -o test_mb8877_registers obj/test_mb8877_registers.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_impl.o 
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_type1_commands.cpp -o obj/test_mb8877_type1_commands.o
+test_mb8877_type1_commands.cpp:310:11: warning: unused variable 'start_time' [-Wunused-variable]
+  310 |         uint32_t start_time = event.get_current_clock();
       |                  ^~~~~~~~~~
-70 warnings generated.
-g++ -o test_mb8877_type1_commands test_mb8877_type1_commands.o ../src/common.o ../src/config.o ../src/fileio.o ../src/fifo.o ../src/vm/disk.o mb8877_test_wrapper.o 
-g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_type2_commands.cpp -o test_mb8877_type2_commands.o
-In file included from test_mb8877_type2_commands.cpp:9:
-./mock_environment.h:50:29: warning: unused parameter 'ptr' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                    ^
-./mock_environment.h:50:41: warning: unused parameter 'size' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                                ^
-./mock_environment.h:50:54: warning: unused parameter 'nmemb' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                                             ^
-./mock_environment.h:51:36: warning: unused parameter 'ptr' [-Wunused-parameter]
-   51 |         virtual size_t fwrite(const void* ptr, size_t size, size_t nmemb) { return size * nmemb; }
-      |                                           ^
-./mock_environment.h:52:41: warning: unused parameter 'x' [-Wunused-parameter]
-   52 |         virtual bool StateCheckUint32(uint32_t x) { return true; }
-      |                                                ^
-./mock_environment.h:53:39: warning: unused parameter 'x' [-Wunused-parameter]
-   53 |         virtual bool StateCheckInt32(int32_t x) { return true; }
-      |                                              ^
-./mock_environment.h:54:36: warning: unused parameter 'x' [-Wunused-parameter]
-   54 |         virtual void StateValue(uint32_t& x) {}
-      |                                           ^
-./mock_environment.h:55:35: warning: unused parameter 'x' [-Wunused-parameter]
-   55 |         virtual void StateValue(int32_t& x) {}
-      |                                          ^
-./mock_environment.h:56:36: warning: unused parameter 'x' [-Wunused-parameter]
-   56 |         virtual void StateValue(uint16_t& x) {}
-      |                                           ^
-./mock_environment.h:57:35: warning: unused parameter 'x' [-Wunused-parameter]
-   57 |         virtual void StateValue(uint8_t& x) {}
-      |                                          ^
-./mock_environment.h:58:32: warning: unused parameter 'x' [-Wunused-parameter]
-   58 |         virtual void StateValue(bool& x) {}
-      |                                       ^
-./mock_environment.h:59:32: warning: unused parameter 'x' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                       ^
-./mock_environment.h:59:42: warning: unused parameter 'size' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                                 ^
-./mock_environment.h:59:55: warning: unused parameter 'count' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                                              ^
-./mock_environment.h:77:43: warning: unused parameter 'format' [-Wunused-parameter]
-   77 |         virtual void out_debug_log(const _TCHAR* format, ...) {}
-      |                                                  ^
-./mock_environment.h:78:49: warning: unused parameter 'format' [-Wunused-parameter]
-   78 |         virtual void force_out_debug_log(const _TCHAR* format, ...) {}
-      |                                                        ^
-./mock_environment.h:161:35: warning: unused parameter 'outputs' [-Wunused-parameter]
-  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
-      |                                          ^
-./mock_environment.h:161:53: warning: unused parameter 'data' [-Wunused-parameter]
-  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
-      |                                                            ^
-./mock_environment.h:162:32: warning: unused parameter 'id' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                       ^
-./mock_environment.h:162:45: warning: unused parameter 'data' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                                    ^
-./mock_environment.h:162:60: warning: unused parameter 'mask' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                                                   ^
-./mock_environment.h:163:34: warning: unused parameter 'event_id' [-Wunused-parameter]
-  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
-      |                                         ^
-./mock_environment.h:163:48: warning: unused parameter 'err' [-Wunused-parameter]
-  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
-      |                                                       ^
-./mock_environment.h:164:45: warning: unused parameter 'format' [-Wunused-parameter]
-  164 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:269:324: warning: field 'track' will be initialized after field 'unstable' [-Wreorder-ctor]
-  269 |         DISK() : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                                                                                                                                                                                                                                                                                                             ~~~~~~~~~~~~~~~  ~~~~~~~~~~~  ^~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~
-      |                                                                                                                                                                                                                                                                                                             unstable(nullptr)sector(nullptr) id(nullptr)  track(nullptr)
-./mock_environment.h:289:34: warning: unused parameter 'path' [-Wunused-parameter]
-  289 |         virtual void open(const _TCHAR* path, int bank) {}
-      |                                         ^
-./mock_environment.h:289:44: warning: unused parameter 'bank' [-Wunused-parameter]
-  289 |         virtual void open(const _TCHAR* path, int bank) {}
-      |                                                   ^
-./mock_environment.h:295:29: warning: unused parameter 'trk' [-Wunused-parameter]
-  295 |         virtual bool get_track(int trk, int side) { return false; }
-      |                                    ^
-./mock_environment.h:295:38: warning: unused parameter 'side' [-Wunused-parameter]
-  295 |         virtual bool get_track(int trk, int side) { return false; }
-      |                                             ^
-./mock_environment.h:310:45: warning: unused parameter 'format' [-Wunused-parameter]
-  310 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:312:42: warning: unused parameter 'missing' [-Wunused-parameter]
-  312 |         virtual void set_data_mark_missing(bool missing = true) {}  // Default parameter
-      |                                                 ^
-./mock_environment.h:314:32: warning: unused parameter 'deleted' [-Wunused-parameter]
-  314 |         virtual void set_deleted(bool deleted) {}  // Set deleted data mark
-      |                                       ^
-./mock_environment.h:317:37: warning: unused parameter 'state_fio' [-Wunused-parameter]
-  317 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
-      |                                            ^
-./mock_environment.h:317:53: warning: unused parameter 'loading' [-Wunused-parameter]
-  317 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
-      |                                                            ^
-./mock_environment.h:332:30: warning: unused parameter 'track' [-Wunused-parameter]
-  332 |         virtual void make_track(int track, int side) {}
-      |                                     ^
-./mock_environment.h:332:41: warning: unused parameter 'side' [-Wunused-parameter]
-  332 |         virtual void make_track(int track, int side) {}
-      |                                                ^
-./mock_environment.h:333:32: warning: unused parameter 'track' [-Wunused-parameter]
-  333 |         virtual void format_track(int track, int side) {}
-      |                                       ^
-./mock_environment.h:333:43: warning: unused parameter 'side' [-Wunused-parameter]
-  333 |         virtual void format_track(int track, int side) {}
-      |                                                  ^
-./mock_environment.h:334:37: warning: unused parameter 'c' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                            ^
-./mock_environment.h:334:48: warning: unused parameter 'h' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                       ^
-./mock_environment.h:334:59: warning: unused parameter 'r' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                  ^
-./mock_environment.h:334:70: warning: unused parameter 'n' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                             ^
-./mock_environment.h:334:78: warning: unused parameter 'deleted' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                     ^
-./mock_environment.h:334:92: warning: unused parameter 'crc_error' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                   ^
-./mock_environment.h:334:111: warning: unused parameter 'fill_data' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                                      ^
-./mock_environment.h:334:126: warning: unused parameter 'length' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                                                     ^
-./mock_environment.h:337:332: warning: field 'track' will be initialized after field 'unstable' [-Wreorder-ctor]
-  337 |         DISK(EMU* emu) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                                                                                                                                                                                                                                                                                                                     ~~~~~~~~~~~~~~~  ~~~~~~~~~~~  ^~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~
-      |                                                                                                                                                                                                                                                                                                                     unstable(nullptr)sector(nullptr) id(nullptr)  track(nullptr)
-./mock_environment.h:337:12: warning: unused parameter 'emu' [-Wunused-parameter]
-  337 |         DISK(EMU* emu) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                   ^
-./mock_environment.h:366:45: warning: unused parameter 'format' [-Wunused-parameter]
-  366 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:367:43: warning: unused parameter 'filename' [-Wunused-parameter]
-  367 |         virtual bool load_wav_file(const _TCHAR* filename) { return true; }
-      |                                                  ^
-./mock_environment.h:368:29: warning: unused parameter 'mute' [-Wunused-parameter]
-  368 |         virtual void set_mute(bool mute) {}
-      |                                    ^
-./mock_environment.h:394:70: warning: unused parameter 'loop' [-Wunused-parameter]
-  394 |         void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id) {
-      |                                                                             ^
-./mock_environment.h:410:28: warning: unused parameter 'device' [-Wunused-parameter]
-  410 |         void cancel_event(DEVICE* device, int register_id) {
-      |                                   ^
-./mock_environment.h:474:24: warning: unused parameter 'parent_vm' [-Wunused-parameter]
-  474 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
-      |                               ^
-./mock_environment.h:474:40: warning: unused parameter 'parent_emu' [-Wunused-parameter]
-  474 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
-      |                                               ^
-./mock_environment.h:491:26: warning: unused parameter 'path' [-Wunused-parameter]
-  491 |         void open(const _TCHAR* path, int bank) {
-      |                                 ^
-./mock_environment.h:491:36: warning: unused parameter 'bank' [-Wunused-parameter]
-  491 |         void open(const _TCHAR* path, int bank) {
-      |                                           ^
-./mock_environment.h:516:30: warning: unused parameter 'side' [-Wunused-parameter]
-  516 |         bool get_track(int trk, int side) {
-      |                                     ^
-./mock_environment.h:523:31: warning: unused parameter 'side' [-Wunused-parameter]
-  523 |         bool get_sector(int trk, int side, int sector) {
-      |                                      ^
-./mock_environment.h:531:41: warning: unused parameter 'sec' [-Wunused-parameter]
-  531 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
-      |                                                ^
-./mock_environment.h:531:69: warning: unused parameter 'compare' [-Wunused-parameter]
-  531 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
-      |                                                                            ^
-./mock_environment.h:554:29: warning: unused parameter 'track' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                    ^
-./mock_environment.h:554:40: warning: unused parameter 'sector' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                               ^
-./mock_environment.h:554:63: warning: unused parameter 'data' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                                                      ^
-./mock_environment.h:554:73: warning: unused parameter 'size' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                                                                ^
-./mock_environment.h:657:40: warning: unused parameter 'prev_clock' [-Wunused-parameter]
-  657 | inline double get_passed_usec(uint32_t prev_clock) {
-      |                                        ^
-In file included from test_mb8877_type2_commands.cpp:10:
-./../src/vm/mb8877_compat.h:338:53: warning: unused parameter 'id1' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                            ^
-./../src/vm/mb8877_compat.h:338:62: warning: unused parameter 'id2' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                                     ^
-./../src/vm/mb8877_compat.h:338:71: warning: unused parameter 'id3' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                                              ^
-test_mb8877_type2_commands.cpp:265:4: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
-  265 |                         sprintf(test_name, "Multiple sector %d data correct", sector);
+1 warning generated.
+g++ -o test_mb8877_type1_commands obj/test_mb8877_type1_commands.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_impl.o 
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_type2_commands.cpp -o obj/test_mb8877_type2_commands.o
+test_mb8877_type2_commands.cpp:342:4: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  342 |                         sprintf(test_name, "Multiple sector %d data correct", sector);
       |                         ^
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_stdio.h:278:1: note: 'sprintf' has been explicitly marked deprecated here
   278 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
@@ -1208,447 +356,73 @@ test_mb8877_type2_commands.cpp:265:4: warning: 'sprintf' is deprecated: This fun
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
   218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
       |                                                       ^
-70 warnings generated.
-g++ -o test_mb8877_type2_commands test_mb8877_type2_commands.o ../src/common.o ../src/config.o ../src/fileio.o ../src/fifo.o ../src/vm/disk.o mb8877_test_wrapper.o 
-g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_type3_commands.cpp -o test_mb8877_type3_commands.o
-In file included from test_mb8877_type3_commands.cpp:9:
-./mock_environment.h:50:29: warning: unused parameter 'ptr' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                    ^
-./mock_environment.h:50:41: warning: unused parameter 'size' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                                ^
-./mock_environment.h:50:54: warning: unused parameter 'nmemb' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                                             ^
-./mock_environment.h:51:36: warning: unused parameter 'ptr' [-Wunused-parameter]
-   51 |         virtual size_t fwrite(const void* ptr, size_t size, size_t nmemb) { return size * nmemb; }
-      |                                           ^
-./mock_environment.h:52:41: warning: unused parameter 'x' [-Wunused-parameter]
-   52 |         virtual bool StateCheckUint32(uint32_t x) { return true; }
-      |                                                ^
-./mock_environment.h:53:39: warning: unused parameter 'x' [-Wunused-parameter]
-   53 |         virtual bool StateCheckInt32(int32_t x) { return true; }
-      |                                              ^
-./mock_environment.h:54:36: warning: unused parameter 'x' [-Wunused-parameter]
-   54 |         virtual void StateValue(uint32_t& x) {}
-      |                                           ^
-./mock_environment.h:55:35: warning: unused parameter 'x' [-Wunused-parameter]
-   55 |         virtual void StateValue(int32_t& x) {}
-      |                                          ^
-./mock_environment.h:56:36: warning: unused parameter 'x' [-Wunused-parameter]
-   56 |         virtual void StateValue(uint16_t& x) {}
-      |                                           ^
-./mock_environment.h:57:35: warning: unused parameter 'x' [-Wunused-parameter]
-   57 |         virtual void StateValue(uint8_t& x) {}
-      |                                          ^
-./mock_environment.h:58:32: warning: unused parameter 'x' [-Wunused-parameter]
-   58 |         virtual void StateValue(bool& x) {}
-      |                                       ^
-./mock_environment.h:59:32: warning: unused parameter 'x' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                       ^
-./mock_environment.h:59:42: warning: unused parameter 'size' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                                 ^
-./mock_environment.h:59:55: warning: unused parameter 'count' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                                              ^
-./mock_environment.h:77:43: warning: unused parameter 'format' [-Wunused-parameter]
-   77 |         virtual void out_debug_log(const _TCHAR* format, ...) {}
-      |                                                  ^
-./mock_environment.h:78:49: warning: unused parameter 'format' [-Wunused-parameter]
-   78 |         virtual void force_out_debug_log(const _TCHAR* format, ...) {}
-      |                                                        ^
-./mock_environment.h:161:35: warning: unused parameter 'outputs' [-Wunused-parameter]
-  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
-      |                                          ^
-./mock_environment.h:161:53: warning: unused parameter 'data' [-Wunused-parameter]
-  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
-      |                                                            ^
-./mock_environment.h:162:32: warning: unused parameter 'id' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                       ^
-./mock_environment.h:162:45: warning: unused parameter 'data' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                                    ^
-./mock_environment.h:162:60: warning: unused parameter 'mask' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                                                   ^
-./mock_environment.h:163:34: warning: unused parameter 'event_id' [-Wunused-parameter]
-  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
-      |                                         ^
-./mock_environment.h:163:48: warning: unused parameter 'err' [-Wunused-parameter]
-  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
-      |                                                       ^
-./mock_environment.h:164:45: warning: unused parameter 'format' [-Wunused-parameter]
-  164 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:269:324: warning: field 'track' will be initialized after field 'unstable' [-Wreorder-ctor]
-  269 |         DISK() : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                                                                                                                                                                                                                                                                                                             ~~~~~~~~~~~~~~~  ~~~~~~~~~~~  ^~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~
-      |                                                                                                                                                                                                                                                                                                             unstable(nullptr)sector(nullptr) id(nullptr)  track(nullptr)
-./mock_environment.h:289:34: warning: unused parameter 'path' [-Wunused-parameter]
-  289 |         virtual void open(const _TCHAR* path, int bank) {}
-      |                                         ^
-./mock_environment.h:289:44: warning: unused parameter 'bank' [-Wunused-parameter]
-  289 |         virtual void open(const _TCHAR* path, int bank) {}
-      |                                                   ^
-./mock_environment.h:295:29: warning: unused parameter 'trk' [-Wunused-parameter]
-  295 |         virtual bool get_track(int trk, int side) { return false; }
-      |                                    ^
-./mock_environment.h:295:38: warning: unused parameter 'side' [-Wunused-parameter]
-  295 |         virtual bool get_track(int trk, int side) { return false; }
-      |                                             ^
-./mock_environment.h:310:45: warning: unused parameter 'format' [-Wunused-parameter]
-  310 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:312:42: warning: unused parameter 'missing' [-Wunused-parameter]
-  312 |         virtual void set_data_mark_missing(bool missing = true) {}  // Default parameter
-      |                                                 ^
-./mock_environment.h:314:32: warning: unused parameter 'deleted' [-Wunused-parameter]
-  314 |         virtual void set_deleted(bool deleted) {}  // Set deleted data mark
-      |                                       ^
-./mock_environment.h:317:37: warning: unused parameter 'state_fio' [-Wunused-parameter]
-  317 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
-      |                                            ^
-./mock_environment.h:317:53: warning: unused parameter 'loading' [-Wunused-parameter]
-  317 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
-      |                                                            ^
-./mock_environment.h:332:30: warning: unused parameter 'track' [-Wunused-parameter]
-  332 |         virtual void make_track(int track, int side) {}
-      |                                     ^
-./mock_environment.h:332:41: warning: unused parameter 'side' [-Wunused-parameter]
-  332 |         virtual void make_track(int track, int side) {}
-      |                                                ^
-./mock_environment.h:333:32: warning: unused parameter 'track' [-Wunused-parameter]
-  333 |         virtual void format_track(int track, int side) {}
-      |                                       ^
-./mock_environment.h:333:43: warning: unused parameter 'side' [-Wunused-parameter]
-  333 |         virtual void format_track(int track, int side) {}
-      |                                                  ^
-./mock_environment.h:334:37: warning: unused parameter 'c' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                            ^
-./mock_environment.h:334:48: warning: unused parameter 'h' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                       ^
-./mock_environment.h:334:59: warning: unused parameter 'r' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                  ^
-./mock_environment.h:334:70: warning: unused parameter 'n' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                             ^
-./mock_environment.h:334:78: warning: unused parameter 'deleted' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                     ^
-./mock_environment.h:334:92: warning: unused parameter 'crc_error' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                   ^
-./mock_environment.h:334:111: warning: unused parameter 'fill_data' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                                      ^
-./mock_environment.h:334:126: warning: unused parameter 'length' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                                                     ^
-./mock_environment.h:337:332: warning: field 'track' will be initialized after field 'unstable' [-Wreorder-ctor]
-  337 |         DISK(EMU* emu) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                                                                                                                                                                                                                                                                                                                     ~~~~~~~~~~~~~~~  ~~~~~~~~~~~  ^~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~
-      |                                                                                                                                                                                                                                                                                                                     unstable(nullptr)sector(nullptr) id(nullptr)  track(nullptr)
-./mock_environment.h:337:12: warning: unused parameter 'emu' [-Wunused-parameter]
-  337 |         DISK(EMU* emu) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                   ^
-./mock_environment.h:366:45: warning: unused parameter 'format' [-Wunused-parameter]
-  366 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:367:43: warning: unused parameter 'filename' [-Wunused-parameter]
-  367 |         virtual bool load_wav_file(const _TCHAR* filename) { return true; }
-      |                                                  ^
-./mock_environment.h:368:29: warning: unused parameter 'mute' [-Wunused-parameter]
-  368 |         virtual void set_mute(bool mute) {}
-      |                                    ^
-./mock_environment.h:394:70: warning: unused parameter 'loop' [-Wunused-parameter]
-  394 |         void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id) {
-      |                                                                             ^
-./mock_environment.h:410:28: warning: unused parameter 'device' [-Wunused-parameter]
-  410 |         void cancel_event(DEVICE* device, int register_id) {
-      |                                   ^
-./mock_environment.h:474:24: warning: unused parameter 'parent_vm' [-Wunused-parameter]
-  474 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
-      |                               ^
-./mock_environment.h:474:40: warning: unused parameter 'parent_emu' [-Wunused-parameter]
-  474 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
-      |                                               ^
-./mock_environment.h:491:26: warning: unused parameter 'path' [-Wunused-parameter]
-  491 |         void open(const _TCHAR* path, int bank) {
-      |                                 ^
-./mock_environment.h:491:36: warning: unused parameter 'bank' [-Wunused-parameter]
-  491 |         void open(const _TCHAR* path, int bank) {
-      |                                           ^
-./mock_environment.h:516:30: warning: unused parameter 'side' [-Wunused-parameter]
-  516 |         bool get_track(int trk, int side) {
-      |                                     ^
-./mock_environment.h:523:31: warning: unused parameter 'side' [-Wunused-parameter]
-  523 |         bool get_sector(int trk, int side, int sector) {
-      |                                      ^
-./mock_environment.h:531:41: warning: unused parameter 'sec' [-Wunused-parameter]
-  531 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
-      |                                                ^
-./mock_environment.h:531:69: warning: unused parameter 'compare' [-Wunused-parameter]
-  531 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
-      |                                                                            ^
-./mock_environment.h:554:29: warning: unused parameter 'track' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                    ^
-./mock_environment.h:554:40: warning: unused parameter 'sector' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                               ^
-./mock_environment.h:554:63: warning: unused parameter 'data' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                                                      ^
-./mock_environment.h:554:73: warning: unused parameter 'size' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                                                                ^
-./mock_environment.h:657:40: warning: unused parameter 'prev_clock' [-Wunused-parameter]
-  657 | inline double get_passed_usec(uint32_t prev_clock) {
+1 warning generated.
+g++ -o test_mb8877_type2_commands obj/test_mb8877_type2_commands.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_impl.o 
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_type3_commands.cpp -o obj/test_mb8877_type3_commands.o
+g++ -o test_mb8877_type3_commands obj/test_mb8877_type3_commands.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_impl.o 
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_type4_commands.cpp -o obj/test_mb8877_type4_commands.o
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c mb8877_compat_wrapper.cpp -o obj/mb8877_compat_wrapper.o
+mb8877_compat_wrapper.cpp:2:9: warning: 'STANDALONE_TEST' macro redefined [-Wmacro-redefined]
+    2 | #define STANDALONE_TEST
+      |         ^
+<command line>:1:9: note: previous definition is here
+    1 | #define STANDALONE_TEST 1
+      |         ^
+In file included from mb8877_compat_wrapper.cpp:17:
+../../../src/../src/vm/mb8877_compat.cpp:1586:7: warning: unused variable 'was_busy' [-Wunused-variable]
+ 1586 |         bool was_busy = (status & S_BUSY) != 0;
+      |              ^~~~~~~~
+../../../src/../src/vm/mb8877_compat.cpp:1821:9: warning: unused variable 'callstack' [-Wunused-variable]
+ 1821 |                 void* callstack[10];
+      |                       ^~~~~~~~~
+../../../src/../src/vm/mb8877_compat.cpp:1822:7: warning: unused variable 'frames' [-Wunused-variable]
+ 1822 |                 int frames = 0;
+      |                     ^~~~~~
+4 warnings generated.
+g++ -o test_mb8877_type4_commands obj/test_mb8877_type4_commands.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_wrapper.o 
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_error_handling.cpp -o obj/test_mb8877_error_handling.o
+g++ -o test_mb8877_error_handling obj/test_mb8877_error_handling.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_wrapper.o 
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_timing.cpp -o obj/test_mb8877_timing.o
+g++ -o test_mb8877_timing obj/test_mb8877_timing.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_wrapper.o 
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_write_track.cpp -o obj/test_mb8877_write_track.o
+g++ -o test_mb8877_write_track obj/test_mb8877_write_track.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_impl.o 
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_drive_mfm.cpp -o obj/test_mb8877_drive_mfm.o
+test_mb8877_drive_mfm.cpp:204:14: warning: unused parameter 'argc' [-Wunused-parameter]
+  204 | int main(int argc, char* argv[]) {
+      |              ^
+test_mb8877_drive_mfm.cpp:204:26: warning: unused parameter 'argv' [-Wunused-parameter]
+  204 | int main(int argc, char* argv[]) {
+      |                          ^
+2 warnings generated.
+g++ -o test_mb8877_drive_mfm obj/test_mb8877_drive_mfm.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_impl.o 
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_drive_rpm.cpp -o obj/test_mb8877_drive_rpm.o
+test_mb8877_drive_rpm.cpp:180:19: warning: comparison of integers of different signs: 'int' and 'unsigned long' [-Wsign-compare]
+  180 |         for(int i = 0; i < sizeof(test_rpms)/sizeof(test_rpms[0]); i++) {
+      |                        ~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+test_mb8877_drive_rpm.cpp:252:19: warning: comparison of integers of different signs: 'int' and 'unsigned long' [-Wsign-compare]
+  252 |         for(int i = 0; i < sizeof(tests)/sizeof(tests[0]); i++) {
+      |                        ~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+test_mb8877_drive_rpm.cpp:258:14: warning: unused parameter 'argc' [-Wunused-parameter]
+  258 | int main(int argc, char* argv[]) {
+      |              ^
+test_mb8877_drive_rpm.cpp:258:26: warning: unused parameter 'argv' [-Wunused-parameter]
+  258 | int main(int argc, char* argv[]) {
+      |                          ^
+4 warnings generated.
+g++ -o test_mb8877_drive_rpm obj/test_mb8877_drive_rpm.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_impl.o 
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_safe_disk.cpp -o obj/test_safe_disk.o
+g++ -o test_safe_disk obj/test_safe_disk.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o 
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_safe_disk_integration.cpp -o obj/test_mb8877_safe_disk_integration.o
+g++ -o test_mb8877_safe_disk_integration obj/test_mb8877_safe_disk_integration.o 
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_type2_complete.cpp -o obj/test_mb8877_type2_complete.o
+test_mb8877_type2_complete.cpp:52:21: warning: comparison of integers of different signs: 'size_type' (aka 'unsigned long') and 'int' [-Wsign-compare]
+   52 |         return data.size() == expected_size;
+      |                ~~~~~~~~~~~ ^  ~~~~~~~~~~~~~
+1 warning generated.
+g++ -o test_mb8877_type2_complete obj/test_mb8877_type2_complete.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_impl.o 
+g++ -std=c++11 -Wall -Wextra -I../../../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_type3_type4_commands.cpp -o obj/test_mb8877_type3_type4_commands.o
+test_mb8877_type3_type4_commands.cpp:17:40: warning: unused parameter 'fdc' [-Wunused-parameter]
+   17 | void setup_test_disk_for_type3(MB8877* fdc) {
       |                                        ^
-In file included from test_mb8877_type3_commands.cpp:10:
-./../src/vm/mb8877_compat.h:338:53: warning: unused parameter 'id1' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                            ^
-./../src/vm/mb8877_compat.h:338:62: warning: unused parameter 'id2' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                                     ^
-./../src/vm/mb8877_compat.h:338:71: warning: unused parameter 'id3' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                                              ^
-69 warnings generated.
-g++ -o test_mb8877_type3_commands test_mb8877_type3_commands.o ../src/common.o ../src/config.o ../src/fileio.o ../src/fifo.o ../src/vm/disk.o mb8877_test_wrapper.o 
-g++ -std=c++11 -Wall -Wextra -I../src -I. -DSTANDALONE_TEST -D_ANY2D88 -c test_mb8877_type4_commands.cpp -o test_mb8877_type4_commands.o
-In file included from test_mb8877_type4_commands.cpp:9:
-./mock_environment.h:50:29: warning: unused parameter 'ptr' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                    ^
-./mock_environment.h:50:41: warning: unused parameter 'size' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                                ^
-./mock_environment.h:50:54: warning: unused parameter 'nmemb' [-Wunused-parameter]
-   50 |         virtual size_t fread(void* ptr, size_t size, size_t nmemb) { return 0; }
-      |                                                             ^
-./mock_environment.h:51:36: warning: unused parameter 'ptr' [-Wunused-parameter]
-   51 |         virtual size_t fwrite(const void* ptr, size_t size, size_t nmemb) { return size * nmemb; }
-      |                                           ^
-./mock_environment.h:52:41: warning: unused parameter 'x' [-Wunused-parameter]
-   52 |         virtual bool StateCheckUint32(uint32_t x) { return true; }
-      |                                                ^
-./mock_environment.h:53:39: warning: unused parameter 'x' [-Wunused-parameter]
-   53 |         virtual bool StateCheckInt32(int32_t x) { return true; }
-      |                                              ^
-./mock_environment.h:54:36: warning: unused parameter 'x' [-Wunused-parameter]
-   54 |         virtual void StateValue(uint32_t& x) {}
-      |                                           ^
-./mock_environment.h:55:35: warning: unused parameter 'x' [-Wunused-parameter]
-   55 |         virtual void StateValue(int32_t& x) {}
-      |                                          ^
-./mock_environment.h:56:36: warning: unused parameter 'x' [-Wunused-parameter]
-   56 |         virtual void StateValue(uint16_t& x) {}
-      |                                           ^
-./mock_environment.h:57:35: warning: unused parameter 'x' [-Wunused-parameter]
-   57 |         virtual void StateValue(uint8_t& x) {}
-      |                                          ^
-./mock_environment.h:58:32: warning: unused parameter 'x' [-Wunused-parameter]
-   58 |         virtual void StateValue(bool& x) {}
-      |                                       ^
-./mock_environment.h:59:32: warning: unused parameter 'x' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                       ^
-./mock_environment.h:59:42: warning: unused parameter 'size' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                                 ^
-./mock_environment.h:59:55: warning: unused parameter 'count' [-Wunused-parameter]
-   59 |         virtual void StateArray(void* x, size_t size, size_t count) {}
-      |                                                              ^
-./mock_environment.h:77:43: warning: unused parameter 'format' [-Wunused-parameter]
-   77 |         virtual void out_debug_log(const _TCHAR* format, ...) {}
-      |                                                  ^
-./mock_environment.h:78:49: warning: unused parameter 'format' [-Wunused-parameter]
-   78 |         virtual void force_out_debug_log(const _TCHAR* format, ...) {}
-      |                                                        ^
-./mock_environment.h:161:35: warning: unused parameter 'outputs' [-Wunused-parameter]
-  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
-      |                                          ^
-./mock_environment.h:161:53: warning: unused parameter 'data' [-Wunused-parameter]
-  161 |         virtual void write_signals(void* outputs, uint32_t data) {}
-      |                                                            ^
-./mock_environment.h:162:32: warning: unused parameter 'id' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                       ^
-./mock_environment.h:162:45: warning: unused parameter 'data' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                                    ^
-./mock_environment.h:162:60: warning: unused parameter 'mask' [-Wunused-parameter]
-  162 |         virtual void write_signal(int id, uint32_t data, uint32_t mask) {}
-      |                                                                   ^
-./mock_environment.h:163:34: warning: unused parameter 'event_id' [-Wunused-parameter]
-  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
-      |                                         ^
-./mock_environment.h:163:48: warning: unused parameter 'err' [-Wunused-parameter]
-  163 |         virtual void event_callback(int event_id, int err) {}  // Add event callback method
-      |                                                       ^
-./mock_environment.h:164:45: warning: unused parameter 'format' [-Wunused-parameter]
-  164 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:269:324: warning: field 'track' will be initialized after field 'unstable' [-Wreorder-ctor]
-  269 |         DISK() : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                                                                                                                                                                                                                                                                                                             ~~~~~~~~~~~~~~~  ~~~~~~~~~~~  ^~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~
-      |                                                                                                                                                                                                                                                                                                             unstable(nullptr)sector(nullptr) id(nullptr)  track(nullptr)
-./mock_environment.h:289:34: warning: unused parameter 'path' [-Wunused-parameter]
-  289 |         virtual void open(const _TCHAR* path, int bank) {}
-      |                                         ^
-./mock_environment.h:289:44: warning: unused parameter 'bank' [-Wunused-parameter]
-  289 |         virtual void open(const _TCHAR* path, int bank) {}
-      |                                                   ^
-./mock_environment.h:295:29: warning: unused parameter 'trk' [-Wunused-parameter]
-  295 |         virtual bool get_track(int trk, int side) { return false; }
-      |                                    ^
-./mock_environment.h:295:38: warning: unused parameter 'side' [-Wunused-parameter]
-  295 |         virtual bool get_track(int trk, int side) { return false; }
-      |                                             ^
-./mock_environment.h:310:45: warning: unused parameter 'format' [-Wunused-parameter]
-  310 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:312:42: warning: unused parameter 'missing' [-Wunused-parameter]
-  312 |         virtual void set_data_mark_missing(bool missing = true) {}  // Default parameter
-      |                                                 ^
-./mock_environment.h:314:32: warning: unused parameter 'deleted' [-Wunused-parameter]
-  314 |         virtual void set_deleted(bool deleted) {}  // Set deleted data mark
-      |                                       ^
-./mock_environment.h:317:37: warning: unused parameter 'state_fio' [-Wunused-parameter]
-  317 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
-      |                                            ^
-./mock_environment.h:317:53: warning: unused parameter 'loading' [-Wunused-parameter]
-  317 |         virtual bool process_state(FILEIO* state_fio, bool loading) { return true; }  // State save/load
-      |                                                            ^
-./mock_environment.h:332:30: warning: unused parameter 'track' [-Wunused-parameter]
-  332 |         virtual void make_track(int track, int side) {}
-      |                                     ^
-./mock_environment.h:332:41: warning: unused parameter 'side' [-Wunused-parameter]
-  332 |         virtual void make_track(int track, int side) {}
-      |                                                ^
-./mock_environment.h:333:32: warning: unused parameter 'track' [-Wunused-parameter]
-  333 |         virtual void format_track(int track, int side) {}
-      |                                       ^
-./mock_environment.h:333:43: warning: unused parameter 'side' [-Wunused-parameter]
-  333 |         virtual void format_track(int track, int side) {}
-      |                                                  ^
-./mock_environment.h:334:37: warning: unused parameter 'c' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                            ^
-./mock_environment.h:334:48: warning: unused parameter 'h' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                       ^
-./mock_environment.h:334:59: warning: unused parameter 'r' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                  ^
-./mock_environment.h:334:70: warning: unused parameter 'n' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                             ^
-./mock_environment.h:334:78: warning: unused parameter 'deleted' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                     ^
-./mock_environment.h:334:92: warning: unused parameter 'crc_error' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                   ^
-./mock_environment.h:334:111: warning: unused parameter 'fill_data' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                                      ^
-./mock_environment.h:334:126: warning: unused parameter 'length' [-Wunused-parameter]
-  334 |         virtual void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool crc_error, uint8_t fill_data, int length) {}
-      |                                                                                                                                     ^
-./mock_environment.h:337:332: warning: field 'track' will be initialized after field 'unstable' [-Wreorder-ctor]
-  337 |         DISK(EMU* emu) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                                                                                                                                                                                                                                                                                                                     ~~~~~~~~~~~~~~~  ~~~~~~~~~~~  ^~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~
-      |                                                                                                                                                                                                                                                                                                                     unstable(nullptr)sector(nullptr) id(nullptr)  track(nullptr)
-./mock_environment.h:337:12: warning: unused parameter 'emu' [-Wunused-parameter]
-  337 |         DISK(EMU* emu) : write_protected(false), inserted(false), _ignore_crc(false), data_crc_error(false), addr_crc_error(false), changed(false), is_special_disk(false), media_type(0), drive_type(0), drive_rpm(300), drive_mfm(true), track_size(6250), invalid_format(false), no_skew(false), deleted(false), sector(nullptr), id(nullptr), track(nullptr), unstable(nullptr), sector_mfm(false) {
-      |                   ^
-./mock_environment.h:366:45: warning: unused parameter 'format' [-Wunused-parameter]
-  366 |         virtual void set_device_name(const _TCHAR* format, ...) {}
-      |                                                    ^
-./mock_environment.h:367:43: warning: unused parameter 'filename' [-Wunused-parameter]
-  367 |         virtual bool load_wav_file(const _TCHAR* filename) { return true; }
-      |                                                  ^
-./mock_environment.h:368:29: warning: unused parameter 'mute' [-Wunused-parameter]
-  368 |         virtual void set_mute(bool mute) {}
-      |                                    ^
-./mock_environment.h:394:70: warning: unused parameter 'loop' [-Wunused-parameter]
-  394 |         void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id) {
-      |                                                                             ^
-./mock_environment.h:410:28: warning: unused parameter 'device' [-Wunused-parameter]
-  410 |         void cancel_event(DEVICE* device, int register_id) {
-      |                                   ^
-./mock_environment.h:474:24: warning: unused parameter 'parent_vm' [-Wunused-parameter]
-  474 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
-      |                               ^
-./mock_environment.h:474:40: warning: unused parameter 'parent_emu' [-Wunused-parameter]
-  474 |         MockDISK(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DISK() {
-      |                                               ^
-./mock_environment.h:491:26: warning: unused parameter 'path' [-Wunused-parameter]
-  491 |         void open(const _TCHAR* path, int bank) {
-      |                                 ^
-./mock_environment.h:491:36: warning: unused parameter 'bank' [-Wunused-parameter]
-  491 |         void open(const _TCHAR* path, int bank) {
-      |                                           ^
-./mock_environment.h:516:30: warning: unused parameter 'side' [-Wunused-parameter]
-  516 |         bool get_track(int trk, int side) {
-      |                                     ^
-./mock_environment.h:523:31: warning: unused parameter 'side' [-Wunused-parameter]
-  523 |         bool get_sector(int trk, int side, int sector) {
-      |                                      ^
-./mock_environment.h:531:41: warning: unused parameter 'sec' [-Wunused-parameter]
-  531 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
-      |                                                ^
-./mock_environment.h:531:69: warning: unused parameter 'compare' [-Wunused-parameter]
-  531 |         bool get_sector_info(int position, int sec, int trk, int side, int compare) {
-      |                                                                            ^
-./mock_environment.h:554:29: warning: unused parameter 'track' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                    ^
-./mock_environment.h:554:40: warning: unused parameter 'sector' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                               ^
-./mock_environment.h:554:63: warning: unused parameter 'data' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                                                      ^
-./mock_environment.h:554:73: warning: unused parameter 'size' [-Wunused-parameter]
-  554 |         void setup_mock_sector(int track, int sector, const uint8_t* data, int size) {
-      |                                                                                ^
-./mock_environment.h:657:40: warning: unused parameter 'prev_clock' [-Wunused-parameter]
-  657 | inline double get_passed_usec(uint32_t prev_clock) {
-      |                                        ^
-In file included from test_mb8877_type4_commands.cpp:10:
-./../src/vm/mb8877_compat.h:338:53: warning: unused parameter 'id1' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                            ^
-./../src/vm/mb8877_compat.h:338:62: warning: unused parameter 'id2' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                                     ^
-./../src/vm/mb8877_compat.h:338:71: warning: unused parameter 'id3' [-Wunused-parameter]
-  338 |         void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
-      |                                                                              ^
-69 warnings generated.
-g++ -o test_mb8877_type4_commands test_mb8877_type4_commands.o ../src/common.o ../src/config.o ../src/fileio.o ../src/fifo.o ../src/vm/disk.o mb8877_test_wrapper.o 
-Undefined symbols for architecture arm64:
-  "MB8877::get_intr_ack()", referenced from:
-      test_force_interrupt_immediate(TestFramework&) in test_mb8877_type4_commands.o
-      test_force_interrupt_immediate(TestFramework&) in test_mb8877_type4_commands.o
-      test_force_interrupt_during_write(TestFramework&) in test_mb8877_type4_commands.o
-      test_force_interrupt_conditions(TestFramework&) in test_mb8877_type4_commands.o
-      test_force_interrupt_conditions(TestFramework&) in test_mb8877_type4_commands.o
-      test_force_interrupt_multiple(TestFramework&) in test_mb8877_type4_commands.o
-      test_force_interrupt_multiple(TestFramework&) in test_mb8877_type4_commands.o
-      test_force_interrupt_multiple(TestFramework&) in test_mb8877_type4_commands.o
-      ...
-ld: symbol(s) not found for architecture arm64
-clang++: error: linker command failed with exit code 1 (use -v to see invocation)
-make: *** [test_mb8877_type4_commands] Error 1
+1 warning generated.
+g++ -o test_mb8877_type3_type4_commands obj/test_mb8877_type3_type4_commands.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_impl.o 

@@ -2,3 +2,6 @@
 	path = oboe
 	url = https://github.com/google/oboe.git
 	branch = tag: 1.8.1
+[submodule "tool/fdc_porting/tools/Legacy89DiskKit"]
+	path = tool/fdc_porting/tools/Legacy89DiskKit
+	url = https://github.com/medamap/Legacy89DiskKit.git

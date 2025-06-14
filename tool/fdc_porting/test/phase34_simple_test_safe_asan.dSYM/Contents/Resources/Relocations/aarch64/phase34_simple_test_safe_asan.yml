@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     phase34_simple_test_safe_asan
+relocations:     []
+...

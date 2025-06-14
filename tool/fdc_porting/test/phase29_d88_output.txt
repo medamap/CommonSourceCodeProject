@@ -1,0 +1,485 @@
+
+Phase 29: Type II Command Tests with D88 Support
+===============================================
+
+D88 Disk loaded: Test Patterns
+  Type: 2D
+  Size: 348848 bytes
+  Write Protected: No
+D88 disk opened: test_disks/test_2d_patterns.d88
+  Tracks: 40, Sides: 2, Sectors: 16, Sector size: 256
+write_io8: addr=0, data=0xD0
+process_cmd: cmdreg=0xD0, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x04)
+After set_drq
+Check drive ready: motor_on=1, drvreg=0
+Starting command: 0xD0
+DRQ Signal: CLEAR (status=0x00)
+IRQ Signal: SET
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x14a815800
+IRQ Signal: CLEAR
+✓ Disk Ready Check (3.04ms)
+D88 Disk loaded: Test Patterns
+  Type: 2D
+  Size: 348848 bytes
+  Write Protected: No
+D88 disk opened: test_disks/test_2d_patterns.d88
+  Tracks: 40, Sides: 2, Sectors: 16, Sector size: 256
+write_io8: addr=1, data=0x00
+write_io8: addr=2, data=0x01
+write_io8: addr=0, data=0x80
+process_cmd: cmdreg=0x80, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x04)
+After set_drq
+Check drive ready: motor_on=1, drvreg=0
+Starting command: 0x80
+DRQ Signal: CLEAR (status=0x21)
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+register_my_event: event=2, usec=495904, cmdtype=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+  BUSY not set
+✗ READ SECTOR - Basic operation (0.12ms)
+D88 Disk loaded: Test Patterns
+  Type: 2D
+  Size: 348848 bytes
+  Write Protected: No
+D88 disk opened: test_disks/test_2d_patterns.d88
+  Tracks: 40, Sides: 2, Sectors: 16, Sector size: 256
+write_io8: addr=1, data=0x00
+write_io8: addr=2, data=0x01
+write_io8: addr=0, data=0x80
+process_cmd: cmdreg=0x80, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x04)
+After set_drq
+Check drive ready: motor_on=1, drvreg=0
+Starting command: 0x80
+DRQ Signal: CLEAR (status=0x21)
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+register_my_event: event=2, usec=495904, cmdtype=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+  BUSY not set
+✗ READ SECTOR - DRQ signaling (0.10ms)
+D88 Disk loaded: Test Patterns
+  Type: 2D
+  Size: 348848 bytes
+  Write Protected: No
+D88 disk opened: test_disks/test_2d_patterns.d88
+  Tracks: 40, Sides: 2, Sectors: 16, Sector size: 256
+write_io8: addr=1, data=0x00
+write_io8: addr=2, data=0x02
+write_io8: addr=0, data=0xA0
+process_cmd: cmdreg=0xA0, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x04)
+After set_drq
+Check drive ready: motor_on=1, drvreg=0
+Starting command: 0xA0
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+register_my_event: event=2, usec=495904, cmdtype=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+✗ WRITE SECTOR - Basic operation (0.11ms)
+D88 Disk loaded: Test Patterns
+  Type: 2D
+  Size: 348848 bytes
+  Write Protected: No
+D88 disk opened: test_disks/test_2d_patterns.d88
+  Tracks: 40, Sides: 2, Sectors: 16, Sector size: 256
+write_io8: addr=1, data=0x00
+write_io8: addr=2, data=0x02
+write_io8: addr=0, data=0xA0
+process_cmd: cmdreg=0xA0, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x04)
+After set_drq
+Check drive ready: motor_on=1, drvreg=0
+Starting command: 0xA0
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+register_my_event: event=2, usec=495904, cmdtype=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+✗ WRITE SECTOR - DRQ signaling (0.09ms)
+D88 Disk loaded: Test Patterns
+  Type: 2D
+  Size: 348848 bytes
+  Write Protected: No
+D88 disk opened: test_disks/test_2d_patterns.d88
+  Tracks: 40, Sides: 2, Sectors: 16, Sector size: 256
+write_io8: addr=1, data=0x00
+write_io8: addr=2, data=0x01
+write_io8: addr=0, data=0x90
+process_cmd: cmdreg=0x90, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x04)
+After set_drq
+Check drive ready: motor_on=1, drvreg=0
+Starting command: 0x90
+DRQ Signal: CLEAR (status=0x21)
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+register_my_event: event=2, usec=495904, cmdtype=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+✗ MULTI-SECTOR - Read multiple (0.10ms)
+D88 Disk loaded: Test Patterns
+  Type: 2D
+  Size: 348848 bytes
+  Write Protected: No
+D88 disk opened: test_disks/test_2d_patterns.d88
+  Tracks: 40, Sides: 2, Sectors: 16, Sector size: 256
+write_io8: addr=1, data=0x00
+write_io8: addr=2, data=0x01
+write_io8: addr=0, data=0x80
+process_cmd: cmdreg=0x80, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x04)
+After set_drq
+Check drive ready: motor_on=1, drvreg=0
+Starting command: 0x80
+DRQ Signal: CLEAR (status=0x21)
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+register_my_event: event=2, usec=495904, cmdtype=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+✗ Phase 25 - EVENT_SEARCH timing (0.09ms)
+D88 Disk loaded: Test Patterns
+  Type: 2D
+  Size: 348848 bytes
+  Write Protected: No
+D88 disk opened: test_disks/test_2d_patterns.d88
+  Tracks: 40, Sides: 2, Sectors: 16, Sector size: 256
+write_io8: addr=1, data=0x00
+write_io8: addr=2, data=0x01
+write_io8: addr=0, data=0x80
+process_cmd: cmdreg=0x80, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x04)
+After set_drq
+Check drive ready: motor_on=1, drvreg=0
+Starting command: 0x80
+DRQ Signal: CLEAR (status=0x21)
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+ERROR: Invalid track/side: -1/-1
+register_my_event: event=2, usec=495904, cmdtype=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+read_io8: addr=3, drvreg=0
+read_io8: addr=3, drvreg=0
+read_io8: addr=3, drvreg=0
+✗ Phase 25 - read_io8 sequence (0.11ms)
+
+========== SUMMARY ==========
+Total tests: 8
+Passed: 1
+Failed: 7
+Success rate: 12.5%
+Baseline improvement: -30.5%

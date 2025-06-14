@@ -8,6 +8,8 @@
 #include "test_framework.h"
 #include "mock_environment.h"
 #include "../../../src/vm/mb8877_compat.h"
+#include <cstdio>
+#include <cstdlib>
 
 void test_restore_command(TestFramework& test) {
 	TEST_SECTION("Restore Command Tests");
@@ -21,7 +23,21 @@ void test_restore_command(TestFramework& test) {
 	fdc.initialize();
 	fdc.reset();
 	
-	// Don't open real disk in test - the FDC should work with motor on
+	// Open real disk file for testing
+	const char* disk_path = "data/test_disk_images/test_basic_2d.d88";
+	
+	// Check if disk file exists, create dummy if not
+	FILE* check_file = fopen(disk_path, "rb");
+	if(!check_file) {
+		// Create dummy disk
+		system("mkdir -p data/test_disk_images");
+		system("./create_dummy_disk 2>/dev/null || g++ -o create_dummy_disk create_dummy_disk.cpp && ./create_dummy_disk");
+	} else {
+		fclose(check_file);
+	}
+	
+	// Open disk
+	fdc.open_disk(0, disk_path, 0);
 	
 	// Turn on motor
 	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
@@ -36,10 +52,14 @@ void test_restore_command(TestFramework& test) {
 	uint32_t status = fdc.read_io8(0);
 	test.assert_true((status & 0x01) != 0, "BUSY flag set during restore");
 	
-	// Wait for command completion
-	event.advance_clock(60000); // Generous time for seek
+	// Wait for command completion with timeout
+	int timeout = 1000;
+	while((fdc.read_io8(0) & 0x01) && timeout-- > 0) {
+		event.advance_clock(1000);
+	}
 	
 	// Check command completed
+	test.assert_true(timeout > 0, "Command completed within timeout");
 	status = fdc.read_io8(0);
 	test.assert_true((status & 0x01) == 0, "BUSY flag cleared after restore");
 	
@@ -63,7 +83,21 @@ void test_restore_with_verify(TestFramework& test) {
 	fdc.initialize();
 	fdc.reset();
 	
-	// Don't open real disk in test - the FDC should work with motor on
+	// Open real disk file for testing
+	const char* disk_path = "data/test_disk_images/test_basic_2d.d88";
+	
+	// Check if disk file exists, create dummy if not
+	FILE* check_file = fopen(disk_path, "rb");
+	if(!check_file) {
+		// Create dummy disk
+		system("mkdir -p data/test_disk_images");
+		system("./create_dummy_disk 2>/dev/null || g++ -o create_dummy_disk create_dummy_disk.cpp && ./create_dummy_disk");
+	} else {
+		fclose(check_file);
+	}
+	
+	// Open disk
+	fdc.open_disk(0, disk_path, 0);
 	
 	// Turn on motor
 	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
@@ -74,9 +108,13 @@ void test_restore_with_verify(TestFramework& test) {
 	// Issue restore with verify command
 	fdc.write_io8(0, 0x04); // Restore command with verify (V=1)
 	
-	// Wait for completion (verify takes longer)
-	event.advance_clock(80000);
+	// Wait for completion with timeout (verify takes longer)
+	int timeout = 2000;
+	while((fdc.read_io8(0) & 0x01) && timeout-- > 0) {
+		event.advance_clock(1000);
+	}
 	
+	test.assert_true(timeout > 0, "Restore with verify completed within timeout");
 	uint32_t status = fdc.read_io8(0);
 	test.assert_true((status & 0x01) == 0, "BUSY cleared after restore with verify");
 	test.assert_true((status & 0x04) != 0, "TRACK00 set after restore with verify");
@@ -98,8 +136,8 @@ void test_seek_command(TestFramework& test) {
 	fdc.initialize();
 	fdc.reset();
 	
-	// Setup mock disk
-	fdc.open_disk(0, _T("test.dsk"), 0);
+	// Don't open real disk in test - the FDC should work with motor on
+	// Turn on motor
 	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
 	
 	// Start from track 0, seek to track 10
@@ -110,9 +148,13 @@ void test_seek_command(TestFramework& test) {
 	uint32_t status = fdc.read_io8(0);
 	test.assert_true((status & 0x01) != 0, "BUSY set during seek");
 	
-	// Wait for seek completion
-	event.advance_clock(50000);
+	// Wait for seek completion with timeout
+	int timeout = 1000;
+	while((fdc.read_io8(0) & 0x01) && timeout-- > 0) {
+		event.advance_clock(1000);
+	}
 	
+	test.assert_true(timeout > 0, "Seek completed within timeout");
 	status = fdc.read_io8(0);
 	test.assert_true((status & 0x01) == 0, "BUSY cleared after seek");
 	
@@ -137,14 +179,22 @@ void test_seek_with_verify(TestFramework& test) {
 	fdc.initialize();
 	fdc.reset();
 	
-	fdc.open_disk(0, _T("test.dsk"), 0);
+	// Open real disk file for testing
+	const char* disk_path = "data/test_disk_images/test_basic_2d.d88";
+	fdc.open_disk(0, disk_path, 0);
+	
+	// Turn on motor
 	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
 	
 	// Seek to track 5 with verify
 	fdc.write_io8(3, 5); // Data register = target track
 	fdc.write_io8(0, 0x14); // Seek with verify (V=1)
 	
-	event.advance_clock(60000);
+	// Wait for seek with verify completion
+	int timeout = 2000;
+	while((fdc.read_io8(0) & 0x01) && timeout-- > 0) {
+		event.advance_clock(1000);
+	}
 	
 	uint32_t status = fdc.read_io8(0);
 	test.assert_true((status & 0x01) == 0, "BUSY cleared after seek with verify");
@@ -166,7 +216,11 @@ void test_step_commands(TestFramework& test) {
 	fdc.initialize();
 	fdc.reset();
 	
-	fdc.open_disk(0, _T("test.dsk"), 0);
+	// Open real disk file for testing
+	const char* disk_path = "data/test_disk_images/test_basic_2d.d88";
+	fdc.open_disk(0, disk_path, 0);
+	
+	// Turn on motor
 	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
 	
 	// Test Step In command
@@ -206,7 +260,11 @@ void test_step_with_update(TestFramework& test) {
 	fdc.initialize();
 	fdc.reset();
 	
-	fdc.open_disk(0, _T("test.dsk"), 0);
+	// Open real disk file for testing
+	const char* disk_path = "data/test_disk_images/test_basic_2d.d88";
+	fdc.open_disk(0, disk_path, 0);
+	
+	// Turn on motor
 	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
 	
 	// Step In with track register update (U=1)
@@ -237,7 +295,11 @@ void test_step_rate_selection(TestFramework& test) {
 	fdc.initialize();
 	fdc.reset();
 	
-	fdc.open_disk(0, _T("test.dsk"), 0);
+	// Open real disk file for testing
+	const char* disk_path = "data/test_disk_images/test_basic_2d.d88";
+	fdc.open_disk(0, disk_path, 0);
+	
+	// Turn on motor
 	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
 	
 	// Test different step rates (r1,r0 bits)
@@ -272,7 +334,11 @@ void test_type1_head_load_flag(TestFramework& test) {
 	fdc.initialize();
 	fdc.reset();
 	
-	fdc.open_disk(0, _T("test.dsk"), 0);
+	// Open real disk file for testing
+	const char* disk_path = "data/test_disk_images/test_basic_2d.d88";
+	fdc.open_disk(0, disk_path, 0);
+	
+	// Turn on motor
 	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
 	
 	// Test head load flag with restore command

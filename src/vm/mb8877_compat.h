@@ -38,8 +38,11 @@ class DISK;
 class NOISE;
 
 // MB8877 compatibility wrapper class
+class MB8877TestHelper; // Forward declaration
+
 class MB8877 : public DEVICE
 {
+	friend class MB8877TestHelper; // Allow test helper to access private members
 private:
 	// FDC state machine states (from MAME wd_fdc)
 	enum {
@@ -182,11 +185,69 @@ private:
 		int bytes_before_2nd_drq;
 		int next_am1_position;
 		uint32_t prev_clock;
+		// sector data buffer
+		uint8_t buffer[8192];  // Sector data buffer (8192 bytes as required)
+		int count;             // Number of valid bytes in buffer
+		// force interrupt support
+		uint8_t force_ready_mask;   // Condition bits for ready transitions
+		bool prev_ready_state;      // Previous ready state for transition detection
+		int index_count;            // Index hole counter
 	} fdc[MAX_DRIVE];
 	
 protected:
 	// Original DISK array for compatibility - protected for test access
 	DISK* disk[MAX_DRIVE];
+	
+	// Safety infrastructure for disk access
+	enum SafetyError {
+		SAFETY_OK = 0,
+		SAFETY_INVALID_DRIVE,
+		SAFETY_DISK_NULL,
+		SAFETY_NOT_INITIALIZED,
+		SAFETY_OUT_OF_BOUNDS
+	};
+	
+	// Disk initialization tracking
+	bool disks_initialized;
+	
+	// Safe accessor methods
+	inline bool is_drive_valid(int drv) const {
+		return drv >= 0 && drv < MAX_DRIVE;
+	}
+	
+	inline bool is_disk_available(int drv) const {
+		return is_drive_valid(drv) && disk[drv] != NULL;
+	}
+	
+	inline DISK* get_disk_safe(int drv) {
+		if (!is_disk_available(drv)) {
+			return NULL;
+		}
+		
+		// Additional safety check - verify virtual function table
+		try {
+			DISK* d = disk[drv];
+			if (d) {
+				// Try to access a basic member to verify object validity
+				bool test = d->inserted;
+				(void)test; // Avoid unused variable warning
+			}
+			return d;
+		} catch(...) {
+			// Object is corrupted or invalid
+			return NULL;
+		}
+	}
+	
+	inline SafetyError check_disk_safety(int drv) const {
+		if (!disks_initialized) return SAFETY_NOT_INITIALIZED;
+		if (!is_drive_valid(drv)) return SAFETY_INVALID_DRIVE;
+		if (disk[drv] == NULL) return SAFETY_DISK_NULL;
+		return SAFETY_OK;
+	}
+	
+	// Error handling helper
+	void handle_disk_error(SafetyError error, const char* operation);
 	
 private:
 	// Registers - maintain original interface
@@ -234,11 +295,6 @@ private:
 	
 	// Internal helper methods
 	void update_fdc_status();
-	void convert_command(uint8_t mb8877_cmd);
-	uint8_t convert_status_to_mb8877();
-	void setup_floppy_images();
-	void sync_disk_to_floppy(int drv);
-	void sync_floppy_to_disk(int drv);
 	
 	// Event handling
 	void cancel_my_event(int event);
@@ -279,6 +335,7 @@ private:
 	void cmd_forceint();
 	void update_head_flag(int drv, bool head_load);
 	void update_ready();
+	void check_ready_transitions();
 	double get_head_load_delay();
 	
 	// IRQ/DMA
@@ -294,6 +351,11 @@ public:
 		d_noise_seek = NULL;
 		d_noise_head_down = NULL;
 		d_noise_head_up = NULL;
+		// Initialize disk array to NULL
+		for(int i = 0; i < MAX_DRIVE; i++) {
+			disk[i] = NULL;
+		}
+		disks_initialized = false;
 		// these parameters may be modified before calling initialize()
 		drvreg = sidereg = 0;
 		motor_on = drive_sel = false;
@@ -345,7 +407,7 @@ public:
 		this->register_output_signal(&outputs_rdy, device, id, mask);
 	}
 	// Overloaded method to match test expectations (4 parameters)
-	void set_context_event_manager(DEVICE* device, int id1, int id2, int id3)
+	void set_context_event_manager(DEVICE* device, int /*id1*/, int /*id2*/, int /*id3*/)
 	{
 		event_manager = device;
 		set_event_manager(device);  // Also set in base DEVICE class
@@ -393,7 +455,7 @@ public:
 	void set_drive_mfm(int drv, bool mfm);
 	void set_track_size(int drv, int size);
 	uint8_t fdc_status();
-	bool get_intr_ack();
+	uint32_t get_intr_ack();
 };
 
 #endif

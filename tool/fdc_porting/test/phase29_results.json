@@ -1,0 +1,83 @@
+{
+  "phase": 29,
+  "test_date": "2025-06-13T23:24:39.095377",
+  "objective": "Measure Type II success rate after Phase 28 memory fixes",
+  "baseline_target": {
+    "from": 43.0,
+    "to": 85.0
+  },
+  "tests": {
+    "type2_commands": {
+      "success": false,
+      "elapsed_time": 0.004036903381347656,
+      "functionality": {
+        "read_sector": {
+          "basic_read": false,
+          "data_transfer": false,
+          "drq_signaling": false,
+          "completion_status": false
+        },
+        "write_sector": {
+          "write_initiation": false,
+          "drq_for_data": false,
+          "write_protection": false,
+          "completion": false
+        },
+        "multi_sector": {
+          "multi_read": false,
+          "sector_increment": false,
+          "cross_boundary": false
+        },
+        "phase25_fixes": {
+          "event_search": false,
+          "read_io8": false,
+          "event_multi": false
+        }
+      },
+      "output_sample": "Exit code: -11\n",
+      "runs": [
+        {
+          "run": 1,
+          "success": false,
+          "elapsed_time": 0.004036903381347656,
+          "output_length": 15
+        },
+        {
+          "run": 2,
+          "success": false,
+          "elapsed_time": 0.002119779586791992,
+          "output_length": 15
+        },
+        {
+          "run": 3,
+          "success": false,
+          "elapsed_time": 0.001992940902709961,
+          "output_length": 15
+        }
+      ],
+      "success_rate": 0.0
+    },
+    "asan_verification": {
+      "success": true,
+      "message": "No memory errors detected"
+    }
+  },
+  "summary": {
+    "overall_success_rate": 0.0,
+    "functionality_coverage": 0.0,
+    "memory_safety": true,
+    "baseline_achievement": {
+      "baseline": 43.0,
+      "target": 85.0,
+      "achieved": 0.0,
+      "improvement": -43.0
+    },
+    "phase25_effectiveness": {
+      "event_search_working": false,
+      "read_io8_working": false,
+      "event_multi_working": false
+    }
+  },
+  "timing": {},
+  "phase30_recommendation": "LOW SUCCESS: Core architecture review needed"
+}

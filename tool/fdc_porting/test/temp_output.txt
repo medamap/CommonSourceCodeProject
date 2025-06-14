@@ -1,998 +1,121 @@
+=== MB8877 Drive MFM Tests ===
 
-=== Test Suite: MB8877 Error Handling Tests ===
+--- Basic FM/MFM Switching ---
+MB8877::reset() called
+MB8877::reset() called
+[PASS] Set MFM mode without crash
+[PASS] Set FM mode without crash
+[PASS] Set MFM mode without crash
+[PASS] Set FM mode without crash
+[PASS] Set MFM mode without crash
+[PASS] Set FM mode without crash
+[PASS] Set MFM mode without crash
+[PASS] Set FM mode without crash
 
---- Record Not Found (RNF) Error ---
-write_io8: addr=1, data=0x00
-write_io8: addr=2, data=0x63
-write_io8: addr=0, data=0x80
-process_cmd: cmdreg=0x80, drvreg=0
+--- Invalid Drive Handling ---
+MB8877::reset() called
+MB8877::reset() called
+[PASS] Negative drive number handled
+[PASS] Drive 4 handled
+[PASS] Drive 10 handled
+
+--- MFM/FM Mode Persistence ---
+MB8877::reset() called
+MB8877::reset() called
+write_io8: addr=3, data=0x00
+write_io8: addr=0, data=0x0B
+process_cmd: cmdreg=0x0B, drvreg=0
 IRQ Signal: CLEAR
-DRQ Signal: CLEAR (status=0x00)
+DRQ Signal: CLEAR (status=0x04)
 After set_drq
 Check drive ready: motor_on=0, drvreg=0
 Motor is off, returning NOT READY
+register_my_event: EVENT_IRQ from:
+  (called from set_irq or similar)
+register_my_event: event=8, usec=10, cmdtype=0
 IRQ Signal: SET
+event_callback: event=8, cmd=0, cmdtype=0
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
 IRQ Signal: CLEAR
-[PASS] BUSY flag cleared
-[FAIL] RNF (Record Not Found) flag set: 
-IRQ Signal: CLEAR
-[PASS] IRQ generated on error
-IRQ Signal: CLEAR
-[FAIL] RNF flag persists after status read: 
-write_io8: addr=0, data=0x00
-process_cmd: cmdreg=0x00, drvreg=0
+[PASS] Restore command completed
+write_io8: addr=3, data=0x01
+write_io8: addr=1, data=0x0A
+write_io8: addr=0, data=0x1B
+process_cmd: cmdreg=0x1B, drvreg=0
 IRQ Signal: CLEAR
 DRQ Signal: CLEAR (status=0x80)
 After set_drq
 Check drive ready: motor_on=0, drvreg=0
 Motor is off, returning NOT READY
+register_my_event: EVENT_IRQ from:
+  (called from set_irq or similar)
+register_my_event: event=8, usec=10, cmdtype=0
 IRQ Signal: SET
+event_callback: event=8, cmd=0, cmdtype=0
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
 IRQ Signal: CLEAR
-[PASS] RNF flag cleared by new command
+[PASS] Seek command completed
 
---- CRC Error ---
-write_io8: addr=1, data=0x00
-write_io8: addr=2, data=0x01
-write_io8: addr=0, data=0x80
-process_cmd: cmdreg=0x80, drvreg=0
-IRQ Signal: CLEAR
-DRQ Signal: CLEAR (status=0x00)
-After set_drq
-Check drive ready: motor_on=0, drvreg=0
-Motor is off, returning NOT READY
-IRQ Signal: SET
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-[FAIL] CRC error flag set: 
-IRQ Signal: CLEAR
-[PASS] IRQ generated on CRC error
+--- Multiple Drive Switching ---
+MB8877::reset() called
+MB8877::reset() called
+write_io8: addr=3, data=0x00
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x154604700
+IRQ Signal: CLEAR
+[FAIL] Drive not busy: 
+write_io8: addr=3, data=0x01
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+IRQ Signal: CLEAR
+[FAIL] Drive not busy: 
+write_io8: addr=3, data=0x02
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+IRQ Signal: CLEAR
+[FAIL] Drive not busy: 
+write_io8: addr=3, data=0x03
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
+IRQ Signal: CLEAR
+[FAIL] Drive not busy: 
 
---- Data Lost Error ---
-write_io8: addr=1, data=0x00
-write_io8: addr=2, data=0x01
-write_io8: addr=0, data=0x80
-process_cmd: cmdreg=0x80, drvreg=0
-IRQ Signal: CLEAR
-DRQ Signal: CLEAR (status=0x00)
-After set_drq
-Check drive ready: motor_on=0, drvreg=0
-Motor is off, returning NOT READY
-IRQ Signal: SET
-IRQ Signal: CLEAR
+--- Rapid Mode Switching ---
+MB8877::reset() called
+MB8877::reset() called
+[PASS] Rapid mode switching completed without crash
 
---- Write Protect Error ---
-write_io8: addr=1, data=0x00
-write_io8: addr=2, data=0x01
-write_io8: addr=0, data=0xA0
-process_cmd: cmdreg=0xA0, drvreg=0
+--- Mode Setting with Commands ---
+MB8877::reset() called
+MB8877::reset() called
+write_io8: addr=3, data=0x00
+write_io8: addr=0, data=0x0B
+process_cmd: cmdreg=0x0B, drvreg=0
 IRQ Signal: CLEAR
-DRQ Signal: CLEAR (status=0x00)
+DRQ Signal: CLEAR (status=0x04)
 After set_drq
 Check drive ready: motor_on=0, drvreg=0
 Motor is off, returning NOT READY
+register_my_event: EVENT_IRQ from:
+  (called from set_irq or similar)
+register_my_event: event=8, usec=10, cmdtype=0
 IRQ Signal: SET
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
 IRQ Signal: CLEAR
-[FAIL] Write Protect flag set: 
-[PASS] BUSY flag cleared on WP error
+[FAIL] Command in progress: 
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=1
 IRQ Signal: CLEAR
-[PASS] IRQ generated on WP error
-write_io8: addr=0, data=0xF0
-process_cmd: cmdreg=0xF0, drvreg=0
-IRQ Signal: CLEAR
-DRQ Signal: CLEAR (status=0x80)
-After set_drq
-Check drive ready: motor_on=0, drvreg=0
-Motor is off, returning NOT READY
-IRQ Signal: SET
-IRQ Signal: CLEAR
-[FAIL] Write Protect flag set for write track: 
-
---- Not Ready Error ---
-write_io8: addr=1, data=0x00
-write_io8: addr=2, data=0x01
-write_io8: addr=0, data=0x80
-process_cmd: cmdreg=0x80, drvreg=0
-IRQ Signal: CLEAR
-DRQ Signal: CLEAR (status=0x00)
-After set_drq
-Check drive ready: motor_on=0, drvreg=0
-Motor is off, returning NOT READY
-IRQ Signal: SET
-IRQ Signal: CLEAR
-[PASS] Not Ready flag set
-[PASS] BUSY flag cleared on not ready
-IRQ Signal: CLEAR
-[PASS] IRQ generated on not ready
-write_io8: addr=0, data=0x00
-process_cmd: cmdreg=0x00, drvreg=0
-IRQ Signal: CLEAR
-DRQ Signal: CLEAR (status=0x80)
-After set_drq
-Check drive ready: motor_on=0, drvreg=0
-Motor is off, returning NOT READY
-IRQ Signal: SET
-IRQ Signal: CLEAR
-[PASS] Not Ready flag set for Type I command
-
---- Multiple Simultaneous Errors ---
-write_io8: addr=1, data=0x00
-write_io8: addr=2, data=0x01
-write_io8: addr=0, data=0xA0
-process_cmd: cmdreg=0xA0, drvreg=0
-IRQ Signal: CLEAR
-DRQ Signal: CLEAR (status=0x00)
-After set_drq
-Check drive ready: motor_on=0, drvreg=0
-Motor is off, returning NOT READY
-IRQ Signal: SET
-IRQ Signal: CLEAR
-[FAIL] Write Protect flag has priority: 
-write_io8: addr=0, data=0x80
-process_cmd: cmdreg=0x80, drvreg=0
-IRQ Signal: CLEAR
-DRQ Signal: CLEAR (status=0x80)
-After set_drq
-Check drive ready: motor_on=0, drvreg=0
-Motor is off, returning NOT READY
-IRQ Signal: SET
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-[FAIL] CRC error flag set after WP cleared: 
-
---- Error Recovery ---
-write_io8: addr=1, data=0x00
-write_io8: addr=2, data=0x01
-write_io8: addr=0, data=0x80
-process_cmd: cmdreg=0x80, drvreg=0
-IRQ Signal: CLEAR
-DRQ Signal: CLEAR (status=0x00)
-After set_drq
-Check drive ready: motor_on=0, drvreg=0
-Motor is off, returning NOT READY
-IRQ Signal: SET
-IRQ Signal: CLEAR
-[FAIL] First read has CRC error: 
-write_io8: addr=0, data=0x80
-process_cmd: cmdreg=0x80, drvreg=0
-IRQ Signal: CLEAR
-DRQ Signal: CLEAR (status=0x80)
-After set_drq
-Check drive ready: motor_on=0, drvreg=0
-Motor is off, returning NOT READY
-IRQ Signal: SET
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-IRQ Signal: CLEAR
-[PASS] CRC error cleared on retry
-[FAIL] Data successfully read on retry: 
-
---- Error During Seek ---
-write_io8: addr=3, data=0x0A
-write_io8: addr=0, data=0x10
-process_cmd: cmdreg=0x10, drvreg=0
-IRQ Signal: CLEAR
-DRQ Signal: CLEAR (status=0x00)
-After set_drq
-Check drive ready: motor_on=0, drvreg=0
-Motor is off, returning NOT READY
-IRQ Signal: SET
-IRQ Signal: CLEAR
-[PASS] Not Ready flag set when drive removed during seek
-[PASS] BUSY flag cleared
-IRQ Signal: CLEAR
-[PASS] IRQ generated on seek error
+[PASS] Mode change during command didn't crash
 
 ========== Test Summary ==========
-Total tests: 23
-Passed: 14
-Failed: 9
-Success rate: 60.9%
+Total tests: 20
+Passed: 15
+Failed: 5
+Success rate: 75.0%
 ==================================

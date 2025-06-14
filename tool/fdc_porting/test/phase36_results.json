@@ -1,0 +1,51 @@
+{
+  "phase": 36,
+  "task": "final_completion",
+  "timestamp": "2025-06-14T10:13:44.940401",
+  "results": [
+    {
+      "name": "test_mb8877_registers",
+      "status": "success",
+      "note": "No summary found"
+    },
+    {
+      "name": "test_mb8877_type1_commands",
+      "status": "crashed",
+      "exit_code": -11
+    },
+    {
+      "name": "test_mb8877_type2_commands",
+      "status": "crashed",
+      "exit_code": -11
+    },
+    {
+      "name": "test_mb8877_type3_type4_commands",
+      "status": "crashed",
+      "exit_code": -11
+    }
+  ],
+  "type_results": {
+    "type1": {
+      "passed": 0,
+      "total": 0
+    },
+    "type2": {
+      "passed": 0,
+      "total": 0
+    },
+    "type3": {
+      "passed": 0,
+      "total": 0
+    },
+    "type4": {
+      "passed": 0,
+      "total": 0
+    }
+  },
+  "overall": {
+    "passed": 0,
+    "total": 0,
+    "success_rate": "N/A"
+  },
+  "target_achieved": false
+}

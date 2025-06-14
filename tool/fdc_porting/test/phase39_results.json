@@ -1,0 +1,88 @@
+{
+  "phase": 39,
+  "fixes_applied": [
+    "RESTORE/SEEK with Verify RNF handling",
+    "Type II DRQ timing",
+    "Write protect during search",
+    "Lost data timeout",
+    "Status persistence"
+  ],
+  "tests": [
+    {
+      "name": "test_mb8877_registers",
+      "status": "PASSED",
+      "returncode": 0
+    },
+    {
+      "name": "test_mb8877_type1_commands",
+      "status": "FAILED",
+      "returncode": 1
+    },
+    {
+      "name": "test_mb8877_type2_commands",
+      "status": "FAILED",
+      "returncode": 1
+    },
+    {
+      "name": "test_mb8877_type3_commands",
+      "status": "PASSED",
+      "returncode": 0
+    },
+    {
+      "name": "test_mb8877_type4_commands",
+      "status": "FAILED",
+      "returncode": 1
+    },
+    {
+      "name": "test_mb8877_error_handling",
+      "status": "FAILED",
+      "returncode": 1
+    },
+    {
+      "name": "test_mb8877_timing",
+      "status": "FAILED",
+      "returncode": 1
+    },
+    {
+      "name": "test_mb8877_write_track",
+      "status": "PASSED",
+      "returncode": 0
+    },
+    {
+      "name": "test_mb8877_drive_rpm",
+      "status": "PASSED",
+      "returncode": 0
+    },
+    {
+      "name": "test_mb8877_drive_mfm",
+      "status": "FAILED",
+      "returncode": 1
+    },
+    {
+      "name": "test_mb8877_type2_complete",
+      "status": "FAILED",
+      "returncode": -11
+    },
+    {
+      "name": "test_mb8877_safe_disk_integration",
+      "status": "PASSED",
+      "returncode": 0
+    },
+    {
+      "name": "test_mb8877_type3_type4_commands",
+      "status": "FAILED",
+      "returncode": -11
+    },
+    {
+      "name": "test_force_interrupt_debug",
+      "status": "PASSED",
+      "returncode": 0
+    }
+  ],
+  "summary": {
+    "total": 14,
+    "passed": 6,
+    "failed": 8,
+    "segfaults": 0
+  }
+}

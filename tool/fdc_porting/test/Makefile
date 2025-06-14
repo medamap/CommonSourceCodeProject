@@ -23,9 +23,9 @@ COMMON_SRCS = \
 VM_SRCS = \
 	$(VM_DIR)/disk.cpp
 
-# MB8877 implementation (use test wrapper for proper include order)
+# MB8877 implementation (use compat impl for proper include order)
 MB8877_SRCS = \
-	mb8877_test_wrapper.cpp
+	mb8877_compat_impl.cpp
 
 # Object files - output to obj directory
 COMMON_OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(COMMON_SRCS))
@@ -43,7 +43,11 @@ TEST_EXECUTABLES = \
 	test_mb8877_timing \
 	test_mb8877_write_track \
 	test_mb8877_drive_mfm \
-	test_mb8877_drive_rpm
+	test_mb8877_drive_rpm \
+	test_safe_disk \
+	test_mb8877_safe_disk_integration \
+	test_mb8877_type2_complete \
+	test_mb8877_type3_type4_commands
 
 .PHONY: all clean test run_all_tests
 
@@ -78,6 +82,21 @@ test_mb8877_drive_mfm: $(OBJ_DIR)/test_mb8877_drive_mfm.o $(COMMON_OBJS) $(VM_OB
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 test_mb8877_drive_rpm: $(OBJ_DIR)/test_mb8877_drive_rpm.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+test_mb8877_type2_real_d88: $(OBJ_DIR)/test_mb8877_type2_real_d88.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+test_safe_disk: $(OBJ_DIR)/test_safe_disk.o $(COMMON_OBJS) $(VM_OBJS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+test_mb8877_safe_disk_integration: $(OBJ_DIR)/test_mb8877_safe_disk_integration.o
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+test_mb8877_type2_complete: $(OBJ_DIR)/test_mb8877_type2_complete.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+test_mb8877_type3_type4_commands: $(OBJ_DIR)/test_mb8877_type3_type4_commands.o $(COMMON_OBJS) $(VM_OBJS) $(MB8877_OBJS)
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 # Create shell script to run all tests
@@ -131,19 +150,45 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 $(OBJ_DIR)/vm/%.o: $(VM_DIR)/%.cpp | $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Test disk targets
+.PHONY: test-disks clean-test-disks
+
+# Create test disk images
+test-disks:
+	@echo "Creating test disk images..."
+	@mkdir -p data/test_disk_images
+	@if [ -d "../../tools/Legacy89DiskKit" ]; then \
+		echo "Using Legacy89DiskKit..."; \
+		bash scripts/create_test_disks.sh; \
+	else \
+		echo "Creating dummy disks..."; \
+		$(CXX) $(CXXFLAGS) -o create_dummy_disk create_dummy_disk.cpp; \
+		./create_dummy_disk; \
+		rm -f create_dummy_disk; \
+	fi
+
+# Clean test disk images
+clean-test-disks:
+	rm -rf data/test_disk_images
+
 # Run all tests using the shell script
-test: all
+test: all test-disks
 	@echo "Running all tests..."
 	@./run_all_tests.sh
 
-# Run individual tests
+# Run all tests with real disk files
+test-all: test-disks all
+	@echo "Running all tests with real disk files..."
+	@./run_all_tests.sh
+
+# Run individual tests (with disk creation)
 test-registers: test_mb8877_registers
 	./test_mb8877_registers
 
-test-type1: test_mb8877_type1_commands
+test-type1: test-disks test_mb8877_type1_commands
 	./test_mb8877_type1_commands
 
-test-type2: test_mb8877_type2_commands
+test-type2: test-disks test_mb8877_type2_commands
 	./test_mb8877_type2_commands
 
 test-type3: test_mb8877_type3_commands
@@ -164,12 +209,18 @@ clean:
 	rm -f $(TEST_EXECUTABLES)
 	rm -f run_all_tests.sh
 	rm -rf test_results
+	rm -f create_dummy_disk
+
+# Deep clean (including test disks)
+clean-all: clean clean-test-disks
 
 # Help
 help:
 	@echo "Available targets:"
 	@echo "  all               - Build all test executables"
-	@echo "  test              - Run all tests"
+	@echo "  test              - Run all tests (creates disk images first)"
+	@echo "  test-all          - Same as test"
+	@echo "  test-disks        - Create test disk images"
 	@echo "  test-registers    - Run register tests only"
 	@echo "  test-type1        - Run Type I command tests only"
 	@echo "  test-type2        - Run Type II command tests only"
@@ -178,6 +229,8 @@ help:
 	@echo "  test-error        - Run error handling tests only"
 	@echo "  test-timing       - Run timing verification tests only"
 	@echo "  clean             - Clean build files"
+	@echo "  clean-all         - Clean build files and test disks"
+	@echo "  clean-test-disks  - Clean test disk images only"
 	@echo "  help              - Show this help"
 
 # Dependencies
@@ -188,3 +241,7 @@ test_mb8877_type3_commands.o: test_mb8877_type3_commands.cpp test_framework.h mo
 test_mb8877_type4_commands.o: test_mb8877_type4_commands.cpp test_framework.h mock_environment.h
 test_mb8877_error_handling.o: test_mb8877_error_handling.cpp test_framework.h mock_environment.h
 test_mb8877_timing.o: test_mb8877_timing.cpp test_framework.h mock_environment.h
+test_mb8877_type2_real_d88.o: test_mb8877_type2_real_d88.cpp mb8877_test_helper.h mock_environment.h
+
+test_force_interrupt_debug: obj/test_force_interrupt_debug.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_wrapper.o
+	g++ -o test_force_interrupt_debug obj/test_force_interrupt_debug.o obj/common.o obj/config.o obj/fileio.o obj/fifo.o obj/vm/disk.o obj/mb8877_compat_wrapper.o

@@ -97,6 +97,42 @@ else
     ((TESTS_FAILED++))
 fi
 
+echo "Running test_safe_disk..."
+if ./test_safe_disk; then
+    echo "  ✓ test_safe_disk PASSED"
+    ((TESTS_PASSED++))
+else
+    echo "  ✗ test_safe_disk FAILED"
+    ((TESTS_FAILED++))
+fi
+
+echo "Running test_mb8877_safe_disk_integration..."
+if ./test_mb8877_safe_disk_integration; then
+    echo "  ✓ test_mb8877_safe_disk_integration PASSED"
+    ((TESTS_PASSED++))
+else
+    echo "  ✗ test_mb8877_safe_disk_integration FAILED"
+    ((TESTS_FAILED++))
+fi
+
+echo "Running test_mb8877_type2_complete..."
+if ./test_mb8877_type2_complete; then
+    echo "  ✓ test_mb8877_type2_complete PASSED"
+    ((TESTS_PASSED++))
+else
+    echo "  ✗ test_mb8877_type2_complete FAILED"
+    ((TESTS_FAILED++))
+fi
+
+echo "Running test_mb8877_type3_type4_commands..."
+if ./test_mb8877_type3_type4_commands; then
+    echo "  ✓ test_mb8877_type3_type4_commands PASSED"
+    ((TESTS_PASSED++))
+else
+    echo "  ✗ test_mb8877_type3_type4_commands FAILED"
+    ((TESTS_FAILED++))
+fi
+
 echo "========================================"
 echo "Total: $((TESTS_PASSED + TESTS_FAILED)) tests"
 echo "Passed: $TESTS_PASSED"

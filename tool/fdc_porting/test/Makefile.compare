@@ -1,0 +1,44 @@
+# Makefile for comparing GPL vs BSD MB8877 implementations
+
+CXX = g++
+CXXFLAGS = -std=c++11 -Wall -g -O0 -I../../../src -I../../../src/vm -I../../../src/common -D_DEBUG
+LDFLAGS = 
+
+# Source files
+COMMON_SRCS = ../../../src/common.cpp \
+              ../../../src/fifo.cpp \
+              ../../../src/fileio.cpp
+
+GPL_SRCS = ../../../src/vm/mb8877.cpp
+BSD_SRCS = ../../../src/vm/mb8877_compat.cpp
+DISK_SRCS = ../../../src/vm/disk.cpp
+
+TEST_SRC = compare_implementations.cpp
+
+# Object files
+COMMON_OBJS = $(COMMON_SRCS:.cpp=.o)
+GPL_OBJ = $(GPL_SRCS:.cpp=.o)
+BSD_OBJ = $(BSD_SRCS:.cpp=.o)
+DISK_OBJ = $(DISK_SRCS:.cpp=.o)
+TEST_OBJ = $(TEST_SRC:.cpp=.o)
+
+# Target executable
+TARGET = compare_implementations
+
+# Build rules
+all: $(TARGET)
+
+$(TARGET): $(COMMON_OBJS) $(GPL_OBJ) $(BSD_OBJ) $(DISK_OBJ) $(TEST_OBJ)
+	$(CXX) $(LDFLAGS) -o $@ $^
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+clean:
+	rm -f $(TARGET) $(COMMON_OBJS) $(GPL_OBJ) $(BSD_OBJ) $(DISK_OBJ) $(TEST_OBJ)
+	rm -f ../../../src/*.o ../../../src/vm/*.o ../../../src/common/*.o
+
+run: $(TARGET)
+	./$(TARGET)
+
+.PHONY: all clean run

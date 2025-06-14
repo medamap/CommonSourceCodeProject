@@ -21,6 +21,7 @@ void test_force_interrupt_immediate(TestFramework& test) {
 	fdc.set_context_event_manager(&event, 0, 0, 0);
 	fdc.initialize();
 	fdc.reset();
+	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
 	
 	// Setup mock disk
 	mock_disk.open(_T("test.dsk"), 0);
@@ -60,6 +61,7 @@ void test_force_interrupt_no_irq(TestFramework& test) {
 	fdc.set_context_event_manager(&event, 0, 0, 0);
 	fdc.initialize();
 	fdc.reset();
+	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
 	
 	// Setup mock disk
 	mock_disk.open(_T("test.dsk"), 0);
@@ -97,6 +99,7 @@ void test_force_interrupt_during_write(TestFramework& test) {
 	fdc.set_context_event_manager(&event, 0, 0, 0);
 	fdc.initialize();
 	fdc.reset();
+	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
 	
 	// Setup mock disk (not write protected)
 	mock_disk.open(_T("test.dsk"), 0);
@@ -135,6 +138,7 @@ void test_force_interrupt_conditions(TestFramework& test) {
 	fdc.set_context_event_manager(&event, 0, 0, 0);
 	fdc.initialize();
 	fdc.reset();
+	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
 	
 	// Test various condition flag combinations
 	// Bit 0: Not Ready to Ready transition
@@ -171,6 +175,7 @@ void test_force_interrupt_multiple(TestFramework& test) {
 	fdc.set_context_event_manager(&event, 0, 0, 0);
 	fdc.initialize();
 	fdc.reset();
+	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
 	
 	// Issue multiple force interrupts
 	fdc.write_io8(0, 0xD8); // First force interrupt
@@ -203,6 +208,7 @@ void test_force_interrupt_state_reset(TestFramework& test) {
 	fdc.set_context_event_manager(&event, 0, 0, 0);
 	fdc.initialize();
 	fdc.reset();
+	fdc.write_signal(SIG_MB8877_MOTOR, 1, 1);
 	
 	// Setup mock disk
 	mock_disk.open(_T("test.dsk"), 0);

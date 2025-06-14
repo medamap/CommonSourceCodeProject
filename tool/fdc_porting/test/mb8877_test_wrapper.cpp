@@ -19,13 +19,7 @@
 #include "mock_environment.h"
 
 // Include the header (not the .cpp) to get class definition
-#include "../../../src/vm/mb8877.h"
+#include "../src/vm/mb8877_compat.h"
 
-// Check if we're using the compat version which has get_intr_ack
-#ifdef USE_MB8877_COMPAT
-#include "../../../src/vm/mb8877_compat.h"
-#include "../../../src/vm/mb8877_compat.cpp"
-#else
 // Now include the implementation
-#include "../../../src/vm/mb8877.cpp"
-#endif
+#include "../src/vm/mb8877_compat.cpp"

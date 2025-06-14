@@ -1,0 +1,112 @@
+=== MB8877 Drive MFM Tests ===
+
+--- Basic FM/MFM Switching ---
+[PASS] Set MFM mode without crash
+[PASS] Set FM mode without crash
+[PASS] Set MFM mode without crash
+[PASS] Set FM mode without crash
+[PASS] Set MFM mode without crash
+[PASS] Set FM mode without crash
+[PASS] Set MFM mode without crash
+[PASS] Set FM mode without crash
+
+--- Invalid Drive Handling ---
+[PASS] Negative drive number handled
+[PASS] Drive 4 handled
+[PASS] Drive 10 handled
+
+--- MFM/FM Mode Persistence ---
+write_io8: addr=3, data=0x00
+write_io8: addr=0, data=0x0B
+process_cmd: cmdreg=0x0B, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x04)
+After set_drq
+Check drive ready: motor_on=0, drvreg=0
+Motor is off, returning NOT READY
+IRQ Signal: SET
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x139e04700
+IRQ Signal: CLEAR
+[PASS] Restore command completed
+write_io8: addr=3, data=0x01
+write_io8: addr=1, data=0x0A
+write_io8: addr=0, data=0x1B
+process_cmd: cmdreg=0x1B, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x80)
+After set_drq
+Check drive ready: motor_on=0, drvreg=0
+Motor is off, returning NOT READY
+IRQ Signal: SET
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x139e04700
+IRQ Signal: CLEAR
+[PASS] Seek command completed
+
+--- Multiple Drive Switching ---
+write_io8: addr=3, data=0x00
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x139e04700
+IRQ Signal: CLEAR
+[FAIL] Drive not busy: 
+write_io8: addr=3, data=0x01
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x139e04700
+IRQ Signal: CLEAR
+[FAIL] Drive not busy: 
+write_io8: addr=3, data=0x02
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x139e04700
+IRQ Signal: CLEAR
+[FAIL] Drive not busy: 
+write_io8: addr=3, data=0x03
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x139e04700
+IRQ Signal: CLEAR
+[FAIL] Drive not busy: 
+
+--- Rapid Mode Switching ---
+[PASS] Rapid mode switching completed without crash
+
+--- Mode Setting with Commands ---
+write_io8: addr=3, data=0x00
+write_io8: addr=0, data=0x0B
+process_cmd: cmdreg=0x0B, drvreg=0
+IRQ Signal: CLEAR
+DRQ Signal: CLEAR (status=0x04)
+After set_drq
+Check drive ready: motor_on=0, drvreg=0
+Motor is off, returning NOT READY
+IRQ Signal: SET
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x139e04700
+IRQ Signal: CLEAR
+[FAIL] Command in progress: 
+read_io8: addr=0, drvreg=0
+read_io8: reading status register, now_search=0
+read_io8: getting disk_safe for drvreg=0
+read_io8: disk_safe=0x139e04700
+IRQ Signal: CLEAR
+[PASS] Mode change during command didn't crash
+
+========== Test Summary ==========
+Total tests: 20
+Passed: 15
+Failed: 5
+Success rate: 75.0%
+==================================
