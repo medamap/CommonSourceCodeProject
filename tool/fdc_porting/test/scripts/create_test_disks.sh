@@ -2,7 +2,7 @@
 # Create test disk images using Legacy89DiskKit
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-LEGACY89_PATH="$SCRIPT_DIR/../../../tools/Legacy89DiskKit/CSharp"
+LEGACY89_PATH="$SCRIPT_DIR/../../tools/Legacy89DiskKit/CSharp"
 TEST_DISK_DIR="$SCRIPT_DIR/../data/test_disk_images"
 
 # Create test disk directory

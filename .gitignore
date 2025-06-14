@@ -407,3 +407,13 @@ androidstudio/local.properties
 
 !/tool/**/*
 !/tool/**/*/
+
+# FDC Porting specific ignores
+*.d88
+*.D88
+tool/fdc_porting/test/phase*_test
+tool/fdc_porting/test/phase*_test_*
+tool/fdc_porting/test/test_mb8877_*
+!tool/fdc_porting/test/test_mb8877_*.cpp
+tool/fdc_porting/test/*.dSYM/
+tool/fdc_porting/test/results/*.log
