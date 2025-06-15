@@ -8,9 +8,26 @@
 	[ MB8877 / MB8876 / MB8866 / MB89311 ]
 */
 
+#if !defined(_MB8877_COMPAT)
+
 #include "mb8877.h"
 #include "disk.h"
 #include "noise.h"
+
+// Android logging for comparison with mb8877_compat
+#ifdef __ANDROID__
+#include <android/log.h>
+#define FDC_LOG_TAG "MB8877_ORIG"
+#define FDC_LOG_INFO(...) __android_log_print(ANDROID_LOG_INFO, FDC_LOG_TAG, __VA_ARGS__)
+#define FDC_LOG_READ(...) __android_log_print(ANDROID_LOG_INFO, FDC_LOG_TAG, __VA_ARGS__)
+#define FDC_LOG_CMD(...) __android_log_print(ANDROID_LOG_INFO, FDC_LOG_TAG, __VA_ARGS__)
+#define FDC_LOG_HEAD(...) __android_log_print(ANDROID_LOG_INFO, FDC_LOG_TAG, __VA_ARGS__)
+#else
+#define FDC_LOG_INFO(...)
+#define FDC_LOG_READ(...)
+#define FDC_LOG_CMD(...)
+#define FDC_LOG_HEAD(...)
+#endif
 
 #define FDC_ST_BUSY		0x01	// busy
 #define FDC_ST_INDEX		0x02	// index hole
@@ -45,7 +62,7 @@
 
 #define DRIVE_MASK		(MAX_DRIVE - 1)
 
-#define DELAY_AFTER_HLD		(get_delay_after_hld())
+#define DELAY_AFTER_HLD		(disk[drvreg]->drive_type == DRIVE_TYPE_2HD ? 15000 : 30000)
 
 static const int seek_wait_hi[4] = {3000,  6000, 10000, 16000};	// 2MHz
 static const int seek_wait_lo[4] = {6000, 12000, 20000, 30000};	// 1MHz
@@ -219,6 +236,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 #else
 		cmdreg = data;
 #endif
+		FDC_LOG_CMD("CMD Write: data=0x%02X, drv=%d, status=0x%02X", cmdreg, drvreg, status);
 		process_cmd();
 		no_command = 0;
 		break;
@@ -243,6 +261,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 #else
 		secreg = data;
 #endif
+		FDC_LOG_READ("Sector Write: secreg=%d, drv=%d, track=%d", secreg, drvreg, fdc[drvreg].track);
 		if((status & FDC_ST_BUSY) && (fdc[drvreg].index == 0)) {
 			// sector reg is written after command starts
 			if(cmdtype == FDC_CMD_RD_SEC || cmdtype == FDC_CMD_RD_MSEC || cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC) {
@@ -544,6 +563,13 @@ uint32_t MB8877::read_io8(uint32_t addr)
 				if(fdc[drvreg].index < fdc[drvreg].sector_length && 
 				   fdc[drvreg].index < disk[drvreg]->sector_size.sd) {
 					datareg = disk[drvreg]->sector[fdc[drvreg].index];
+					// Log every 32 bytes to reduce log size
+					if((fdc[drvreg].index % 32) == 0) {
+						FDC_LOG_READ("*** DATA READ [ORIG] *** byte[%d-%d] starting with %02X", 
+						             fdc[drvreg].index, 
+						             (fdc[drvreg].index + 31 < fdc[drvreg].sector_length) ? fdc[drvreg].index + 31 : fdc[drvreg].sector_length - 1,
+						             datareg);
+					}
 #ifdef _FDC_DEBUG_LOG
 					this->out_debug_log(_T("FDC\tREAD: byte[%d] = 0x%02X\n"), fdc[drvreg].index, datareg);
 #endif
@@ -566,6 +592,7 @@ uint32_t MB8877::read_io8(uint32_t addr)
 						set_irq(true);
 					} else if(cmdtype == FDC_CMD_RD_SEC) {
 						// single sector
+						FDC_LOG_READ("Single sector read complete [ORIG], IRQ set");
 #ifdef _FDC_DEBUG_LOG
 						this->out_debug_log(_T("FDC\tEND OF SECTOR\n"));
 #endif
@@ -833,13 +860,16 @@ void MB8877::event_callback(int event_id, int err)
 		}
 		break;
 	case EVENT_MULTI1:
+		FDC_LOG_READ("EVENT_MULTI1 [ORIG]: secreg incremented from %d to %d", secreg, secreg + 1);
 		secreg++;
 		break;
 	case EVENT_MULTI2:
+		FDC_LOG_READ("EVENT_MULTI2 [ORIG]: cmdtype=%d", cmdtype);
 		if(cmdtype == FDC_CMD_RD_MSEC) {
 			// Reset for next sector
 			fdc[drvreg].index = 0;
 			fdc[drvreg].sector_length = 0;
+			FDC_LOG_READ("Continuing to next sector read [ORIG]");
 			cmd_readdata(false);
 		} else if(cmdtype == FDC_CMD_WR_MSEC) {
 			cmd_writedata(false);
@@ -1122,6 +1152,10 @@ void MB8877::cmd_stepout()
 
 void MB8877::cmd_readdata(bool first_sector)
 {
+	FDC_LOG_READ(">>> READ SECTOR START [ORIG]: drv=%d, track=%d, sector=%d, side=%d", 
+	             drvreg, trkreg, secreg, sidereg);
+	FDC_LOG_READ("Physical track=%d, first_sector=%d", fdc[drvreg].track, first_sector);
+	
 	// type-2 read data
 	cmdtype = (cmdreg & 0x10) ? FDC_CMD_RD_MSEC : FDC_CMD_RD_SEC;
 	status = FDC_ST_BUSY;
@@ -1313,6 +1347,8 @@ void MB8877::cmd_forceint()
 
 void MB8877::update_head_flag(int drv, bool head_load)
 {
+	FDC_LOG_HEAD(">>> HEAD LOAD UPDATE [ORIG]: drv=%d, head_load=%d->%d, status=0x%02X", 
+	             drv, fdc[drv].head_load, head_load, status);
 	if(fdc[drv].head_load != head_load) {
 		if(head_load) {
 			if(d_noise_head_down != NULL) d_noise_head_down->play();
@@ -1320,6 +1356,7 @@ void MB8877::update_head_flag(int drv, bool head_load)
 			if(d_noise_head_up != NULL) d_noise_head_up->play();
 		}
 		fdc[drv].head_load = head_load;
+		FDC_LOG_HEAD("    Head load changed, status=0x%02X", status);
 	}
 }
 
@@ -1849,3 +1886,5 @@ bool MB8877::process_state(FILEIO* state_fio, bool loading)
 	state_fio->StateValue(seekend_clock);
 	return true;
 }
+
+#endif // !defined(_MB8877_COMPAT)

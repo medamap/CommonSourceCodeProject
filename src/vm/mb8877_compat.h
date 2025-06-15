@@ -12,6 +12,9 @@
 #ifndef _MB8877_COMPAT_H_
 #define _MB8877_COMPAT_H_
 
+#if defined(_MB8877_COMPAT)
+
+
 #ifndef STANDALONE_TEST
 #include "vm.h"
 #include "../emu.h"  
@@ -223,20 +226,7 @@ protected:
 		if (!is_disk_available(drv)) {
 			return NULL;
 		}
-		
-		// Additional safety check - verify virtual function table
-		try {
-			DISK* d = disk[drv];
-			if (d) {
-				// Try to access a basic member to verify object validity
-				bool test = d->inserted;
-				(void)test; // Avoid unused variable warning
-			}
-			return d;
-		} catch(...) {
-			// Object is corrupted or invalid
-			return NULL;
-		}
+		return disk[drv];
 	}
 	
 	inline SafetyError check_disk_safety(int drv) const {
@@ -261,7 +251,7 @@ private:
 	uint8_t cmdtype;
 	
 	// Event system
-	int register_id[8];
+	int register_id[9];  // Need 9 elements for EVENT_IRQ=8
 	
 	// Status flags
 	bool now_search;
@@ -407,10 +397,10 @@ public:
 		this->register_output_signal(&outputs_rdy, device, id, mask);
 	}
 	// Overloaded method to match test expectations (4 parameters)
-	void set_context_event_manager(DEVICE* device, int /*id1*/, int /*id2*/, int /*id3*/)
+	void set_context_event_manager(DEVICE* device)
 	{
 		event_manager = device;
-		set_event_manager(device);  // Also set in base DEVICE class
+		DEVICE::set_context_event_manager(device);  // Call base class method
 	}
 	void set_context_noise_seek(NOISE* device)
 	{
@@ -457,5 +447,7 @@ public:
 	uint8_t fdc_status();
 	uint32_t get_intr_ack();
 };
+
+#endif // defined(_MB8877_COMPAT)
 
 #endif

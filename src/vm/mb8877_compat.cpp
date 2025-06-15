@@ -12,9 +12,53 @@
 	Original copyright: Olivier Galibert
 */
 
+#if defined(_MB8877_COMPAT)
+
 #include "mb8877_compat.h"
 #include "disk.h"
 #include "noise.h"
+
+// Debug logging for FDC operations with verbose suppression
+#ifdef __ANDROID__
+#include <android/log.h>
+
+// Verbose suppression for repeated logs
+static uint32_t last_status_read = 0xFFFFFFFF;
+static int status_read_count = 0;
+static const int MAX_REPEATED_LOGS = 3;
+
+#define FDC_LOG_INFO(...) __android_log_print(ANDROID_LOG_INFO, "MB8877_COMPAT", __VA_ARGS__)
+#define FDC_LOG_ERROR(...) __android_log_print(ANDROID_LOG_ERROR, "MB8877_COMPAT", __VA_ARGS__)
+#define FDC_LOG_SEEK(...) __android_log_print(ANDROID_LOG_WARN, "MB8877_COMPAT", __VA_ARGS__)
+#define FDC_LOG_READ(...) __android_log_print(ANDROID_LOG_WARN, "MB8877_COMPAT", __VA_ARGS__)
+#define FDC_LOG_CMD(...) __android_log_print(ANDROID_LOG_INFO, "MB8877_COMPAT", __VA_ARGS__)
+#define FDC_LOG_HEAD(...) __android_log_print(ANDROID_LOG_INFO, "MB8877_COMPAT", __VA_ARGS__)
+
+#define FDC_LOG_DEBUG_ONCE(status_val, ...) do { \
+    uint32_t current_status = (status_val); \
+    if (current_status != last_status_read || status_read_count < MAX_REPEATED_LOGS) { \
+        if (current_status == last_status_read) status_read_count++; \
+        else { status_read_count = 1; last_status_read = current_status; } \
+        __android_log_print(ANDROID_LOG_DEBUG, "MB8877_COMPAT", __VA_ARGS__); \
+        if (status_read_count == MAX_REPEATED_LOGS) { \
+            __android_log_print(ANDROID_LOG_DEBUG, "MB8877_COMPAT", "... (suppressing repeated status reads)"); \
+        } \
+    } \
+} while(0)
+
+#else
+#define FDC_LOG_INFO(...)
+#define FDC_LOG_DEBUG_ONCE(...)
+#define FDC_LOG_ERROR(...)
+#define FDC_LOG_SEEK(...)
+#define FDC_LOG_READ(...)
+#endif
+
+#ifndef _TRUNCATE
+#define _TRUNCATE ((size_t)-1)
+#endif
+
+#define STATE_VERSION 6
 #include "../fileio.h"
 #ifdef USE_SAFE_DISK
 #include "../../tool/fdc_porting/test/safe_disk.h"
@@ -81,6 +125,8 @@ MB8877::~MB8877()
 
 void MB8877::initialize()
 {
+	FDC_LOG_INFO("=== MB8877 Initialize ===");
+	
 	// Initialize DISK handlers
 	for(int i = 0; i < MAX_DRIVE; i++) {
 #ifdef USE_SAFE_DISK
@@ -92,13 +138,25 @@ void MB8877::initialize()
 		disk[i] = new DISK();
 #endif
 #endif
-		disk[i]->set_device_name(_T("%s/Disk #%d"), this_device_name, i + 1);
+		if(disk[i]) {
+			_TCHAR name[64];
+			snprintf(name, sizeof(name), "MB8877 Disk #%d", i + 1);
+			disk[i]->set_device_name(name);
+			FDC_LOG_INFO("Drive %d: DISK object created at %p", i, disk[i]);
+		} else {
+			FDC_LOG_ERROR("Drive %d: Failed to create DISK object", i);
+		}
 	}
 	disks_initialized = true;
+	FDC_LOG_INFO("Disk initialization completed");
 	
 	// Initialize noise
 #ifndef STANDALONE_TEST
-	if(d_noise_seek != NULL) {
+	
+	// Temporarily skip noise configuration on Android to avoid crash
+#ifndef __ANDROID__
+	// Add safety check - only configure if pointer looks valid
+	if(d_noise_seek != NULL && (uintptr_t)d_noise_seek > 0x1000) {
 		d_noise_seek->set_device_name(_T("Noise Player (FDD Seek)"));
 		if(!d_noise_seek->load_wav_file(_T("FDDSEEK.WAV"))) {
 			if(!d_noise_seek->load_wav_file(_T("FDDSEEK1.WAV"))) {
@@ -117,7 +175,8 @@ void MB8877::initialize()
 		d_noise_head_up->load_wav_file(_T("HEADUP.WAV"));
 		d_noise_head_up->set_mute(!config.sound_noise_fdd);
 	}
-#endif
+#endif // __ANDROID__
+#endif // STANDALONE_TEST
 	
 	// Initialize FDC state
 	memset(fdc, 0, sizeof(fdc));
@@ -167,6 +226,7 @@ void MB8877::reset()
 #ifdef STANDALONE_TEST
 	printf("MB8877::reset() called\n");
 #endif
+	FDC_LOG_INFO("=== MB8877 Reset ===");
 	// Finish previous command - only if disk array is initialized
 	if(disks_initialized) {
 		if(cmdtype == FDC_CMD_TYPE_2 && (cmdreg & 0x20)) {
@@ -191,7 +251,7 @@ void MB8877::reset()
 	}
 	
 	// Cancel all events
-	for(int i = 0; i < 8; i++) {
+	for(int i = 0; i < 9; i++) {
 		register_id[i] = -1;
 	}
 	
@@ -204,7 +264,7 @@ void MB8877::reset()
 	cmdtype = 0;
 	
 	// Set initial TRACK00 status since all tracks start at 0
-	status |= S_TR00;
+	status = S_TR00;
 	
 	// Reset state machine
 	main_state = IDLE;
@@ -219,6 +279,9 @@ void MB8877::reset()
 	no_command = 0;
 	seektrk = 0;
 	seekvct = false;
+	
+	FDC_LOG_INFO("Reset complete: status=0x%02X, now_search=%d, disks_initialized=%d", 
+	             status, now_search, disks_initialized);
 	
 #ifdef HAS_MB89311
 	extended_mode = true;
@@ -236,8 +299,13 @@ void MB8877::reset()
 	prev_drq_clock = 0;
 	seekend_clock = 0;
 	
-	// Update ready signal
-	update_ready();
+	// Note: disks_initialized is reset by memset(fdc). This is intentional because
+	// reset() can be called before initialize(). It will be set to true in initialize().
+	
+	// Update ready signal (only if disks are initialized)
+	if(disks_initialized) {
+		update_ready();
+	}
 }
 
 void MB8877::write_io8(uint32_t addr, uint32_t data)
@@ -250,6 +318,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 	switch(addr & 3) {
 	case 0:
 		// Command register
+		FDC_LOG_INFO("CMD Write: data=0x%02X, drv=%d, status=0x%02X", data, drvreg, status);
 		cmdreg_tmp = cmdreg;
 #if defined(HAS_MB8866) || defined(HAS_MB8876)
 		cmdreg = (~data) & 0xff;
@@ -267,6 +336,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 #else
 		trkreg = data;
 #endif
+		FDC_LOG_SEEK("Track Write: trkreg=%d, drv=%d, current_track=%d", trkreg, drvreg, fdc[drvreg].track);
 		// If not busy, also update the physical track position for testing
 		if(!(status & S_BUSY)) {
 			fdc[drvreg].track = trkreg;
@@ -286,6 +356,7 @@ void MB8877::write_io8(uint32_t addr, uint32_t data)
 #else
 		secreg = data;
 #endif
+		FDC_LOG_READ("Sector Write: secreg=%d, drv=%d, track=%d", secreg, drvreg, fdc[drvreg].track);
 		if((status & S_BUSY) && (fdc[drvreg].index == 0)) {
 			// Sector reg is written after command starts
 			if(main_state == READ_SECTOR || main_state == WRITE_SECTOR) {
@@ -499,6 +570,9 @@ uint32_t MB8877::read_io8(uint32_t addr)
 #ifdef STANDALONE_TEST
 		printf("read_io8: reading status register, now_search=%d\n", now_search);
 #endif
+		FDC_LOG_DEBUG_ONCE(status | (now_search << 8), 
+		                    "Status Read: status=0x%02X, drv=%d, busy=%d, now_search=%d", 
+		                    status, drvreg, !!(status & S_BUSY), now_search);
 		if(now_search) {
 			// During sector search, still return the actual status
 			// Tests expect to see BUSY flag during search
@@ -564,6 +638,8 @@ uint32_t MB8877::read_io8(uint32_t addr)
 	case 3:
 		// Data register
 		ready = ((status & S_DRQ) && !now_search);
+		FDC_LOG_READ("Data Read Request: DRQ=%d, ready=%d, main_state=%d, motor=%d", 
+		             !!(status & S_DRQ), ready, main_state, motor_on);
 #if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		{
 			DISK* disk_check = get_disk_safe(drvreg);
@@ -583,8 +659,19 @@ uint32_t MB8877::read_io8(uint32_t addr)
 					// Use FDC buffer instead of disk sector directly
 					if(fdc[drvreg].index < fdc[drvreg].count) {
 						datareg = fdc[drvreg].buffer[fdc[drvreg].index];
+						// Log every 32 bytes to reduce log size
+						if((fdc[drvreg].index % 32) == 0) {
+							FDC_LOG_READ("*** DATA READ [COMPAT] *** byte[%d-%d] starting with %02X, count=%d", 
+							             fdc[drvreg].index, 
+							             (fdc[drvreg].index + 31 < fdc[drvreg].count) ? fdc[drvreg].index + 31 : fdc[drvreg].count - 1,
+							             datareg, fdc[drvreg].count);
+						}
+						// Don't increment index here - it's done in EVENT_DRQ handler
+						// fdc[drvreg].index++;
 					}
 					if((fdc[drvreg].index + 1) >= fdc[drvreg].count) {
+						FDC_LOG_READ("Last byte condition: index=%d, count=%d, cmdreg=0x%02X, status=0x%02X", 
+						             fdc[drvreg].index, fdc[drvreg].count, cmdreg, status);
 						if(cmdreg & 0x10) {
 							// Multiple sector
 							register_my_event(EVENT_MULTI1, 30);
@@ -595,43 +682,20 @@ uint32_t MB8877::read_io8(uint32_t addr)
 								// Data CRC error
 								status |= S_CRC;
 							}
+							FDC_LOG_READ("Read sector complete, status before clear=0x%02X", status);
 							status &= ~S_BUSY;
 							main_state = IDLE;
+							FDC_LOG_READ("Read complete, status before IRQ=0x%02X", status);
 							set_irq(true);
+							FDC_LOG_READ("Read sector complete, IRQ set, final status=0x%02X", status);
 						}
 					} else {
 						register_drq_event(1);
+						FDC_LOG_READ("Next byte scheduled, registering DRQ event");
 					}
 				}
 				status &= ~S_DRQ;
-			} else if(main_state == READ_SECTOR) {
-				// Read sector data
-				if(fdc[drvreg].index < fdc[drvreg].count) {
-					// Get next byte from buffer
-					datareg = fdc[drvreg].buffer[fdc[drvreg].index];
-					fdc[drvreg].index++;
-					
-					if(fdc[drvreg].index >= fdc[drvreg].count) {
-						// End of sector
-						status &= ~S_BUSY;
-						main_state = IDLE;
-						set_drq(false);
-						
-						// Check for multi-sector
-						if(cmdreg & 0x10) {
-							// Multi-sector - schedule next sector
-							register_my_event(EVENT_MULTI1, 30.0);  // Short delay
-							register_my_event(EVENT_MULTI2, 60.0);  // Then start next
-						} else {
-							// Single sector - done
-							set_irq(true);
-						}
-					} else {
-						// More data to read
-						register_drq_event(1);
-					}
-				}
-				status &= ~S_DRQ;
+				FDC_LOG_READ("DRQ cleared after data read, index=%d", fdc[drvreg].index);
 			} else if(main_state == READ_ID) {
 				// Read address
 				DISK* disk_id = get_disk_safe(drvreg);
@@ -787,29 +851,10 @@ void MB8877::event_callback(int event_id, int /*err*/)
 #endif
 		}
 		// Update track register for RESTORE or if U flag is set
-		if((cmdreg & 0xf0) == 0) {
-			// RESTORE command always updates track register to 0
-			trkreg = 0;
-		} else if((cmdreg & 0xf0) == 0x10) {
-			// SEEK command - track register was already set to datareg
-		} else if(cmdreg & 0x10) {
-			// STEP/STEP-IN/STEP-OUT with U flag updates track register
-			if((cmdreg & 0xe0) == 0x40) {
-				// STEP-IN
-				trkreg++;
-			} else if((cmdreg & 0xe0) == 0x60) {
-				// STEP-OUT  
-				if(trkreg > 0) {
-					trkreg--;
-				}
-			} else {
-				// STEP - update based on direction
-				if(seekvct) {
-					trkreg++;
-				} else if(trkreg > 0) {
-					trkreg--;
-				}
-			}
+		if((cmdreg & 0x10) || ((cmdreg & 0xf0) == 0)) {
+			// RESTORE command or U flag set - update track register with current physical track
+			// This matches the original behavior where trkreg follows the physical track position
+			trkreg = fdc[drvreg].track;
 		}
 		if(seektrk != fdc[drvreg].track) {
 #ifdef STANDALONE_TEST
@@ -908,18 +953,38 @@ void MB8877::event_callback(int event_id, int /*err*/)
 			if(main_state == READ_SECTOR) {
 				// Read sector - load sector data into buffer
 				DISK* disk_data = get_disk_safe(drvreg);
-				if(disk_data && disk_data->sector != nullptr && disk_data->sector_size.sd > 0) {
-					// Copy sector data to FDC buffer
-					fdc[drvreg].count = disk_data->sector_size.sd;
-					if(fdc[drvreg].count > (int)sizeof(fdc[drvreg].buffer)) {
-						fdc[drvreg].count = sizeof(fdc[drvreg].buffer);
-					}
-					memcpy(fdc[drvreg].buffer, disk_data->sector, fdc[drvreg].count);
-					fdc[drvreg].index = 0;
-					
-					// Load first byte to data register
-					if(fdc[drvreg].count > 0) {
-						datareg = fdc[drvreg].buffer[0];
+				if(disk_data) {
+					// Re-call get_sector to ensure sector data is valid
+					// This is necessary because disk->sector pointer may have changed
+					if(disk_data->get_sector(trkreg, sidereg, fdc[drvreg].sector_index)) {
+						// Use the sector index found in search_sector()
+						FDC_LOG_READ("Re-called get_sector with index=%d: sector_size=%d", 
+						             fdc[drvreg].sector_index, disk_data->sector_size.sd);
+						
+						if(disk_data->sector != nullptr && disk_data->sector_size.sd > 0) {
+							// Log first few bytes of sector data for debugging
+							FDC_LOG_READ("Sector data preview: %02X %02X %02X %02X %02X %02X %02X %02X",
+							             disk_data->sector[0], disk_data->sector[1], 
+							             disk_data->sector[2], disk_data->sector[3],
+							             disk_data->sector[4], disk_data->sector[5],
+							             disk_data->sector[6], disk_data->sector[7]);
+							
+							// Copy sector data to FDC buffer
+							fdc[drvreg].count = disk_data->sector_size.sd;
+							if(fdc[drvreg].count > (int)sizeof(fdc[drvreg].buffer)) {
+								fdc[drvreg].count = sizeof(fdc[drvreg].buffer);
+							}
+							memcpy(fdc[drvreg].buffer, disk_data->sector, fdc[drvreg].count);
+							fdc[drvreg].index = 0;
+							
+							// Load first byte to data register
+							if(fdc[drvreg].count > 0) {
+								datareg = fdc[drvreg].buffer[0];
+								FDC_LOG_READ("First byte loaded to datareg: 0x%02X", datareg);
+							}
+						}
+					} else {
+						FDC_LOG_READ("get_sector failed in EVENT_SEARCH");
 					}
 				}
 				
@@ -947,11 +1012,12 @@ void MB8877::event_callback(int event_id, int /*err*/)
 		break;
 		
 	case EVENT_DRQ:
+		FDC_LOG_INFO(">>> EVENT_DRQ: status=0x%02X, index=%d, state=%d", status, fdc[drvreg].index, main_state);
 		if(status & S_BUSY) {
 			// Generate next DRQ for data transfer
-			if(!(status & S_DRQ)) {
-				set_drq(true);
-			}
+			// Always set DRQ (same as original mb8877.cpp)
+			status |= S_DRQ;
+			set_drq(true);
 			register_lost_event(1);
 			
 			// Update position
@@ -969,17 +1035,21 @@ void MB8877::event_callback(int event_id, int /*err*/)
 			   main_state == READ_TRACK || main_state == WRITE_TRACK ||
 			   main_state == READ_ID) {
 				fdc[drvreg].index++;
+				FDC_LOG_INFO("Index incremented to %d", fdc[drvreg].index);
 			}
 			fdc[drvreg].prev_clock = prev_drq_clock = get_current_clock();
 		}
 		break;
 		
 	case EVENT_MULTI1:
+		FDC_LOG_READ("EVENT_MULTI1 [COMPAT]: secreg incremented from %d to %d", secreg, secreg + 1);
 		secreg++;
 		break;
 		
 	case EVENT_MULTI2:
+		FDC_LOG_READ("EVENT_MULTI2 [COMPAT]: main_state=%d", main_state);
 		if(main_state == READ_SECTOR) {
+			FDC_LOG_READ("Continuing to next sector read [COMPAT]");
 			cmd_readdata(false);
 		} else if(main_state == WRITE_SECTOR) {
 			cmd_writedata(false);
@@ -1037,6 +1107,11 @@ void MB8877::process_cmd()
 #ifdef STANDALONE_TEST
 	printf("process_cmd: cmdreg=0x%02X, drvreg=%d\n", cmdreg, drvreg);
 #endif
+	FDC_LOG_INFO("=== FDC COMMAND ===");
+	FDC_LOG_INFO("CMD: 0x%02X, drv=%d, track=%d, sector=%d, side=%d", 
+	             cmdreg, drvreg, trkreg, secreg, sidereg);
+	FDC_LOG_INFO("Current: phys_track=%d, status=0x%02X", fdc[drvreg].track, status);
+	
 	set_irq(false);
 	set_drq(false);
 	
@@ -1187,10 +1262,12 @@ skip:
 #endif
 	
 	// Reset previous status and set BUSY flag immediately
-	// Preserve NOT READY flag if it was set
-	uint8_t nrdy_flag = status & S_NRDY;
-	status = S_BUSY | nrdy_flag;
+	// Do NOT preserve NOT READY flag - it will be set by update_ready() if needed
+	status = S_BUSY;
 	status_tmp = 0;
+	
+	// Update ready status immediately
+	update_ready();
 	
 	// For Type I commands, also set head load flag if requested
 	if(cmdtype == TYPE_I && (cmdreg & 0x08)) {
@@ -1199,7 +1276,7 @@ skip:
 	
 	if(cmdtype == TYPE_I || cmdtype == TYPE_II || cmdtype == TYPE_III) {
 		// Abort previous write/format command
-		DISK* disk_abort = get_disk_safe(drvreg);
+		DISK* disk_abort = disks_initialized ? get_disk_safe(drvreg) : NULL;
 		if(disk_abort) {
 			if(main_state == WRITE_SECTOR && sector_changed) {
 				disk_abort->set_data_crc_error(false);
@@ -1280,16 +1357,16 @@ void MB8877::update_config()
 #ifdef USE_DEBUGGER
 bool MB8877::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
-	_sntprintf_s(buffer, buffer_len, _TRUNCATE,
-		_T("CMDREG=$%02X STATREG=$%02X TRKREG=$%02X SECREG=$%02X DATAREG=$%02X\n")
-		_T("CURRENT DRIVE=%d SIDE=%d MOTOR=%s\n"),
+	snprintf(buffer, buffer_len,
+		"CMDREG=$%02X STATREG=$%02X TRKREG=$%02X SECREG=$%02X DATAREG=$%02X\n"
+		"CURRENT DRIVE=%d SIDE=%d MOTOR=%s\n",
 		cmdreg, status, trkreg, secreg, datareg,
-		drvreg, sidereg, motor_on ? _T("ON") : _T("OFF"));
+		drvreg, sidereg, motor_on ? "ON" : "OFF");
 	return true;
 }
 #endif
 
-bool MB8877::process_state(FILEIO* state_fio, bool /*loading*/)
+bool MB8877::process_state(FILEIO* state_fio, bool loading)
 {
 	if(!state_fio->StateCheckUint32(STATE_VERSION)) {
 		return false;
@@ -1365,16 +1442,24 @@ bool MB8877::process_state(FILEIO* state_fio, bool /*loading*/)
 // Disk management functions
 void MB8877::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
+	FDC_LOG_INFO(">>> OPEN DISK: drv=%d, path='%s', bank=%d", 
+	             drv, file_path ? file_path : "(null)", bank);
+	
 	if(drv < MAX_DRIVE && disk[drv]) {
 		try {
 			disk[drv]->open(file_path, bank);
+			bool inserted = disk[drv]->inserted;
+			FDC_LOG_INFO("Disk open result: drv=%d, inserted=%d", drv, inserted);
 		} catch(...) {
 			// Handle open failure gracefully
+			FDC_LOG_ERROR("Failed to open disk %d: %s", drv, file_path ? file_path : "(null)");
 #ifdef _FDC_DEBUG_LOG
 			this->force_out_debug_log(_T("MB8877: Failed to open disk %d: %s\n"), drv, file_path ? file_path : _T("(null)"));
 #endif
 		}
 		update_ready();
+	} else {
+		FDC_LOG_ERROR("Invalid drive %d or disk[%d] is null", drv, drv);
 	}
 }
 
@@ -1388,6 +1473,10 @@ void MB8877::close_disk(int drv)
 
 bool MB8877::is_disk_inserted(int drv)
 {
+	// Remove excessive logging to reduce overhead
+	if(!disks_initialized) {
+		return false;
+	}
 	if(drv < MAX_DRIVE && disk[drv]) {
 		return disk[drv]->inserted;
 	}
@@ -1419,11 +1508,17 @@ bool MB8877::is_disk_protected(int drv)
 
 bool MB8877::is_drive_ready()
 {
-	return is_drive_ready(drvreg);
+	bool ready = is_drive_ready(drvreg);
+	FDC_LOG_HEAD(">>> DRIVE READY CHECK [COMPAT]: drv=%d, ready=%d, motor=%d, status=0x%02X", 
+	             drvreg, ready, motor_on, status);
+	return ready;
 }
 
 bool MB8877::is_drive_ready(int drv)
 {
+	if(!disks_initialized) {
+		return false;
+	}
 	if(drv < MAX_DRIVE) {
 		return motor_on && is_disk_inserted(drv);
 	}
@@ -1524,18 +1619,18 @@ void MB8877::set_track_size(int drv, int size)
 	// Validate drive number
 	if(drv < 0 || drv >= MAX_DRIVE) {
 		// Invalid drive number, log and return
-		if(_fdc_debug_log) {
-			this->out_debug_log(_T("FDC: set_track_size() invalid drive number: %d\n"), drv);
-		}
+#ifdef _FDC_DEBUG_LOG
+		this->out_debug_log(_T("FDC: set_track_size() invalid drive number: %d\n"), drv);
+#endif
 		return;
 	}
 	
 	// Check if disk is present
 	if(!disk[drv]) {
 		// No disk in drive, log and return
-		if(_fdc_debug_log) {
-			this->out_debug_log(_T("FDC: set_track_size() no disk in drive %d\n"), drv);
-		}
+#ifdef _FDC_DEBUG_LOG
+		this->out_debug_log(_T("FDC: set_track_size() no disk in drive %d\n"), drv);
+#endif
 		return;
 	}
 	
@@ -1545,10 +1640,10 @@ void MB8877::set_track_size(int drv, int size)
 	
 	if(size < MIN_TRACK_SIZE || size > MAX_TRACK_SIZE) {
 		// Invalid track size, log and return
-		if(_fdc_debug_log) {
-			this->out_debug_log(_T("FDC: set_track_size() invalid size %d (valid range: %d-%d)\n"), 
-				size, MIN_TRACK_SIZE, MAX_TRACK_SIZE);
-		}
+#ifdef _FDC_DEBUG_LOG
+		this->out_debug_log(_T("FDC: set_track_size() invalid size %d (valid range: %d-%d)\n"), 
+			size, MIN_TRACK_SIZE, MAX_TRACK_SIZE);
+#endif
 		return;
 	}
 	
@@ -1556,18 +1651,18 @@ void MB8877::set_track_size(int drv, int size)
 	disk[drv]->track_size = size;
 	
 	// Log the operation
-	if(_fdc_debug_log) {
-		this->out_debug_log(_T("FDC: set_track_size() drive %d, size set to %d bytes\n"), drv, size);
-		
-		// Log special format detection
-		if(size == 6250) {
-			this->out_debug_log(_T("FDC: Standard 2D/2DD format (6250 bytes)\n"));
-		} else if(size == 12500) {
-			this->out_debug_log(_T("FDC: Standard 2HD format (12500 bytes)\n"));
-		} else {
-			this->out_debug_log(_T("FDC: Custom/special format\n"));
-		}
+#ifdef _FDC_DEBUG_LOG
+	this->out_debug_log(_T("FDC: set_track_size() drive %d, size set to %d bytes\n"), drv, size);
+	
+	// Log special format detection
+	if(size == 6250) {
+		this->out_debug_log(_T("FDC: Standard 2D/2DD format (6250 bytes)\n"));
+	} else if(size == 12500) {
+		this->out_debug_log(_T("FDC: Standard 2HD format (12500 bytes)\n"));
+	} else {
+		this->out_debug_log(_T("FDC: Custom/special format\n"));
 	}
+#endif
 }
 
 uint8_t MB8877::fdc_status()
@@ -1706,10 +1801,13 @@ void MB8877::update_fdc_status()
 void MB8877::update_head_flag(int drv, bool head_load)
 {
 	if(drv < MAX_DRIVE) {
+		FDC_LOG_HEAD(">>> HEAD LOAD UPDATE [COMPAT]: drv=%d, head_load=%d->%d, status=0x%02X", 
+		             drv, fdc[drv].head_load, head_load, status);
 		fdc[drv].head_load = head_load;
-		if(head_load) {
-			status |= FDC_ST_HEADENG;
-		}
+		// X1 specific: Do NOT set S_HLD (bit 5) in status register
+		// The original mb8877.cpp doesn't set this bit, and X1 IPL expects it to be ignored
+		FDC_LOG_HEAD("    Head load %s, status=0x%02X (S_HLD not set per X1 spec)", 
+		             head_load ? "engaged" : "disengaged", status);
 	}
 }
 
@@ -1717,7 +1815,16 @@ void MB8877::update_ready()
 {
 	// Update ready signal
 	bool ready = is_drive_ready();
-	write_signals(&outputs_rdy, ready ? 0xffffffff : 0);
+	if(outputs_rdy.count > 0 && outputs_rdy.count < MAX_OUTPUT) {
+		write_signals(&outputs_rdy, ready ? 0xffffffff : 0);
+	}
+	
+	// Update S_NRDY bit in status register based on ready state
+	if(ready) {
+		status &= ~S_NRDY;
+	} else {
+		status |= S_NRDY;
+	}
 	
 	// Check for ready transitions when ready state changes
 	check_ready_transitions();
@@ -1791,8 +1898,10 @@ void MB8877::set_drq(bool val)
 		prev_drq_clock = 0; // For testing
 #endif
 		status |= S_DRQ;
+		FDC_LOG_INFO(">>> DRQ SET: status=0x%02X, drv=%d, state=%d", status, drvreg, main_state);
 	} else {
 		status &= ~S_DRQ;
+		FDC_LOG_INFO(">>> DRQ CLEAR: status=0x%02X, drv=%d, state=%d", status, drvreg, main_state);
 	}
 	
 	write_signals(&outputs_drq, val ? 0xffffffff : 0);
@@ -1923,15 +2032,22 @@ uint8_t MB8877::search_track()
 
 uint8_t MB8877::search_sector()
 {
+	FDC_LOG_READ(">> search_sector: drv=%d, track=%d, sector=%d, side=%d", 
+	             drvreg, trkreg, secreg, sidereg);
+	
 	// Get disk safely
 	DISK* disk_safe = get_disk_safe(drvreg);
 	if (!disk_safe) {
+		FDC_LOG_READ("No disk available for drive %d", drvreg);
 		return FDC_ST_RECNFND;
 	}
+	
+	FDC_LOG_READ("Disk available: write_protected=%d", disk_safe->write_protected);
 	
 	// Write protect check
 	if(cmdtype == TYPE_II && (cmdreg & 0x20)) {
 		if(disk_safe->write_protected) {
+			FDC_LOG_READ("Write protected disk");
 			return FDC_ST_WRITEFAULT;
 		}
 	}
@@ -1940,8 +2056,9 @@ uint8_t MB8877::search_sector()
 	// This ensures Type II commands work even without prior Type I positioning
 	int track = trkreg;
 	
-	
+	FDC_LOG_READ("Getting track %d, side %d", track, sidereg);
 	if(!disk_safe->get_track(track, sidereg)) {
+		FDC_LOG_READ("Track %d side %d not found", track, sidereg);
 		return FDC_ST_RECNFND;
 	}
 	
@@ -1949,10 +2066,12 @@ uint8_t MB8877::search_sector()
 	int sector_num = disk_safe->sector_num.sd;
 	int position = get_cur_position();
 	
+	FDC_LOG_READ("Track info: sector_num=%d, position=%d", sector_num, position);
 	
 	// Handle wraparound
 	if(position > disk_safe->am1_position[sector_num - 1]) {
 		position -= disk_safe->get_track_size();
+		FDC_LOG_READ("Position wrapped: new_position=%d", position);
 	}
 	
 	// Find first sector to scan based on current position
@@ -1963,21 +2082,29 @@ uint8_t MB8877::search_sector()
 			break;
 		}
 	}
+	FDC_LOG_READ("Starting sector scan from index %d", first_sector);
 	
 	// Scan sectors starting from current position
 	for(int i = 0; i < sector_num; i++) {
 		// Get sector in rotation order
 		int index = (first_sector + i) % sector_num;
 		
+		FDC_LOG_READ("Checking sector index %d (try %d/%d)", index, i+1, sector_num);
 		
 		if(!disk_safe->get_sector(track, sidereg, index)) {
 #ifdef STANDALONE_TEST
 			printf("  get_sector(%d,%d,%d) failed\n", track, sidereg, index);
 #endif
+			FDC_LOG_READ("get_sector failed for index %d", index);
 			continue;
 		}
 		
+		FDC_LOG_READ("Sector ID: track=%d, side=%d, sector=%d, size_code=%d", 
+		             disk_safe->id[0], disk_safe->id[1], disk_safe->id[2], disk_safe->id[3]);
+		
 		if(disk_safe->drive_mfm != disk_safe->sector_mfm) {
+			FDC_LOG_READ("MFM mismatch: drive=%d, sector=%d", 
+			             disk_safe->drive_mfm, disk_safe->sector_mfm);
 			continue;
 		}
 		// Check track ID
@@ -1985,6 +2112,7 @@ uint8_t MB8877::search_sector()
 #ifdef STANDALONE_TEST
 			printf("  Track ID mismatch: found %d, want %d\n", disk_safe->id[0], trkreg);
 #endif
+			FDC_LOG_READ("Track ID mismatch: found %d, want %d", disk_safe->id[0], trkreg);
 			continue;
 		}
 #if !defined(HAS_MB8866)
@@ -1998,29 +2126,41 @@ uint8_t MB8877::search_sector()
 #ifdef STANDALONE_TEST
 			printf("  Sector ID mismatch: found %d, want %d\n", disk_safe->id[2], secreg);
 #endif
+			FDC_LOG_READ("Sector ID mismatch: found %d, want %d", disk_safe->id[2], secreg);
 			continue;
 		}
 		if(disk_safe->sector_size.sd == 0) {
 #ifdef STANDALONE_TEST
 			printf("  sector_size is 0\n");
 #endif
+			FDC_LOG_READ("Sector size is 0");
 			continue;
 		}
 		// Check CRC error
 		if(disk_safe->addr_crc_error && !disk_safe->ignore_crc()) {
 			// ID CRC error
+			FDC_LOG_READ("Address CRC error");
 			disk_safe->sector_size.sd = 0;
 			return FDC_ST_RECNFND | FDC_ST_CRCERR;
 		}
 		
 		// Sector found - calculate transfer position
+		FDC_LOG_READ("*** SECTOR FOUND *** index=%d, size=%d, deleted=%d", 
+		             index, disk_safe->sector_size.sd, disk_safe->deleted);
+		
+		// Save the sector index for later use in EVENT_SEARCH
+		fdc[drvreg].sector_index = index;
+		
 		if(cmdtype == TYPE_II && (cmdreg & 0x20)) {
 			// For write commands, position after ID field
 			fdc[drvreg].next_trans_position = disk_safe->id_position[index] + 4 + 2;
 			fdc[drvreg].bytes_before_2nd_drq = disk_safe->data_position[index] - fdc[drvreg].next_trans_position;
+			FDC_LOG_READ("Write setup: next_trans_pos=%d, bytes_before_2nd_drq=%d", 
+			             fdc[drvreg].next_trans_position, fdc[drvreg].bytes_before_2nd_drq);
 		} else {
 			// For read commands, position at data field
 			fdc[drvreg].next_trans_position = disk_safe->data_position[index] + 1;
+			FDC_LOG_READ("Read setup: next_trans_pos=%d", fdc[drvreg].next_trans_position);
 		}
 		fdc[drvreg].next_am1_position = disk_safe->am1_position[index];
 		fdc[drvreg].index = 0;
@@ -2031,6 +2171,7 @@ uint8_t MB8877::search_sector()
 	}
 	
 	// Sector not found
+	FDC_LOG_READ("*** SECTOR NOT FOUND *** after checking all %d sectors", sector_num);
 	disk_safe->sector_size.sd = 0;
 	return FDC_ST_RECNFND;
 }
@@ -2104,19 +2245,23 @@ void MB8877::cmd_restore()
 		update_head_flag(drvreg, true);
 	}
 	
+	// Initialize track register to 0xFF to match original behavior
+	// X1 IPL may depend on seeing this value count down during seek
+	trkreg = 0xff;
+	datareg = 0;
+	
 	// Start restore
 	main_state = RESTORE;
 	seektrk = 0;
 	seekvct = true;
 	
 #ifdef STANDALONE_TEST
-	printf("cmd_restore: drvreg=%d, fdc[drvreg].track=%d\n", drvreg, fdc[drvreg].track);
+	printf("cmd_restore: drvreg=%d, fdc[drvreg].track=%d, trkreg=%d\n", drvreg, fdc[drvreg].track, trkreg);
 #endif
 	
 	// Track 00?
 	if(fdc[drvreg].track == 0) {
 		// Already at track 0
-		trkreg = 0;
 		status = S_BUSY | S_HLD | S_TR00;
 		// Clear busy flag quickly since we're already at track 0
 		register_my_event(EVENT_SEEKEND, 100);
@@ -2129,9 +2274,13 @@ void MB8877::cmd_restore()
 
 void MB8877::cmd_seek()
 {
+	FDC_LOG_SEEK(">>> SEEK COMMAND: from_track=%d to_track=%d (datareg=%d)", 
+	             fdc[drvreg].track, datareg, datareg);
+	
 	// Set head load flag
 	if(cmdreg & 8) {
 		update_head_flag(drvreg, true);
+		FDC_LOG_SEEK("Head load flag set");
 	}
 	
 	// Start seek
@@ -2141,19 +2290,26 @@ void MB8877::cmd_seek()
 	
 	// SEEK command updates track register to data register
 	trkreg = datareg;
+	FDC_LOG_SEEK("Track register updated to %d", trkreg);
 	
 	// Start seeking
 	now_seek = true;
 	register_seek_event(true);
+	FDC_LOG_SEEK("Seek event registered");
 }
 
 void MB8877::cmd_step()
 {
 	// Use previous seek direction
+	// seekvct: true = last direction was OUT (towards track 0)
+	//          false = last direction was IN (towards center)
 	if(seekvct) {
-		seektrk = (fdc[drvreg].track > trkreg) ? (fdc[drvreg].track + 1) : (fdc[drvreg].track - 1);
+		// Step OUT (towards track 0)
+		seektrk = (fdc[drvreg].track > 0) ? (fdc[drvreg].track - 1) : 0;
 	} else {
-		seektrk = fdc[drvreg].track;
+		// Step IN (towards center)
+		seektrk = fdc[drvreg].track + 1;
+		// Note: cmd_step_common() will handle max track limit
 	}
 	cmd_step_common();
 }
@@ -2162,7 +2318,7 @@ void MB8877::cmd_stepin()
 {
 	// Step towards center
 	seektrk = fdc[drvreg].track + 1;
-	seekvct = true;
+	seekvct = false;  // false = IN direction (towards center)
 	cmd_step_common();
 }
 
@@ -2170,7 +2326,7 @@ void MB8877::cmd_stepout()
 {
 	// Step towards track 0
 	seektrk = (fdc[drvreg].track > 0) ? (fdc[drvreg].track - 1) : 0;
-	seekvct = true;
+	seekvct = true;   // true = OUT direction (towards track 0)
 	cmd_step_common();
 }
 
@@ -2204,10 +2360,15 @@ void MB8877::register_lost_event(int bytes)
 // Type II Commands
 void MB8877::cmd_readdata(bool first_sector)
 {
+	FDC_LOG_READ(">>> READ SECTOR START [COMPAT]: drv=%d, track=%d, sector=%d, side=%d", 
+	             drvreg, trkreg, secreg, sidereg);
+	FDC_LOG_READ("Physical track=%d, first_sector=%d", fdc[drvreg].track, first_sector);
+	
 	// Head load
 	if(first_sector) {
 		// Set head load
 		update_head_flag(drvreg, true);
+		FDC_LOG_READ("Head loaded for drive %d", drvreg);
 	}
 	
 	// Start read sector
@@ -2222,14 +2383,19 @@ void MB8877::cmd_readdata(bool first_sector)
 	sector_changed = false;
 	now_search = true;
 	
+	FDC_LOG_READ("Starting sector search...");
 	// Search for sector
 	status_tmp = search_sector();
+	FDC_LOG_READ("Search result: status_tmp=0x%02X (RNF=%d, CRC=%d, WP=%d)", 
+	             status_tmp, !!(status_tmp & S_RNF), !!(status_tmp & S_CRC), !!(status_tmp & S_WP));
 	
 	if(status_tmp & S_RNF) {
 		// Sector not found - wait 5 index holes
+		FDC_LOG_READ("Sector not found, waiting for 5 index holes");
 		register_my_event(EVENT_SEARCH, get_usec_to_detect_index_hole(5, false));
 	} else if(status_tmp & S_WP) {
 		// Write protect error - finish immediately
+		FDC_LOG_READ("Write protect error");
 		register_my_event(EVENT_SEARCH, 10.0);
 	} else {
 		// Sector found - prepare for data transfer
@@ -2696,3 +2862,5 @@ void MB8877::cmd_writedata_end()
 	main_state = IDLE;
 }
 
+
+#endif // defined(_MB8877_COMPAT)
