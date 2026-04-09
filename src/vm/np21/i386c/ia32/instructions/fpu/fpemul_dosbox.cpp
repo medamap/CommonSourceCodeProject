@@ -46,7 +46,9 @@
  *   ägí£î{ê∏ìxïÇìÆè¨êîì_Ç≈ÇÕÇ»Ç≠î{ê∏ìxïÇìÆè¨êîì_Ç≈åvéZÇ≥ÇÍÇÈÇÃÇ≈é¿ç€ÇÃx87 FPUÇÊÇËê∏ìxÇ™óÚÇËÇ‹Ç∑
  */
 
-#if defined(__ANDROID__) // Medamap
+#if defined(_MSC_VER)
+#include <math.h>
+#else
 #include <cmath>
 #endif
 
@@ -479,10 +481,10 @@ static void FPU_FBST(UINT32 addr)
 		p|=0x80;
 	fpu_memorywrite_b(addr+9,p);
 }
-#if defined(__ANDROID__) // Medamap
-#define isinf(x) (!(finite(x) || std::isnan(x)))
-#else
+#if defined(_MSC_VER)
 #define isinf(x) (!(_finite(x) || _isnan(x)))
+#else
+#define isinf(x) (!(std::isfinite(x) || std::isnan(x)))
 #endif
 #define isdenormal(x) (_fpclass(x) == _FPCLASS_ND || _fpclass(x) == _FPCLASS_PD)
 
@@ -602,7 +604,7 @@ static void FPU_FST(UINT st, UINT other){
 static void FPU_FCOM(UINT st, UINT other){
 	if(((FPU_STAT.tag[st] != TAG_Valid) && (FPU_STAT.tag[st] != TAG_Zero)) || 
 		((FPU_STAT.tag[other] != TAG_Valid) && (FPU_STAT.tag[other] != TAG_Zero)) ||
-#if defined(__ANDROID__) // Medamap
+#if !defined(_MSC_VER)
         (std::isnan(FPU_STAT.reg[st].d64) || std::isnan(FPU_STAT.reg[other].d64))){
 #else
         (_isnan(FPU_STAT.reg[st].d64) || _isnan(FPU_STAT.reg[other].d64))){
@@ -634,7 +636,7 @@ static void FPU_FCOM(UINT st, UINT other){
 static void FPU_FCOMI(UINT st, UINT other){
 	if(((FPU_STAT.tag[st] != TAG_Valid) && (FPU_STAT.tag[st] != TAG_Zero)) || 
 		((FPU_STAT.tag[other] != TAG_Valid) && (FPU_STAT.tag[other] != TAG_Zero)) ||
-#if defined(__ANDROID__) // Medamap
+#if !defined(_MSC_VER)
         (std::isnan(FPU_STAT.reg[st].d64) || std::isnan(FPU_STAT.reg[other].d64))){
 #else
         (_isnan(FPU_STAT.reg[st].d64) || _isnan(FPU_STAT.reg[other].d64))){
@@ -783,7 +785,7 @@ static void FPU_FXAM(void){
 		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(1);
 		return;
 	}
-#if defined(__ANDROID__) // Medamap
+#if !defined(_MSC_VER)
     if(std::isnan(FPU_STAT.reg[FPU_STAT_TOP].d64))
 #else
     if(_isnan(FPU_STAT.reg[FPU_STAT_TOP].d64))
@@ -792,8 +794,8 @@ static void FPU_FXAM(void){
 		FPU_SET_C3(0);FPU_SET_C2(0);FPU_SET_C0(1);
 		return;
 	}
-#if defined(__ANDROID__) // Medamap
-    if(!finite(FPU_STAT.reg[FPU_STAT_TOP].d64))
+#if !defined(_MSC_VER)
+    if(!std::isfinite(FPU_STAT.reg[FPU_STAT_TOP].d64))
 #else
     if(!_finite(FPU_STAT.reg[FPU_STAT_TOP].d64))
 #endif

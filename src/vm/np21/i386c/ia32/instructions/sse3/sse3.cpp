@@ -25,16 +25,16 @@
 
 //#include "compiler.h"
 
-#if defined(__ANDROID__) // Medamap
-#include <cmath>
-#endif
-
+#if defined(_MSC_VER)
 #include <math.h>
-#include <float.h>
-
-#if !defined(__ANDROID__) // Medamap
 #define isnan(x) (_isnan(x))
+#else
+#include <cmath>
+#include <math.h>
+#define isnan(x) (std::isnan(x))
 #endif
+
+#include <float.h>
 
 #include "../../cpu.h"
 #include "../../ia32.mcr"

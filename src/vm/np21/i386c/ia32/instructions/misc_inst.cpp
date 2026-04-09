@@ -159,7 +159,7 @@ _CPUID(void)
 			CPU_EAX = 0;
 		}
 		CPU_EBX = 0;
-		CPU_ECX = 0;
+		CPU_ECX = i386cpuid.cpu_feature_ex_ecx & CPU_FEATURES_EX_ECX_ALL;
 		CPU_EDX = i386cpuid.cpu_feature_ex & CPU_FEATURES_EX_ALL;
 		break;
 		

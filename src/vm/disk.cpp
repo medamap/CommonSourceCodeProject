@@ -17,12 +17,11 @@
 #endif
 
 // Medamap
-#if defined(__ANDROID__)
-#include <algorithm>  // For standard algorithms like std::min, std::max, etc.
-#include <cstdint>    // For fixed-width integer types
+#if !defined(_MSC_VER)
+#include <algorithm>
+#include <cstdint>
 
-// Use standard fixed-width integer types instead of platform-specific types.
-typedef int64_t LONG_PTR;
+typedef intptr_t LONG_PTR;
 #endif
 
 // crc table
@@ -1571,7 +1570,7 @@ void DISK::trim_buffer()
 	
 	memset(buffer, 0, sizeof(buffer));
 // Medamap
-#if !defined(__ANDROID__)
+#if defined(_MSC_VER)
 	memcpy(buffer, tmp_buffer, min(sizeof(buffer), file_size.d));
 #else
 	memcpy(buffer, tmp_buffer, std::min(sizeof(buffer), static_cast<size_t>(file_size.d)));

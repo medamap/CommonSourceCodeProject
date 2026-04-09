@@ -46,7 +46,7 @@
 #include "../../../debugger.h"
 #endif
 
-#if defined(__ANDROID__)
+#if !defined(_MSC_VER)
 #include <stdint.h>
 #endif
 
@@ -70,7 +70,7 @@ extern UINT32		codefetch_address;
 	#define BYTESEX_LITTLE
 #endif
 
-#if defined(__ANDROID__)
+#if !defined(_MSC_VER)
 #ifndef SINT8
 typedef int8_t SINT8;
 #endif
@@ -531,7 +531,8 @@ typedef struct {
 
 	UINT8 allow_movCS; // mov cs,xx��������
 	UINT8 reserved8[3]; // �����̊g���̂��߂ɂƂ肠����
-	UINT32 reserved[30]; // �����̊g���̂��߂ɂƂ肠����32bit*31�p�ӂ��Ă���
+	UINT32 cpu_feature_ex_ecx; // ECX�����@�\�t���O
+	UINT32 reserved[29]; // �����̊g���̂��߂ɂƂ肠����32bit*29�p�ӂ��Ă���
 	
 	UINT8 fpu_type; // FPU���
 } I386CPUID;
@@ -779,6 +780,7 @@ extern UINT32		realclock;
 
 /* �g�p�ł���@�\�S�� */
 #define	CPU_FEATURES_EX_ALL		(CPU_FEATURE_EX_3DNOW_FLAG|CPU_FEATURE_EX_E3DNOW_FLAG)
+#define	CPU_FEATURES_EX_ECX_ALL	(0)
 
 #define	CPU_FEATURES_EX_PENTIUM_4	(0)
 #define	CPU_FEATURES_EX_PENTIUM_M	(0)
