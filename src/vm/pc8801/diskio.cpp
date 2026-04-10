@@ -180,10 +180,10 @@ void DiskIO::CmdReadFile()
 		{
 			file->Fseek(0, FILEIO_SEEK_END);
 // Medamap
-#if defined(__ANDROID__)
-			size = std::min((long)0xffff, file->Ftell());
+#if defined(_MSC_VER)
+			size = min(0xffff, file->Ftell());
 #else
-            size = min(0xffff, file->Ftell());
+			size = std::min((long)0xffff, file->Ftell());
 #endif
 			file->Fseek(0, FILEIO_SEEK_SET);
 			buf[0] = size & 0xff;

@@ -16,7 +16,6 @@ cd ..
 :: アセンブルとインストール
 call .\gradlew assemble!buildType!
 if %ERRORLEVEL% neq 0 goto end
-call .\gradlew install!buildType!
 
 :: buildbatchに移動して日付フォルダを作成
 cd buildbatch

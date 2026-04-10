@@ -25,7 +25,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#if defined(__ANDROID__)
+#ifndef MAX_PATH
 #define MAX_PATH    4096
 #endif
 

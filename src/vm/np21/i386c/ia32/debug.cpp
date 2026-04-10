@@ -25,9 +25,7 @@
 
 //#include "compiler.h"
 
-#if defined(__ANDROID__) // Medamap
 #include <cstdio>
-#endif
 
 #include "cpu.h"
 #if defined(USE_FPU)
@@ -60,10 +58,10 @@ cpu_reg2str(void)
 {
 	static char buf[512];
 
-#if defined(__ANDROID__) // Medamap
-    snprintf(buf, sizeof(buf),
+#if defined(_MSC_VER)
+	_snprintf(buf, sizeof(buf),
 #else
-    _snprintf(buf, sizeof(buf),
+	snprintf(buf, sizeof(buf),
 #endif
 	    "eax=%08x ecx=%08x edx=%08x ebx=%08x\n"
 	    "esp=%08x ebp=%08x esi=%08x edi=%08x\n"
@@ -110,10 +108,10 @@ a20str(void)
 {
 	static char buf[32];
 
-#if defined(__ANDROID__) // Medamap
-    snprintf(buf, sizeof(buf), "a20line=%s\n",
-#else
+#if defined(_MSC_VER)
 	_snprintf(buf, sizeof(buf), "a20line=%s\n",
+#else
+	snprintf(buf, sizeof(buf), "a20line=%s\n",
 #endif
 	    (CPU_STAT_ADRSMASK == 0xffffffff) ? "enable" : "disable");
 	return buf;

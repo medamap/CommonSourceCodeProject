@@ -88,6 +88,7 @@ FILEIO::~FILEIO(void)
 bool FILEIO::IsFileExisting(const _TCHAR *file_path)
 {
 #if defined(_USE_QT) || defined(_USE_SDL) || defined(_Android)
+	// orig20260101: Android/QT/SDL file existence check path.
 	FILE *f = fopen(file_path, "r");
 	if(f != NULL) {
 		fclose(f);
@@ -108,6 +109,7 @@ bool FILEIO::IsFileExisting(const _TCHAR *file_path)
 bool FILEIO::IsFileProtected(const _TCHAR *file_path)
 {
 #if defined(__ANDROID__)
+	// orig20260101: Android treats protection as unsupported here.
 	return false;
 #else
 #if defined(_USE_QT) || defined(_USE_SDL)
@@ -133,6 +135,7 @@ bool FILEIO::IsFileProtected(const _TCHAR *file_path)
 bool FILEIO::RemoveFile(const _TCHAR *file_path)
 {
 #if defined(_USE_QT) || defined(_USE_SDL)|| defined(_Android)
+	// orig20260101: Android/QT/SDL file removal path.
 	return (remove(file_path) == 0);
 #elif defined(_WIN32)
 	return (DeleteFile(file_path) != 0);
@@ -144,6 +147,7 @@ bool FILEIO::RemoveFile(const _TCHAR *file_path)
 bool FILEIO::RenameFile(const _TCHAR *existing_file_path, const _TCHAR *new_file_path)
 {
 #if defined(_USE_QT) || defined(_USE_SDL)|| defined(_Android)
+	// orig20260101: Android/QT/SDL rename path.
 	return (rename(existing_file_path, new_file_path) == 0);
 #elif defined(_WIN32)
 	return (MoveFile(existing_file_path, new_file_path) != 0);
@@ -939,6 +943,7 @@ int FILEIO::Ftprintf(const _TCHAR* format, ...)
 #if !defined(__ANDROID__)
 		return my_ftprintf_s(fp, _T("%s"), buffer);
 #else
+		// orig20260101: Android writes through the narrow printf shim.
         return my_fprintf_s(fp, "%s", buffer);
 #endif
 	}
