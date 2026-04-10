@@ -2,7 +2,8 @@
 
 This repository adds Android platform support to the upstream Common Source Code Project.
 
-The original Android port was started by [Nochi](https://github.com/shikarunochi).
+The original Android port was started by [Nochi](https://github.com/shikarunochi)
+(Twitter [@shikarunochi](https://x.com/shikarunochi)).
 Later Android-specific improvements were added by Medamap, along with Unity support
 and other bug fixes.
 
