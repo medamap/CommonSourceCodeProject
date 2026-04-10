@@ -1122,6 +1122,7 @@ const _TCHAR *DLL_PREFIX get_value_or_symbol(symbol_t *first_symbol, const _TCHA
 const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCHAR *format, uint32_t addr);
 
 #if defined(__ANDROID__)
+// orig20260101: repo-only Android text conversion helper.
 void convertUTF8fromSJIS(char *src,char *desc,int length);
 extern char documentDir[_MAX_PATH];
 #endif

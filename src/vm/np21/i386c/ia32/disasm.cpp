@@ -27,6 +27,11 @@
 #include "cpu.h"
 #include "inst_table.h"
 
+#if defined(_MSC_VER)
+#define IA32_SNPRINTF _snprintf
+#else
+#define IA32_SNPRINTF snprintf
+#endif
 
 /*
  * opcode strings
@@ -455,9 +460,9 @@ ea16(disasm_context_t *ctx, char *buf, size_t size)
 			if (rv)
 				return rv;
 
-			_snprintf(buf, size, "[0x%04x]", ctx->val);
+			IA32_SNPRINTF(buf, size, "[0x%04x]", ctx->val);
 		} else {
-			_snprintf(buf, size, "[%s]", ea16_str[rm]);
+			IA32_SNPRINTF(buf, size, "[%s]", ea16_str[rm]);
 		}
 	} else {
 		if (mod == 1) {
@@ -478,7 +483,7 @@ ea16(disasm_context_t *ctx, char *buf, size_t size)
 
 			val = ctx->val;
 		}
-		_snprintf(buf, size, "[%s + 0x%04x]", ea16_str[rm], val);
+		IA32_SNPRINTF(buf, size, "[%s + 0x%04x]", ea16_str[rm], val);
 	}
 
 	return 0;
@@ -572,7 +577,7 @@ ea32(disasm_context_t *ctx, char *buf, size_t size)
 				ncat(buf, " + ", size);
 			}
 			if (count[i] > 1) {
-				_snprintf(tmp, size, "%s * %d",
+				IA32_SNPRINTF(tmp, size, "%s * %d",
 				    reg32_str[i], count[i]);
 			} else {
 				ncpy(tmp, reg32_str[i], sizeof(tmp));
@@ -585,7 +590,7 @@ ea32(disasm_context_t *ctx, char *buf, size_t size)
 		if (n > 0) {
 			ncat(buf, " + ", size);
 		}
-		_snprintf(tmp, sizeof(tmp), "0x%08x", count[8]);
+		IA32_SNPRINTF(tmp, sizeof(tmp), "0x%08x", count[8]);
 		ncat(buf, tmp, size);
 	}
 	ncat(buf, "]", size);
@@ -622,7 +627,7 @@ ea(disasm_context_t *ctx)
 
 	ctx->arg[ctx->narg++] = ctx->next;
 	if (ctx->useseg) {
-		_snprintf(tmp, sizeof(tmp), "%s:", sreg_str[ctx->seg]);
+		IA32_SNPRINTF(tmp, sizeof(tmp), "%s:", sreg_str[ctx->seg]);
 		ncat(ctx->next, tmp, ctx->remain);
 	}
 	ncat(ctx->next, buf, ctx->remain);
@@ -829,31 +834,31 @@ cpu_disasm2str(UINT32 eip)
 
 		buf[0] = '\0';
 		for (i = 0; i < len; i++) {
-			_snprintf(tmp, sizeof(tmp), "%02x ", d.opbyte[i]);
+			IA32_SNPRINTF(tmp, sizeof(tmp), "%02x ", d.opbyte[i]);
 			ncat(buf, tmp, sizeof(buf));
 		}
 		for (; i < 8; i++) {
 			ncat(buf, "   ", sizeof(buf));
 		}
-		_snprintf(output, sizeof(output), "%04x:%08x: %s%s",
+		IA32_SNPRINTF(output, sizeof(output), "%04x:%08x: %s%s",
 		    CPU_CS, eip, buf, d.str);
 
 		if (i < d.nopbytes) {
 			char t[256];
 			buf[0] = '\0';
 			for (; i < d.nopbytes; i++) {
-				_snprintf(tmp, sizeof(tmp), "%02x ",
+				IA32_SNPRINTF(tmp, sizeof(tmp), "%02x ",
 				    d.opbyte[i]);
 				ncat(buf, tmp, sizeof(buf));
 				if ((i % 8) == 7) {
-					_snprintf(t, sizeof(t),
+					IA32_SNPRINTF(t, sizeof(t),
 					    "\n             : %s", buf);
 					ncat(output, t, sizeof(output));
 					buf[0] = '\0';
 				}
 			}
 			if ((i % 8) != 0) {
-				_snprintf(t, sizeof(t),
+				IA32_SNPRINTF(t, sizeof(t),
 				    "\n             : %s", buf);
 				ncat(output, t, sizeof(output));
 			}

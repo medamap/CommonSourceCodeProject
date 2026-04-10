@@ -384,6 +384,7 @@ int DLL_PREFIX my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *forma
 int DLL_PREFIX my_swprintf_s(wchar_t *buffer, size_t sizeOfBuffer, const wchar_t *format, ...)
 {
 #if defined(__ANDROID__)
+    // orig20260101: Android-only fallback currently disables wide formatting.
     //shikarunochi
 	return 0;
 #else
@@ -420,6 +421,7 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 {
 	size_t len1;
 #if defined(__ANDROID__)
+    // orig20260101: Android-specific alignment handling for the memcpy shim.
 	size_t len2;
 	uint32_t s_align = (uint32_t)(((size_t)src) & 0x1f);
 	uint32_t d_align = (uint32_t)(((size_t)dst) & 0x1f);
@@ -818,6 +820,9 @@ void DLL_PREFIX *my_memcpy(void *dst, void *src, size_t len)
 #endif
 
 #if defined (_Android)
+// orig20260101 start
+// Repo-only Android config manager shim. This is a candidate for moving out of
+// common later if Android persistence becomes front-end owned.
 
 class ConfigManager {
 private:
@@ -918,6 +923,7 @@ void replaceFilename(const char* lpFileName, char* tmp_path, size_t tmp_size, co
         //LOGI("tmp_path3: %s", tmp_path);
     }
 }
+// orig20260101 end
 #endif
 
 BOOL DLL_PREFIX MyWritePrivateProfileString(const char* lpAppName, const char* lpKeyName, const char* lpString, const char* lpFileName) {
@@ -1416,6 +1422,7 @@ const _TCHAR *DLL_PREFIX get_application_path()
 			my_tcscpy_s(app_path, _MAX_PATH, _T(".\\"));
 		}
 #elif defined(__ANDROID__)
+		// orig20260101: repo-side Android path handling; upstream diverges here.
 		//sprintf(app_path,"/sdcard/emulator/%sROM%s/",CONFIG_NAME, "");
 		sprintf(app_path,"%s/emulator/%sROM%s/", documentDir, CONFIG_NAME, "");
         LOGI("Path: %s", app_path);
@@ -1449,6 +1456,7 @@ const _TCHAR *DLL_PREFIX get_initial_current_path()
 		GetCurrentDirectory(_MAX_PATH, current_path);
 #else
 #if defined(__ANDROID__)
+        // orig20260101: repo-side Android current-path fallback.
         strncpy(current_path, "/", _MAX_PATH);
 #else
 		//getcwd(current_path, _MAX_PATH);
@@ -2020,6 +2028,9 @@ const _TCHAR *DLL_PREFIX get_value_and_symbol(symbol_t *first_symbol, const _TCH
 }
 
 #if defined(__ANDROID__)
+// orig20260101 start
+// Repo-specific SJIS->UTF-8 workaround for Android text handling.
+// Upstream 20260101 has no equivalent helper, so keep this isolated.
 //変換対応してるのは半角カナだけです。
 void convertUTF8fromSJIS(char *src,char *dest,int length){
     int srcIndex = 0;
@@ -2059,6 +2070,7 @@ void convertUTF8fromSJIS(char *src,char *dest,int length){
     }
 	dest[destIndex] = '\0';
 }
+// orig20260101 end
 
 
 /////// dummy
@@ -2076,4 +2088,3 @@ typedef struct font_s {
 	//HFONT hFont;
 } font_t;
 #endif
-

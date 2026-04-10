@@ -15,6 +15,7 @@
 #include "../i8255.h"
 #include "../../fifo.h"
 
+// orig20260101: repo-only TV remote control path.
 #define TVKEY_HACK_CH12_TO_COM
 //#define TVKEY_WIN_DEBUG
 //#define TVKEY_ANDROID_DEBUG
@@ -584,6 +585,7 @@ uint8_t PSUB::get_tvctrl_code(uint16_t x1_keycode, int win_code)
 				tv_code = 0x0F + 11;	// Ch.11
 				break;
 			case 0x6d: // VK_SUBTRACT
+// orig20260101: repo-specific TV key mapping tweak.
 #ifdef TVKEY_HACK_CH12_TO_COM
 				tv_code = 0x1D;	// COMPUTER
 #else
