@@ -29,7 +29,12 @@ if not exist "%FOLDERNAME%" (
 
 :: APKファイルを新しいフォルダにコピー
 :: 以下のパスはプロジェクトの構成により適宜調整
-copy "..\app\build\outputs\apk\%VARIANT%\debug\*.apk" "%FOLDERNAME%"
+for %%F in ("..\app\build\outputs\apk\%VARIANT%\debug\*.apk") do (
+    set APKNAME=%%~nF
+    if /I "!APKNAME:~0,4!"=="app-" set APKNAME=!APKNAME:~4!
+    copy "%%F" "%FOLDERNAME%\!APKNAME!.apk" >nul
+    if errorlevel 1 goto end
+)
 if %ERRORLEVEL% neq 0 goto end
 
 :end
